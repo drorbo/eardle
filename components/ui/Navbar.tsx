@@ -187,10 +187,11 @@ export function Navbar() {
     <nav className="sticky top-0 z-50 bg-gray-950/90 backdrop-blur border-b border-gray-800">
       <div className="bg-indigo-500/10 border-b border-indigo-500/20 text-center py-1.5 px-4">
         <p className="text-xs text-indigo-300">
-          Beta — we&apos;re still building.{" "}
+          We&apos;re in beta — please{" "}
           <Link href="/feedback" className="underline underline-offset-2 hover:text-indigo-200 transition-colors">
-            Share your feedback
+            share your feedback
           </Link>
+          {" "}and help us improve!
         </p>
       </div>
       <div className="max-w-6xl mx-auto px-6 flex items-center justify-between h-16">
