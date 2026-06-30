@@ -40,7 +40,7 @@ cd eardle
 cp .env.example .env
 nano .env   # fill in all values (see below)
 
-docker compose -f docker-compose.yml -f docker-compose.prod.yml up -d --build
+docker compose up -d --build
 
 # Seed the database (once)
 docker compose exec app npx tsx lib/db/seed.ts
@@ -66,8 +66,7 @@ ADMIN_PASSWORD=           # admin panel password
 ### Updates
 
 ```bash
-git pull
-docker compose -f docker-compose.yml -f docker-compose.prod.yml up -d --build
+git pull && docker compose up -d --build
 ```
 
 Data is stored in the `postgres_data` Docker volume and survives updates.
