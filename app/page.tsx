@@ -1,3 +1,5 @@
+export const dynamic = "force-dynamic";
+
 import { CategoryCard } from "@/components/ui/CategoryCard";
 import { Category } from "@/types/exercise";
 import { db } from "@/lib/db";
