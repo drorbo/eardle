@@ -208,7 +208,7 @@ export function ExercisePlayer({ exercise, nextHref, sessionToken, onAnswered }:
       {isAnswered && nextHref && (
         <a
           href={nextHref}
-          className="fixed top-[5.5rem] left-1/2 -translate-x-1/2 z-40 flex items-center gap-2 px-5 py-2 rounded-full bg-indigo-600 hover:bg-indigo-500 text-white font-semibold text-sm shadow-lg shadow-indigo-900/40 transition"
+          className="fixed top-[7rem] left-1/2 -translate-x-1/2 z-40 flex items-center gap-2 px-5 py-2 rounded-full bg-indigo-600 hover:bg-indigo-500 text-white font-semibold text-sm shadow-lg shadow-indigo-900/40 transition"
         >
           Next Exercise →
           <span className="hidden sm:inline text-xs opacity-60 font-normal">Enter / N</span>
