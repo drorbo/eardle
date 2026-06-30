@@ -2,6 +2,8 @@ services:
   app:
     ports: []
     restart: always
+    environment:
+      NEXTAUTH_URL: https://eardle.com
 
   caddy:
     image: caddy:2-alpine
