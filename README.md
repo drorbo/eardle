@@ -1,36 +1,107 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Eardle — Music Ear Training
 
-## Getting Started
+Interactive exercises to sharpen your musical hearing: notes, intervals, chords, progressions, and scales.
 
-First, run the development server:
+Live at **[eardle.com](https://eardle.com)**
+
+## Stack
+
+- **Next.js 16** (App Router, Turbopack) + TypeScript
+- **Drizzle ORM** + **PostgreSQL**
+- **Tone.js** — Salamander piano samples for audio playback
+- **NextAuth v5** — JWT sessions, Credentials + Google OAuth
+- **Tailwind CSS v4**
+- **Docker + Caddy** — containerized deployment with automatic SSL
+
+## Exercise categories
+
+| Category | Description |
+|----------|-------------|
+| Note ID | Identify individual pitches by ear |
+| Intervals | Recognize the distance between two notes |
+| Chords | Identify chord qualities, inversions |
+| Progressions | Hear and name common chord progressions |
+| Scales | Distinguish major, minor, modes, and more |
+
+## Production deployment
+
+### Prerequisites
+
+- Linux server with Docker installed (`curl -fsSL https://get.docker.com | sh`)
+- DNS A record: `eardle.com` → server IP
+- Ports 80 and 443 open in firewall
+
+### First-time setup
 
 ```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
+git clone https://github.com/drorbo/eardle.git
+cd eardle
+
+cp .env.example .env
+nano .env   # fill in all values (see below)
+
+docker compose -f docker-compose.yml -f docker-compose.prod.yml up -d --build
+
+# Seed the database (once)
+docker compose exec app npx tsx lib/db/seed.ts
+docker compose exec app npx tsx scripts/seed-intervals.ts
+docker compose exec app npx tsx scripts/seed-inversions.ts
+docker compose exec app npx tsx scripts/seed-progressions.ts
+docker compose exec app npx tsx scripts/seed-scales.ts
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+Caddy automatically obtains and renews the SSL certificate from Let's Encrypt.
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+### `.env` values
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+```env
+POSTGRES_PASSWORD=        # strong random password
+NEXTAUTH_SECRET=          # openssl rand -base64 32
+GOOGLE_CLIENT_ID=         # optional — leave blank to disable Google sign-in
+GOOGLE_CLIENT_SECRET=
+ADMIN_EMAIL=              # login email for the admin panel
+ADMIN_PASSWORD=           # admin panel password
+```
 
-## Learn More
+### Updates
 
-To learn more about Next.js, take a look at the following resources:
+```bash
+git pull
+docker compose -f docker-compose.yml -f docker-compose.prod.yml up -d --build
+```
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+Data is stored in the `postgres_data` Docker volume and survives updates.
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+## Local development
 
-## Deploy on Vercel
+```bash
+# Start PostgreSQL in Docker, run Next.js natively (faster hot reload)
+docker compose up db -d
+npm install
+npm run dev
+```
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+The dev server reads `.env.local`. Create it from `.env.example` and set:
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+```env
+DATABASE_URL=postgres://eardle:<password>@localhost:5433/eardle
+NEXTAUTH_SECRET=any-local-secret
+NEXTAUTH_URL=http://localhost:3000
+ADMIN_EMAIL=...
+ADMIN_PASSWORD=...
+```
+
+> Port 5433 on the host maps to 5432 inside the container (5432 is taken by Docker Desktop on Windows).
+
+On first run, push the schema and seed:
+
+```bash
+npx drizzle-kit push
+npx tsx lib/db/seed.ts
+```
+
+## Admin panel
+
+`/admin/login` — manage exercises, view counts, add/edit/delete.
+
+Credentials are seeded from `ADMIN_EMAIL` / `ADMIN_PASSWORD` in the env file.
