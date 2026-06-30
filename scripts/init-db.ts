@@ -1,33 +1,22 @@
 // Runs on every container start (via npm run start).
-// Seeds the database only if the exercises table is empty.
+// Exercises are pre-loaded by db/init.sql on first PostgreSQL boot.
+// This script only ensures the admin user exists.
 
+import { hashSync } from "bcryptjs";
 import { db, client } from "../lib/db";
-import { exercises } from "../lib/db/schema";
-import { sql } from "drizzle-orm";
-import { execSync } from "child_process";
+import { adminUsers } from "../lib/db/schema";
 
 async function main() {
-  const [{ count }] = await db
-    .select({ count: sql<number>`count(*)` })
-    .from(exercises);
+  const adminEmail = process.env.ADMIN_EMAIL ?? "admin@eardle.com";
+  const adminPassword = process.env.ADMIN_PASSWORD ?? "changeme123";
+  const passwordHash = hashSync(adminPassword, 10);
 
-  if (Number(count) > 0) {
-    console.log(`[init] ${count} exercises already in DB — skipping seed.`);
-    return;
-  }
+  await db
+    .insert(adminUsers)
+    .values({ email: adminEmail, passwordHash })
+    .onConflictDoNothing();
 
-  console.log("[init] Empty database — seeding...");
-  const scripts = [
-    "lib/db/seed.ts",
-    "scripts/seed-intervals.ts",
-    "scripts/seed-inversions.ts",
-    "scripts/seed-progressions.ts",
-    "scripts/seed-scales.ts",
-  ];
-  for (const s of scripts) {
-    execSync(`npx tsx ${s}`, { stdio: "inherit" });
-  }
-  console.log("[init] Done.");
+  console.log(`[init] Admin user ready: ${adminEmail}`);
 }
 
 main().catch(console.error).finally(() => client.end());
