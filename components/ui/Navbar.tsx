@@ -185,6 +185,14 @@ export function Navbar() {
 
   return (
     <nav className="sticky top-0 z-50 bg-gray-950/90 backdrop-blur border-b border-gray-800">
+      <div className="bg-amber-500/10 border-b border-amber-500/20 text-center py-1.5 px-4">
+        <p className="text-xs text-amber-300">
+          Beta — we&apos;re still building.{" "}
+          <Link href="/feedback" className="underline underline-offset-2 hover:text-amber-200 transition-colors">
+            Share your feedback
+          </Link>
+        </p>
+      </div>
       <div className="max-w-6xl mx-auto px-6 flex items-center justify-between h-16">
 
         {/* Left: logo + category icons */}
