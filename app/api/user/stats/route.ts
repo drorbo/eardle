@@ -21,7 +21,7 @@ export async function GET(req: NextRequest) {
     .select({
       category: exercises.category,
       total: sql<number>`count(*)`,
-      correct: sql<number>`sum(${sessions.correct})`,
+      correct: sql<number>`sum(${sessions.correct}::int)`,
       lastSeen: sql<number>`max(${sessions.createdAt})`,
     })
     .from(sessions)

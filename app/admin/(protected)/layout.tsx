@@ -12,13 +12,13 @@ async function getCounts() {
   const topicCounts = await db
     .select({
       category: exercisesTable.category,
-      topic: sql<string>`json_extract(${exercisesTable.config}, '$.topic')`,
+      topic: sql<string>`(${exercisesTable.config}::jsonb)->>'topic'`,
       count: sql<number>`count(*)`,
     })
     .from(exercisesTable)
     .groupBy(
       exercisesTable.category,
-      sql`json_extract(${exercisesTable.config}, '$.topic')`,
+      sql`(${exercisesTable.config}::jsonb)->>'topic'`,
     );
 
   return { categoryCounts, topicCounts };

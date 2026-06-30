@@ -1,12 +1,6 @@
-import Database from "better-sqlite3";
-import { drizzle } from "drizzle-orm/better-sqlite3";
 import { hashSync } from "bcryptjs";
+import { db, client } from "./index";
 import * as schema from "./schema";
-
-const sqlite = new Database("./eardle.db");
-sqlite.pragma("journal_mode = WAL");
-sqlite.pragma("foreign_keys = ON");
-const db = drizzle(sqlite, { schema });
 
 const ALL_NOTES = ["C", "C#", "D", "D#", "E", "F", "F#", "G", "G#", "A", "A#", "B"];
 const C_MAJOR_NOTES = ["C", "D", "E", "F", "G", "A", "B"];
@@ -35,12 +29,7 @@ const JAZZ_PROGRESSION_NAMES = [
 ];
 const JAZZ_SCALE_TYPES = ["Major", "Melodic Minor", "Lydian", "Lydian Dominant", "Altered", "Harmonic Minor", "Dorian"];
 
-// Easy: only C major notes, choices = C major notes only (7 options)
-// Medium: C major notes played; choices are computed client-side (C major + 3 session accidentals)
-//         stored in DB as ALL_NOTES so the client can override them
-// Hard: all 12 chromatic notes, choices = all 12
 const noteExercises = [
-  // Easy — C major notes only
   { title: "C — Natural", prompt: "What note is this?", difficulty: "easy" as const, config: JSON.stringify({ note: "C4" }), choices: JSON.stringify(C_MAJOR_NOTES), answer: "C" },
   { title: "D — Natural", prompt: "What note is this?", difficulty: "easy" as const, config: JSON.stringify({ note: "D4" }), choices: JSON.stringify(C_MAJOR_NOTES), answer: "D" },
   { title: "E — Natural", prompt: "What note is this?", difficulty: "easy" as const, config: JSON.stringify({ note: "E4" }), choices: JSON.stringify(C_MAJOR_NOTES), answer: "E" },
@@ -48,9 +37,6 @@ const noteExercises = [
   { title: "G — Natural", prompt: "What note is this?", difficulty: "easy" as const, config: JSON.stringify({ note: "G4" }), choices: JSON.stringify(C_MAJOR_NOTES), answer: "G" },
   { title: "A — Natural", prompt: "What note is this?", difficulty: "easy" as const, config: JSON.stringify({ note: "A4" }), choices: JSON.stringify(C_MAJOR_NOTES), answer: "A" },
   { title: "B — Natural", prompt: "What note is this?", difficulty: "easy" as const, config: JSON.stringify({ note: "B4" }), choices: JSON.stringify(C_MAJOR_NOTES), answer: "B" },
-
-  // Medium — C major notes played; choices (C major + 3 session accidentals) computed client-side.
-  // DB stores ALL_NOTES as a fallback; the wrapper overrides this for logged-in sessions.
   { title: "C — with accidentals", prompt: "What note is this?", difficulty: "medium" as const, config: JSON.stringify({ note: "C4" }), choices: JSON.stringify(ALL_NOTES), answer: "C" },
   { title: "D — with accidentals", prompt: "What note is this?", difficulty: "medium" as const, config: JSON.stringify({ note: "D4" }), choices: JSON.stringify(ALL_NOTES), answer: "D" },
   { title: "E — with accidentals", prompt: "What note is this?", difficulty: "medium" as const, config: JSON.stringify({ note: "E4" }), choices: JSON.stringify(ALL_NOTES), answer: "E" },
@@ -58,8 +44,6 @@ const noteExercises = [
   { title: "G — with accidentals", prompt: "What note is this?", difficulty: "medium" as const, config: JSON.stringify({ note: "G4" }), choices: JSON.stringify(ALL_NOTES), answer: "G" },
   { title: "A — with accidentals", prompt: "What note is this?", difficulty: "medium" as const, config: JSON.stringify({ note: "A4" }), choices: JSON.stringify(ALL_NOTES), answer: "A" },
   { title: "B — with accidentals", prompt: "What note is this?", difficulty: "medium" as const, config: JSON.stringify({ note: "B4" }), choices: JSON.stringify(ALL_NOTES), answer: "B" },
-
-  // Hard — all 12 chromatic notes, all 12 choices
   { title: "C# / D♭", prompt: "What note is this?", difficulty: "hard" as const, config: JSON.stringify({ note: "C#4" }), choices: JSON.stringify(ALL_NOTES), answer: "C#" },
   { title: "D# / E♭", prompt: "What note is this?", difficulty: "hard" as const, config: JSON.stringify({ note: "D#4" }), choices: JSON.stringify(ALL_NOTES), answer: "D#" },
   { title: "F# / G♭", prompt: "What note is this?", difficulty: "hard" as const, config: JSON.stringify({ note: "F#4" }), choices: JSON.stringify(ALL_NOTES), answer: "F#" },
@@ -124,7 +108,6 @@ const scaleExercises = [
 ];
 
 const jazzChordExercises = [
-  // ── Major family ─────────────────────────────────────────────────────────────
   { title: "Major 7th",                 prompt: "What type of chord is this?", difficulty: "jazz" as const, config: JSON.stringify({ type: "maj7",    family: "major" }), choices: JSON.stringify(JAZZ_MAJOR_CHOICES), answer: "Major 7th" },
   { title: "Major 9th",                 prompt: "What type of chord is this?", difficulty: "jazz" as const, config: JSON.stringify({ type: "maj9",    family: "major" }), choices: JSON.stringify(JAZZ_MAJOR_CHOICES), answer: "Major 9th" },
   { title: "Major 7th ♯11 (Lydian)",   prompt: "What type of chord is this?", difficulty: "jazz" as const, config: JSON.stringify({ type: "maj7s11", family: "major" }), choices: JSON.stringify(JAZZ_MAJOR_CHOICES), answer: "Major 7th #11" },
@@ -133,8 +116,6 @@ const jazzChordExercises = [
   { title: "Major 13th",                prompt: "What type of chord is this?", difficulty: "jazz" as const, config: JSON.stringify({ type: "maj13",   family: "major" }), choices: JSON.stringify(JAZZ_MAJOR_CHOICES), answer: "Major 13th" },
   { title: "Augmented Major 7th",       prompt: "What type of chord is this?", difficulty: "jazz" as const, config: JSON.stringify({ type: "augMaj7", family: "major" }), choices: JSON.stringify(JAZZ_MAJOR_CHOICES), answer: "Augmented Major 7th" },
   { title: "Major 9th ♯11",            prompt: "What type of chord is this?", difficulty: "jazz" as const, config: JSON.stringify({ type: "maj9s11", family: "major" }), choices: JSON.stringify(JAZZ_MAJOR_CHOICES), answer: "Major 9th #11" },
-
-  // ── Minor family ─────────────────────────────────────────────────────────────
   { title: "Minor 9th",                 prompt: "What type of chord is this?", difficulty: "jazz" as const, config: JSON.stringify({ type: "min9",    family: "minor" }), choices: JSON.stringify(JAZZ_MINOR_CHOICES), answer: "Minor 9th" },
   { title: "Minor 11th",                prompt: "What type of chord is this?", difficulty: "jazz" as const, config: JSON.stringify({ type: "min11",   family: "minor" }), choices: JSON.stringify(JAZZ_MINOR_CHOICES), answer: "Minor 11th" },
   { title: "Minor 13th",                prompt: "What type of chord is this?", difficulty: "jazz" as const, config: JSON.stringify({ type: "min13",   family: "minor" }), choices: JSON.stringify(JAZZ_MINOR_CHOICES), answer: "Minor 13th" },
@@ -142,8 +123,6 @@ const jazzChordExercises = [
   { title: "Minor-Major 9th",           prompt: "What type of chord is this?", difficulty: "jazz" as const, config: JSON.stringify({ type: "minMaj9", family: "minor" }), choices: JSON.stringify(JAZZ_MINOR_CHOICES), answer: "Minor-Major 9th" },
   { title: "Minor 6th",                 prompt: "What type of chord is this?", difficulty: "jazz" as const, config: JSON.stringify({ type: "min6",    family: "minor" }), choices: JSON.stringify(JAZZ_MINOR_CHOICES), answer: "Minor 6th" },
   { title: "Minor 7th",                 prompt: "What type of chord is this?", difficulty: "jazz" as const, config: JSON.stringify({ type: "min7",    family: "minor" }), choices: JSON.stringify(JAZZ_MINOR_CHOICES), answer: "Minor 7th" },
-
-  // ── Dominant (unaltered) family ───────────────────────────────────────────────
   { title: "Dominant 9th",              prompt: "What type of chord is this?", difficulty: "jazz" as const, config: JSON.stringify({ type: "dom9",     family: "dominant" }), choices: JSON.stringify(JAZZ_DOM_CHOICES), answer: "Dominant 9th" },
   { title: "Dominant 13th",             prompt: "What type of chord is this?", difficulty: "jazz" as const, config: JSON.stringify({ type: "dom13",    family: "dominant" }), choices: JSON.stringify(JAZZ_DOM_CHOICES), answer: "Dominant 13th" },
   { title: "Dominant 7th ♯11",         prompt: "What type of chord is this?", difficulty: "jazz" as const, config: JSON.stringify({ type: "dom7s11",  family: "dominant" }), choices: JSON.stringify(JAZZ_DOM_CHOICES), answer: "Dominant 7th #11" },
@@ -152,8 +131,6 @@ const jazzChordExercises = [
   { title: "Dominant 9th",             prompt: "What type of chord is this?", difficulty: "jazz" as const, config: JSON.stringify({ type: "dom9",     family: "dominant" }), choices: JSON.stringify(JAZZ_DOM_CHOICES), answer: "Dominant 9th" },
   { title: "Dominant 13th",            prompt: "What type of chord is this?", difficulty: "jazz" as const, config: JSON.stringify({ type: "dom13",    family: "dominant" }), choices: JSON.stringify(JAZZ_DOM_CHOICES), answer: "Dominant 13th" },
   { title: "Dominant 7th",             prompt: "What type of chord is this?", difficulty: "jazz" as const, config: JSON.stringify({ type: "dom7",     family: "dominant" }), choices: JSON.stringify(JAZZ_DOM_CHOICES), answer: "Dominant 7th" },
-
-  // ── Altered dominant family ───────────────────────────────────────────────────
   { title: "7♯9 (Hendrix Chord)",      prompt: "What type of chord is this?", difficulty: "jazz" as const, config: JSON.stringify({ type: "dom7s9",    family: "altered" }), choices: JSON.stringify(JAZZ_ALTERED_CHOICES), answer: "7♯9" },
   { title: "7♭9",                      prompt: "What type of chord is this?", difficulty: "jazz" as const, config: JSON.stringify({ type: "dom7b9",    family: "altered" }), choices: JSON.stringify(JAZZ_ALTERED_CHOICES), answer: "7♭9" },
   { title: "7♭13",                     prompt: "What type of chord is this?", difficulty: "jazz" as const, config: JSON.stringify({ type: "dom7b13",   family: "altered" }), choices: JSON.stringify(JAZZ_ALTERED_CHOICES), answer: "7♭13" },
@@ -163,16 +140,12 @@ const jazzChordExercises = [
   { title: "7♯9♯11",                  prompt: "What type of chord is this?", difficulty: "jazz" as const, config: JSON.stringify({ type: "dom7s9s11", family: "altered" }), choices: JSON.stringify(JAZZ_ALTERED_CHOICES), answer: "7♯9♯11" },
   { title: "Augmented 7th (7♯5)",      prompt: "What type of chord is this?", difficulty: "jazz" as const, config: JSON.stringify({ type: "dom7s5",    family: "altered" }), choices: JSON.stringify(JAZZ_ALTERED_CHOICES), answer: "Augmented 7th" },
   { title: "Dominant 7th ♭5",          prompt: "What type of chord is this?", difficulty: "jazz" as const, config: JSON.stringify({ type: "dom7b5",    family: "altered" }), choices: JSON.stringify(JAZZ_ALTERED_CHOICES), answer: "Dominant 7th ♭5" },
-
-  // ── Suspended family ──────────────────────────────────────────────────────────
   { title: "7sus4",                     prompt: "What type of chord is this?", difficulty: "jazz" as const, config: JSON.stringify({ type: "sus7",  family: "suspended" }), choices: JSON.stringify(JAZZ_SUS_CHOICES), answer: "7sus4" },
   { title: "9sus4",                     prompt: "What type of chord is this?", difficulty: "jazz" as const, config: JSON.stringify({ type: "sus9",  family: "suspended" }), choices: JSON.stringify(JAZZ_SUS_CHOICES), answer: "9sus4" },
   { title: "13sus4",                    prompt: "What type of chord is this?", difficulty: "jazz" as const, config: JSON.stringify({ type: "sus13", family: "suspended" }), choices: JSON.stringify(JAZZ_SUS_CHOICES), answer: "13sus4" },
   { title: "7sus4",                     prompt: "What type of chord is this?", difficulty: "jazz" as const, config: JSON.stringify({ type: "sus7",  family: "suspended" }), choices: JSON.stringify(JAZZ_SUS_CHOICES), answer: "7sus4" },
   { title: "9sus4",                     prompt: "What type of chord is this?", difficulty: "jazz" as const, config: JSON.stringify({ type: "sus9",  family: "suspended" }), choices: JSON.stringify(JAZZ_SUS_CHOICES), answer: "9sus4" },
   { title: "13sus4",                    prompt: "What type of chord is this?", difficulty: "jazz" as const, config: JSON.stringify({ type: "sus13", family: "suspended" }), choices: JSON.stringify(JAZZ_SUS_CHOICES), answer: "13sus4" },
-
-  // ── Diminished family ─────────────────────────────────────────────────────────
   { title: "Diminished 7th",            prompt: "What type of chord is this?", difficulty: "jazz" as const, config: JSON.stringify({ type: "dim7",   family: "diminished" }), choices: JSON.stringify(JAZZ_DIM_CHOICES), answer: "Diminished 7th" },
   { title: "Half-Diminished (m7♭5)",   prompt: "What type of chord is this?", difficulty: "jazz" as const, config: JSON.stringify({ type: "min7b5", family: "diminished" }), choices: JSON.stringify(JAZZ_DIM_CHOICES), answer: "Half-Diminished" },
   { title: "Diminished 7th",            prompt: "What type of chord is this?", difficulty: "jazz" as const, config: JSON.stringify({ type: "dim7",   family: "diminished" }), choices: JSON.stringify(JAZZ_DIM_CHOICES), answer: "Diminished 7th" },
@@ -193,46 +166,14 @@ const jazzScaleExercises = [
 ];
 
 const jazzProgressionExercises = [
-  {
-    title: "ii7 - V7 - Imaj7 in C", prompt: "What chord progression is this?", difficulty: "jazz" as const,
-    config: JSON.stringify({ key: "C", chords: [["D3","F3","A3","C4"],["G3","B3","D4","F4"],["C3","E3","G3","B3"]], romanNumerals: ["ii7","V7","Imaj7"], tempo: 80 }),
-    choices: JSON.stringify(JAZZ_PROGRESSION_NAMES), answer: "ii7 - V7 - Imaj7",
-  },
-  {
-    title: "Minor ii-V-i in Am", prompt: "What chord progression is this?", difficulty: "jazz" as const,
-    config: JSON.stringify({ key: "Am", chords: [["B3","D4","F4","A4"],["E3","G#3","B3","D4","F4"],["A3","C4","E4","G4"]], romanNumerals: ["iim7b5","V7b9","im7"], tempo: 76 }),
-    choices: JSON.stringify(JAZZ_PROGRESSION_NAMES), answer: "iim7b5 - V7b9 - im7",
-  },
-  {
-    title: "Rhythm Changes A in C", prompt: "What chord progression is this?", difficulty: "jazz" as const,
-    config: JSON.stringify({ key: "C", chords: [["C3","E3","G3","B3"],["A3","C#4","E4","G4"],["D3","F3","A3","C4"],["G3","B3","D4","F4"]], romanNumerals: ["Imaj7","VI7","ii7","V7"], tempo: 90 }),
-    choices: JSON.stringify(JAZZ_PROGRESSION_NAMES), answer: "Imaj7 - VI7 - ii7 - V7",
-  },
-  {
-    title: "Jazz Blues in G", prompt: "What chord progression is this?", difficulty: "jazz" as const,
-    config: JSON.stringify({ key: "G", chords: [["G3","B3","D4","F4"],["C3","E3","G3","A#3"],["G3","B3","D4","F4"],["D3","F#3","A3","C4"]], romanNumerals: ["I7","IV7","I7","V7"], tempo: 84 }),
-    choices: JSON.stringify(JAZZ_PROGRESSION_NAMES), answer: "I7 - IV7 - I7 - V7",
-  },
-  {
-    title: "Tritone Sub in C", prompt: "What chord progression is this?", difficulty: "jazz" as const,
-    config: JSON.stringify({ key: "C", chords: [["D3","F3","A3","C4"],["C#3","F3","G#3","B3"],["C3","E3","G3","B3"]], romanNumerals: ["ii7","bII7","Imaj7"], tempo: 72 }),
-    choices: JSON.stringify(JAZZ_PROGRESSION_NAMES), answer: "ii7 - bII7 - Imaj7",
-  },
-  {
-    title: "Diatonic Cycle in C", prompt: "What chord progression is this?", difficulty: "jazz" as const,
-    config: JSON.stringify({ key: "C", chords: [["E3","G3","B3","D4"],["A3","C#4","E4","G4"],["D3","F3","A3","C4"],["G3","B3","D4","F4"]], romanNumerals: ["iii7","VI7","ii7","V7"], tempo: 80 }),
-    choices: JSON.stringify(JAZZ_PROGRESSION_NAMES), answer: "iii7 - VI7 - ii7 - V7",
-  },
-  {
-    title: "Imaj7-IVmaj7-iii7-VI7 in C", prompt: "What chord progression is this?", difficulty: "jazz" as const,
-    config: JSON.stringify({ key: "C", chords: [["C3","E3","G3","B3"],["F3","A3","C4","E4"],["E3","G3","B3","D4"],["A3","C#4","E4","G4"]], romanNumerals: ["Imaj7","IVmaj7","iii7","VI7"], tempo: 76 }),
-    choices: JSON.stringify(JAZZ_PROGRESSION_NAMES), answer: "Imaj7 - IVmaj7 - iii7 - VI7",
-  },
-  {
-    title: "Minor Jazz Descent in Am", prompt: "What chord progression is this?", difficulty: "jazz" as const,
-    config: JSON.stringify({ key: "Am", chords: [["A3","C4","E4","G4"],["G3","B3","D4","F4"],["F3","A3","C4","E4"],["E3","G#3","B3","D4"]], romanNumerals: ["im7","bVII7","bVI7","V7"], tempo: 72 }),
-    choices: JSON.stringify(JAZZ_PROGRESSION_NAMES), answer: "im7 - bVII7 - bVI7 - V7",
-  },
+  { title: "ii7 - V7 - Imaj7 in C", prompt: "What chord progression is this?", difficulty: "jazz" as const, config: JSON.stringify({ key: "C", chords: [["D3","F3","A3","C4"],["G3","B3","D4","F4"],["C3","E3","G3","B3"]], romanNumerals: ["ii7","V7","Imaj7"], tempo: 80 }), choices: JSON.stringify(JAZZ_PROGRESSION_NAMES), answer: "ii7 - V7 - Imaj7" },
+  { title: "Minor ii-V-i in Am", prompt: "What chord progression is this?", difficulty: "jazz" as const, config: JSON.stringify({ key: "Am", chords: [["B3","D4","F4","A4"],["E3","G#3","B3","D4","F4"],["A3","C4","E4","G4"]], romanNumerals: ["iim7b5","V7b9","im7"], tempo: 76 }), choices: JSON.stringify(JAZZ_PROGRESSION_NAMES), answer: "iim7b5 - V7b9 - im7" },
+  { title: "Rhythm Changes A in C", prompt: "What chord progression is this?", difficulty: "jazz" as const, config: JSON.stringify({ key: "C", chords: [["C3","E3","G3","B3"],["A3","C#4","E4","G4"],["D3","F3","A3","C4"],["G3","B3","D4","F4"]], romanNumerals: ["Imaj7","VI7","ii7","V7"], tempo: 90 }), choices: JSON.stringify(JAZZ_PROGRESSION_NAMES), answer: "Imaj7 - VI7 - ii7 - V7" },
+  { title: "Jazz Blues in G", prompt: "What chord progression is this?", difficulty: "jazz" as const, config: JSON.stringify({ key: "G", chords: [["G3","B3","D4","F4"],["C3","E3","G3","A#3"],["G3","B3","D4","F4"],["D3","F#3","A3","C4"]], romanNumerals: ["I7","IV7","I7","V7"], tempo: 84 }), choices: JSON.stringify(JAZZ_PROGRESSION_NAMES), answer: "I7 - IV7 - I7 - V7" },
+  { title: "Tritone Sub in C", prompt: "What chord progression is this?", difficulty: "jazz" as const, config: JSON.stringify({ key: "C", chords: [["D3","F3","A3","C4"],["C#3","F3","G#3","B3"],["C3","E3","G3","B3"]], romanNumerals: ["ii7","bII7","Imaj7"], tempo: 72 }), choices: JSON.stringify(JAZZ_PROGRESSION_NAMES), answer: "ii7 - bII7 - Imaj7" },
+  { title: "Diatonic Cycle in C", prompt: "What chord progression is this?", difficulty: "jazz" as const, config: JSON.stringify({ key: "C", chords: [["E3","G3","B3","D4"],["A3","C#4","E4","G4"],["D3","F3","A3","C4"],["G3","B3","D4","F4"]], romanNumerals: ["iii7","VI7","ii7","V7"], tempo: 80 }), choices: JSON.stringify(JAZZ_PROGRESSION_NAMES), answer: "iii7 - VI7 - ii7 - V7" },
+  { title: "Imaj7-IVmaj7-iii7-VI7 in C", prompt: "What chord progression is this?", difficulty: "jazz" as const, config: JSON.stringify({ key: "C", chords: [["C3","E3","G3","B3"],["F3","A3","C4","E4"],["E3","G3","B3","D4"],["A3","C#4","E4","G4"]], romanNumerals: ["Imaj7","IVmaj7","iii7","VI7"], tempo: 76 }), choices: JSON.stringify(JAZZ_PROGRESSION_NAMES), answer: "Imaj7 - IVmaj7 - iii7 - VI7" },
+  { title: "Minor Jazz Descent in Am", prompt: "What chord progression is this?", difficulty: "jazz" as const, config: JSON.stringify({ key: "Am", chords: [["A3","C4","E4","G4"],["G3","B3","D4","F4"],["F3","A3","C4","E4"],["E3","G#3","B3","D4"]], romanNumerals: ["im7","bVII7","bVI7","V7"], tempo: 72 }), choices: JSON.stringify(JAZZ_PROGRESSION_NAMES), answer: "im7 - bVII7 - bVI7 - V7" },
 ];
 
 async function seed() {
@@ -249,6 +190,7 @@ async function seed() {
     ...jazzScaleExercises.map((e) => ({ ...e, category: "scale" as const })),
   ];
 
+  await db.delete(schema.exercises);
   await db.insert(schema.exercises).values(allExercises);
   console.log(`Inserted ${allExercises.length} exercises.`);
 
@@ -265,4 +207,4 @@ async function seed() {
   console.log("Done!");
 }
 
-seed().catch(console.error);
+seed().catch(console.error).finally(() => client.end());

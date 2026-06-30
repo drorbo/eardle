@@ -42,7 +42,7 @@ export default async function PracticePage({ params, searchParams }: Props) {
         and(
           eq(exercisesTable.category, cat),
           eq(exercisesTable.difficulty, "jazz" as Difficulty),
-          sql`json_extract(${exercisesTable.config}, '$.topic') = ${topic}`
+          sql`(${exercisesTable.config}::jsonb)->>'topic' = ${topic}`
         )
       );
     const difficultyOptions = jazzCnt > 0
@@ -79,7 +79,7 @@ export default async function PracticePage({ params, searchParams }: Props) {
     conditions.push(eq(exercisesTable.difficulty, difficulty as Difficulty));
   }
   if (topic) {
-    conditions.push(sql`json_extract(${exercisesTable.config}, '$.topic') = ${topic}`);
+    conditions.push(sql`(${exercisesTable.config}::jsonb)->>'topic' = ${topic}`);
   }
 
   let [next] = excludeIds.length

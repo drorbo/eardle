@@ -11,7 +11,7 @@ interface Props {
 async function getExercises(category?: string, topic?: string): Promise<Exercise[]> {
   const conditions = [];
   if (category) conditions.push(eq(exercisesTable.category, category as Category));
-  if (topic)    conditions.push(sql`json_extract(${exercisesTable.config}, '$.topic') = ${topic}`);
+  if (topic)    conditions.push(sql`(${exercisesTable.config}::jsonb)->>'topic' = ${topic}`);
 
   const rows = conditions.length
     ? await db.select().from(exercisesTable).where(and(...conditions)).orderBy(exercisesTable.id)
