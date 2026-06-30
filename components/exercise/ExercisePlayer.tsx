@@ -204,6 +204,17 @@ export function ExercisePlayer({ exercise, nextHref, sessionToken, onAnswered }:
 
   return (
     <div className="relative w-full">
+      {/* Floating Next button — fixed below navbar, always reachable without scrolling */}
+      {isAnswered && nextHref && (
+        <a
+          href={nextHref}
+          className="fixed top-[5.5rem] left-1/2 -translate-x-1/2 z-40 flex items-center gap-2 px-5 py-2 rounded-full bg-indigo-600 hover:bg-indigo-500 text-white font-semibold text-sm shadow-lg shadow-indigo-900/40 transition"
+        >
+          Next Exercise →
+          <span className="hidden sm:inline text-xs opacity-60 font-normal">Enter / N</span>
+        </a>
+      )}
+
       <div className="flex flex-col items-center gap-5 sm:gap-8 w-full max-w-xl mx-auto">
         <div className="text-center">
           <p className="text-gray-400 text-sm uppercase tracking-widest mb-2">
