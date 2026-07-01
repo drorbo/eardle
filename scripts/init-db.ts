@@ -39,7 +39,7 @@ async function main() {
   await db
     .insert(adminUsers)
     .values({ email: adminEmail, passwordHash })
-    .onConflictDoNothing();
+    .onConflictDoUpdate({ target: adminUsers.email, set: { passwordHash } });
 
   console.log(`[init] Admin user ready: ${adminEmail}`);
 }
