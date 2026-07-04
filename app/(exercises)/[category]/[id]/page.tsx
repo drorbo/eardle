@@ -47,10 +47,6 @@ export default async function ExercisePage({ params, searchParams }: Props) {
           <a href={`/${category}`} className="text-gray-500 hover:text-gray-300 text-sm transition">
             ← {CATEGORY_META[category as Category]?.label ?? category}
           </a>
-          <span className="text-gray-700">·</span>
-          <span className="text-xs px-2 py-1 rounded-full bg-gray-800 text-gray-400 capitalize">
-            {exercise.difficulty}
-          </span>
           {mode === "practice" && (
             <span className="text-xs px-2 py-1 rounded-full bg-indigo-900/60 text-indigo-300">
               Practice Mode

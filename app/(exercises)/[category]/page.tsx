@@ -144,18 +144,16 @@ export default async function CategoryPage({ params }: Props) {
               </a>
             )}
 
-            {cat === "interval" && (
-              <a
-                href={`/${cat}/practice/custom`}
-                className="flex items-center justify-between px-4 py-3 rounded-xl bg-violet-950/60 border border-violet-800/40 hover:bg-violet-900/40 hover:border-violet-700/60 transition"
-              >
-                <div className="flex items-baseline gap-2">
-                  <span className="text-violet-300 font-semibold text-sm">Custom Package</span>
-                  <span className="text-violet-500 text-xs">pick exactly which ones</span>
-                </div>
-                <span className="text-violet-600 text-sm">→</span>
-              </a>
-            )}
+            <a
+              href={`/${cat}/practice/custom`}
+              className="flex items-center justify-between px-4 py-3 rounded-xl bg-violet-950/60 border border-violet-800/40 hover:bg-violet-900/40 hover:border-violet-700/60 transition"
+            >
+              <div className="flex items-baseline gap-2">
+                <span className="text-violet-300 font-semibold text-sm">Custom Package</span>
+                <span className="text-violet-500 text-xs">pick exactly which ones</span>
+              </div>
+              <span className="text-violet-600 text-sm">→</span>
+            </a>
           </div>
         </section>
 

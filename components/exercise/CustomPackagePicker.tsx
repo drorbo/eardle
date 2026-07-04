@@ -2,7 +2,7 @@
 
 import { useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
-import { Category, Difficulty, Exercise } from "@/types/exercise";
+import { CATEGORY_TOPICS, Category, Difficulty, Exercise } from "@/types/exercise";
 
 const DIFFICULTY_ORDER: Difficulty[] = ["easy", "medium", "hard", "jazz"];
 const DIFFICULTY_LABEL: Record<Difficulty, string> = {
@@ -23,32 +23,67 @@ interface Props {
   exercises: Exercise[];
 }
 
+interface PickerItem {
+  key: string;
+  ids: number[];
+  title: string;
+  difficulty: Difficulty;
+  topicLabel?: string;
+}
+
+// Some categories seed intentional duplicate rows (identical title + config) to bias
+// random selection toward certain exercises. They're indistinguishable to the user, so
+// collapse them into a single checkbox that selects every underlying id together.
+function dedupeItems(exercises: Exercise[]): PickerItem[] {
+  const byKey = new Map<string, PickerItem>();
+  for (const e of exercises) {
+    const key = `${e.difficulty}|${e.title}|${JSON.stringify(e.config)}`;
+    const existing = byKey.get(key);
+    if (existing) {
+      existing.ids.push(e.id);
+    } else {
+      const topic = e.config.topic;
+      const topicLabel = topic
+        ? CATEGORY_TOPICS[e.category].find((t) => t.id === topic)?.label
+        : undefined;
+      byKey.set(key, { key, ids: [e.id], title: e.title, difficulty: e.difficulty, topicLabel });
+    }
+  }
+  return [...byKey.values()];
+}
+
 export function CustomPackagePicker({ category, exercises }: Props) {
   const router = useRouter();
   const [selected, setSelected] = useState<Set<number>>(new Set());
 
   const groups = useMemo(() => {
+    const items = dedupeItems(exercises);
     return DIFFICULTY_ORDER
-      .map((d) => ({ difficulty: d, items: exercises.filter((e) => e.difficulty === d) }))
+      .map((d) => ({ difficulty: d, items: items.filter((i) => i.difficulty === d) }))
       .filter((g) => g.items.length > 0);
   }, [exercises]);
 
-  function toggle(id: number) {
+  function toggle(item: PickerItem) {
+    const isSelected = item.ids.every((id) => selected.has(id));
     setSelected((prev) => {
       const next = new Set(prev);
-      if (next.has(id)) next.delete(id);
-      else next.add(id);
+      for (const id of item.ids) {
+        if (isSelected) next.delete(id);
+        else next.add(id);
+      }
       return next;
     });
   }
 
-  function toggleGroup(items: Exercise[]) {
-    const allSelected = items.every((e) => selected.has(e.id));
+  function toggleGroup(items: PickerItem[]) {
+    const allSelected = items.every((i) => i.ids.every((id) => selected.has(id)));
     setSelected((prev) => {
       const next = new Set(prev);
-      for (const e of items) {
-        if (allSelected) next.delete(e.id);
-        else next.add(e.id);
+      for (const item of items) {
+        for (const id of item.ids) {
+          if (allSelected) next.delete(id);
+          else next.add(id);
+        }
       }
       return next;
     });
@@ -63,7 +98,7 @@ export function CustomPackagePicker({ category, exercises }: Props) {
     <div className="mt-6">
       <div className="space-y-6">
         {groups.map(({ difficulty, items }) => {
-          const allSelected = items.every((e) => selected.has(e.id));
+          const allSelected = items.every((i) => i.ids.every((id) => selected.has(id)));
           return (
             <section key={difficulty}>
               <div className="flex items-center justify-between mb-2">
@@ -78,24 +113,32 @@ export function CustomPackagePicker({ category, exercises }: Props) {
                 </button>
               </div>
               <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
-                {items.map((e) => (
-                  <label
-                    key={e.id}
-                    className={`flex items-center gap-2 px-3 py-2 rounded-lg border cursor-pointer transition ${
-                      selected.has(e.id)
-                        ? "bg-indigo-950/60 border-indigo-700/60 text-white"
-                        : "bg-gray-800/50 border-gray-700/40 text-gray-300 hover:border-gray-600"
-                    }`}
-                  >
-                    <input
-                      type="checkbox"
-                      checked={selected.has(e.id)}
-                      onChange={() => toggle(e.id)}
-                      className="accent-indigo-500"
-                    />
-                    <span className="text-sm">{e.title}</span>
-                  </label>
-                ))}
+                {items.map((item) => {
+                  const checked = item.ids.every((id) => selected.has(id));
+                  return (
+                    <label
+                      key={item.key}
+                      className={`flex items-center gap-2 px-3 py-2 rounded-lg border cursor-pointer transition ${
+                        checked
+                          ? "bg-indigo-950/60 border-indigo-700/60 text-white"
+                          : "bg-gray-800/50 border-gray-700/40 text-gray-300 hover:border-gray-600"
+                      }`}
+                    >
+                      <input
+                        type="checkbox"
+                        checked={checked}
+                        onChange={() => toggle(item)}
+                        className="accent-indigo-500"
+                      />
+                      <span className="flex flex-col">
+                        <span className="text-sm">{item.title}</span>
+                        {item.topicLabel && (
+                          <span className="text-[11px] text-gray-500">{item.topicLabel}</span>
+                        )}
+                      </span>
+                    </label>
+                  );
+                })}
               </div>
             </section>
           );
