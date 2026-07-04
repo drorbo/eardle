@@ -113,6 +113,16 @@ function SidebarInner({ categoryCounts, topicCounts }: Props) {
       {/* Bottom */}
       <div className="border-t border-gray-800 p-2 space-y-0.5">
         <Link
+          href="/admin/stats"
+          className={`flex items-center justify-between px-3 py-2 rounded-lg text-xs transition ${
+            pathname === "/admin/stats"
+              ? "bg-gray-700 text-white"
+              : "text-gray-400 hover:text-white hover:bg-gray-800"
+          }`}
+        >
+          📊 Stats
+        </Link>
+        <Link
           href="/admin/feedback"
           className={`flex items-center justify-between px-3 py-2 rounded-lg text-xs transition ${
             pathname === "/admin/feedback"
