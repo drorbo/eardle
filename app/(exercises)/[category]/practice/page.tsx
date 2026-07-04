@@ -2,11 +2,11 @@ import { notFound, redirect } from "next/navigation";
 import { CATEGORY_META, CATEGORY_TOPICS, Category, Difficulty } from "@/types/exercise";
 import { db } from "@/lib/db";
 import { exercises as exercisesTable } from "@/lib/db/schema";
-import { and, eq, sql, notInArray } from "drizzle-orm";
+import { and, eq, sql, notInArray, inArray } from "drizzle-orm";
 
 interface Props {
   params: Promise<{ category: string }>;
-  searchParams: Promise<{ difficulty?: string; topic?: string; exclude?: string }>;
+  searchParams: Promise<{ difficulty?: string; topic?: string; exclude?: string; ids?: string }>;
 }
 
 const DIFFICULTY_OPTIONS = [
@@ -19,19 +19,21 @@ const DIFFICULTY_OPTIONS = [
 
 export default async function PracticePage({ params, searchParams }: Props) {
   const { category } = await params;
-  const { difficulty, topic, exclude } = await searchParams;
+  const { difficulty, topic, exclude, ids } = await searchParams;
 
   if (!CATEGORY_META[category as Category]) notFound();
   const cat = category as Category;
   const meta = CATEGORY_META[cat];
 
-  // No difficulty AND no topic → send back to category page
-  if (!difficulty && !topic) {
+  const idsList = ids?.split(",").map(Number).filter(Boolean) ?? [];
+
+  // No difficulty, no topic, no custom id list → send back to category page
+  if (!difficulty && !topic && !idsList.length) {
     redirect(`/${cat}`);
   }
 
-  // Topic set but no difficulty → show difficulty sub-picker for this topic
-  if (topic && !difficulty) {
+  // Topic set but no difficulty (and no custom id list) → show difficulty sub-picker for this topic
+  if (topic && !difficulty && !idsList.length) {
     const topicMeta = CATEGORY_TOPICS[cat].find((t) => t.id === topic);
     const topicLabel = topicMeta?.label ?? topic;
 
@@ -71,15 +73,20 @@ export default async function PracticePage({ params, searchParams }: Props) {
     );
   }
 
-  // difficulty is set (topic optional) → pick a random exercise
+  // difficulty is set (topic optional), or a custom id list is set → pick a random exercise
   const excludeIds = exclude?.split(",").map(Number).filter(Boolean) ?? [];
 
   const conditions = [eq(exercisesTable.category, cat)];
-  if (difficulty !== "all") {
-    conditions.push(eq(exercisesTable.difficulty, difficulty as Difficulty));
-  }
-  if (topic) {
-    conditions.push(sql`(${exercisesTable.config}::jsonb)->>'topic' = ${topic}`);
+  if (idsList.length) {
+    // Custom package: the chosen id list fully determines the pool — difficulty/topic don't apply.
+    conditions.push(inArray(exercisesTable.id, idsList));
+  } else {
+    if (difficulty !== "all") {
+      conditions.push(eq(exercisesTable.difficulty, difficulty as Difficulty));
+    }
+    if (topic) {
+      conditions.push(sql`(${exercisesTable.config}::jsonb)->>'topic' = ${topic}`);
+    }
   }
 
   let [next] = excludeIds.length
@@ -89,6 +96,11 @@ export default async function PracticePage({ params, searchParams }: Props) {
   if (!next) {
     // All seen — reset and start fresh
     [next] = await db.select().from(exercisesTable).where(and(...conditions)).orderBy(sql`RANDOM()`).limit(1);
+  }
+
+  if (!next && idsList.length) {
+    // Stale/invalid custom id list (e.g. tampered URL) — send back to the picker
+    redirect(`/${cat}/practice/custom`);
   }
 
   if (!next) {
@@ -121,6 +133,7 @@ export default async function PracticePage({ params, searchParams }: Props) {
   const newExcludeIds = excludeIds.includes(next.id) ? [next.id] : [...excludeIds, next.id];
   const excludeParam = newExcludeIds.join(",");
   const topicParam = topic ? `&topic=${topic}` : "";
+  const idsParam = idsList.length ? `&ids=${idsList.join(",")}` : "";
 
-  redirect(`/${cat}/${next.id}?mode=practice&difficulty=${difficulty}&practiceExclude=${excludeParam}${topicParam}`);
+  redirect(`/${cat}/${next.id}?mode=practice&difficulty=${difficulty ?? "all"}&practiceExclude=${excludeParam}${topicParam}${idsParam}`);
 }

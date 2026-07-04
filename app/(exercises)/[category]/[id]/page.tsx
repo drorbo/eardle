@@ -8,12 +8,12 @@ import { eq, and, sql, ne } from "drizzle-orm";
 
 interface Props {
   params: Promise<{ category: string; id: string }>;
-  searchParams: Promise<{ mode?: string; difficulty?: string; practiceExclude?: string; topic?: string }>;
+  searchParams: Promise<{ mode?: string; difficulty?: string; practiceExclude?: string; topic?: string; ids?: string }>;
 }
 
 export default async function ExercisePage({ params, searchParams }: Props) {
   const { category, id } = await params;
-  const { mode, difficulty, practiceExclude, topic } = await searchParams;
+  const { mode, difficulty, practiceExclude, topic, ids } = await searchParams;
 
   if (!CATEGORY_META[category as Category]) notFound();
 
@@ -28,7 +28,8 @@ export default async function ExercisePage({ params, searchParams }: Props) {
   if (mode === "practice") {
     const excludeParam = practiceExclude ?? id;
     const topicParam = topic ? `&topic=${topic}` : "";
-    nextHref = `/${category}/practice?difficulty=${difficulty ?? "all"}&exclude=${excludeParam}${topicParam}`;
+    const idsParam = ids ? `&ids=${ids}` : "";
+    nextHref = `/${category}/practice?difficulty=${difficulty ?? "all"}&exclude=${excludeParam}${topicParam}${idsParam}`;
   } else {
     // Browse mode: random exercise from same category, excluding current
     const [randomNext] = await db.select({ id: exercisesTable.id })

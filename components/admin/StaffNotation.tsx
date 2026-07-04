@@ -58,7 +58,7 @@ export function StaffNotation({ exercise }: { exercise: Exercise }) {
         switch (exercise.category) {
           case "note": {
             const c = exercise.config as NoteConfig;
-            drawMeasure(10, W - 20, [mkNote([c.note], "w")], true);
+            drawMeasure(10, W - 20, [mkNote([`${c.note}4`], "w")], true);
             break;
           }
 

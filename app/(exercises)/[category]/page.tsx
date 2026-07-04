@@ -18,8 +18,8 @@ const DIFFICULTIES = [
 const DIFF_DESC: Record<Category, Partial<Record<string, string>>> = {
   note: {
     easy:   "The 7 natural notes — C D E F G A B",
-    medium: "Each note tested alongside its neighboring accidentals",
-    hard:   "Pure sharps & flats (C#, E♭, G#…) and extreme registers",
+    medium: "The 7 natural notes, spread across 3 octaves",
+    hard:   "All 12 notes — naturals and accidentals — across 3 octaves",
   },
   interval: {
     easy:   "Unison through perfect 5th — P1 to P5",
@@ -131,16 +131,31 @@ export default async function CategoryPage({ params }: Props) {
               </a>
             ))}
 
-            <a
-              href={`/${cat}/practice?difficulty=all`}
-              className="flex items-center justify-between px-4 py-3 rounded-xl bg-indigo-950/60 border border-indigo-800/40 hover:bg-indigo-900/40 hover:border-indigo-700/60 transition"
-            >
-              <div className="flex items-baseline gap-2">
-                <span className="text-indigo-300 font-semibold text-sm">All Levels</span>
-                <span className="text-indigo-500 text-xs">shuffle everything</span>
-              </div>
-              <span className="text-indigo-600 text-sm">→</span>
-            </a>
+            {cat !== "note" && (
+              <a
+                href={`/${cat}/practice?difficulty=all`}
+                className="flex items-center justify-between px-4 py-3 rounded-xl bg-indigo-950/60 border border-indigo-800/40 hover:bg-indigo-900/40 hover:border-indigo-700/60 transition"
+              >
+                <div className="flex items-baseline gap-2">
+                  <span className="text-indigo-300 font-semibold text-sm">All Levels</span>
+                  <span className="text-indigo-500 text-xs">shuffle everything</span>
+                </div>
+                <span className="text-indigo-600 text-sm">→</span>
+              </a>
+            )}
+
+            {cat === "interval" && (
+              <a
+                href={`/${cat}/practice/custom`}
+                className="flex items-center justify-between px-4 py-3 rounded-xl bg-violet-950/60 border border-violet-800/40 hover:bg-violet-900/40 hover:border-violet-700/60 transition"
+              >
+                <div className="flex items-baseline gap-2">
+                  <span className="text-violet-300 font-semibold text-sm">Custom Package</span>
+                  <span className="text-violet-500 text-xs">pick exactly which ones</span>
+                </div>
+                <span className="text-violet-600 text-sm">→</span>
+              </a>
+            )}
           </div>
         </section>
 

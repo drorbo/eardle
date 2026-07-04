@@ -1,5 +1,17 @@
 "use client";
 
+const FLAT_EQUIVALENT: Record<string, string> = {
+  "C#": "C# / D♭",
+  "D#": "D# / E♭",
+  "F#": "F# / G♭",
+  "G#": "G# / A♭",
+  "A#": "A# / B♭",
+};
+
+function displayLabel(choice: string): string {
+  return FLAT_EQUIVALENT[choice] ?? choice;
+}
+
 interface ChoiceGridProps {
   choices: string[];
   selected?: string;
@@ -37,7 +49,7 @@ export function ChoiceGrid({ choices, selected, answer, disabled, onSelect, cols
           key={choice}
           onClick={() => !disabled && onSelect(choice)}
           disabled={disabled}
-          aria-label={`Choice ${i + 1}: ${choice}`}
+          aria-label={`Choice ${i + 1}: ${displayLabel(choice)}`}
           className={`
             relative px-3 py-3 sm:py-2 rounded-lg border text-sm font-medium
             transition-all duration-150 active:scale-[0.97]
@@ -49,7 +61,7 @@ export function ChoiceGrid({ choices, selected, answer, disabled, onSelect, cols
           {i < 9 && (
             <span className="hidden sm:inline text-xs font-bold opacity-40 mr-1">{i + 1}</span>
           )}
-          {choice}
+          {displayLabel(choice)}
         </button>
       ))}
     </div>

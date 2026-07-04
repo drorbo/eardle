@@ -68,27 +68,32 @@ ALTER TABLE "sessions" ADD CONSTRAINT "sessions_user_id_users_id_fk" FOREIGN KEY
 
 -- Exercise seed data
 
-INSERT INTO public.exercises VALUES (314, 'note', 'C — Natural', 'What note is this?', 'easy', '{"note":"C4"}', '["C","D","E","F","G","A","B"]', 'C', 1782855320, 1782855320);
-INSERT INTO public.exercises VALUES (315, 'note', 'D — Natural', 'What note is this?', 'easy', '{"note":"D4"}', '["C","D","E","F","G","A","B"]', 'D', 1782855320, 1782855320);
-INSERT INTO public.exercises VALUES (316, 'note', 'E — Natural', 'What note is this?', 'easy', '{"note":"E4"}', '["C","D","E","F","G","A","B"]', 'E', 1782855320, 1782855320);
-INSERT INTO public.exercises VALUES (317, 'note', 'F — Natural', 'What note is this?', 'easy', '{"note":"F4"}', '["C","D","E","F","G","A","B"]', 'F', 1782855320, 1782855320);
-INSERT INTO public.exercises VALUES (318, 'note', 'G — Natural', 'What note is this?', 'easy', '{"note":"G4"}', '["C","D","E","F","G","A","B"]', 'G', 1782855320, 1782855320);
-INSERT INTO public.exercises VALUES (319, 'note', 'A — Natural', 'What note is this?', 'easy', '{"note":"A4"}', '["C","D","E","F","G","A","B"]', 'A', 1782855320, 1782855320);
-INSERT INTO public.exercises VALUES (320, 'note', 'B — Natural', 'What note is this?', 'easy', '{"note":"B4"}', '["C","D","E","F","G","A","B"]', 'B', 1782855320, 1782855320);
-INSERT INTO public.exercises VALUES (321, 'note', 'C — with accidentals', 'What note is this?', 'medium', '{"note":"C4"}', '["C","C#","D","D#","E","F","F#","G","G#","A","A#","B"]', 'C', 1782855320, 1782855320);
-INSERT INTO public.exercises VALUES (322, 'note', 'D — with accidentals', 'What note is this?', 'medium', '{"note":"D4"}', '["C","C#","D","D#","E","F","F#","G","G#","A","A#","B"]', 'D', 1782855320, 1782855320);
-INSERT INTO public.exercises VALUES (323, 'note', 'E — with accidentals', 'What note is this?', 'medium', '{"note":"E4"}', '["C","C#","D","D#","E","F","F#","G","G#","A","A#","B"]', 'E', 1782855320, 1782855320);
-INSERT INTO public.exercises VALUES (324, 'note', 'F — with accidentals', 'What note is this?', 'medium', '{"note":"F4"}', '["C","C#","D","D#","E","F","F#","G","G#","A","A#","B"]', 'F', 1782855320, 1782855320);
-INSERT INTO public.exercises VALUES (325, 'note', 'G — with accidentals', 'What note is this?', 'medium', '{"note":"G4"}', '["C","C#","D","D#","E","F","F#","G","G#","A","A#","B"]', 'G', 1782855320, 1782855320);
-INSERT INTO public.exercises VALUES (326, 'note', 'A — with accidentals', 'What note is this?', 'medium', '{"note":"A4"}', '["C","C#","D","D#","E","F","F#","G","G#","A","A#","B"]', 'A', 1782855320, 1782855320);
-INSERT INTO public.exercises VALUES (327, 'note', 'B — with accidentals', 'What note is this?', 'medium', '{"note":"B4"}', '["C","C#","D","D#","E","F","F#","G","G#","A","A#","B"]', 'B', 1782855320, 1782855320);
-INSERT INTO public.exercises VALUES (328, 'note', 'C# / D♭', 'What note is this?', 'hard', '{"note":"C#4"}', '["C","C#","D","D#","E","F","F#","G","G#","A","A#","B"]', 'C#', 1782855320, 1782855320);
-INSERT INTO public.exercises VALUES (329, 'note', 'D# / E♭', 'What note is this?', 'hard', '{"note":"D#4"}', '["C","C#","D","D#","E","F","F#","G","G#","A","A#","B"]', 'D#', 1782855320, 1782855320);
-INSERT INTO public.exercises VALUES (330, 'note', 'F# / G♭', 'What note is this?', 'hard', '{"note":"F#4"}', '["C","C#","D","D#","E","F","F#","G","G#","A","A#","B"]', 'F#', 1782855320, 1782855320);
-INSERT INTO public.exercises VALUES (331, 'note', 'G# / A♭', 'What note is this?', 'hard', '{"note":"G#4"}', '["C","C#","D","D#","E","F","F#","G","G#","A","A#","B"]', 'G#', 1782855320, 1782855320);
-INSERT INTO public.exercises VALUES (332, 'note', 'A# / B♭', 'What note is this?', 'hard', '{"note":"A#4"}', '["C","C#","D","D#","E","F","F#","G","G#","A","A#","B"]', 'A#', 1782855320, 1782855320);
-INSERT INTO public.exercises VALUES (333, 'note', 'C — low register', 'What note is this?', 'hard', '{"note":"C3"}', '["C","C#","D","D#","E","F","F#","G","G#","A","A#","B"]', 'C', 1782855320, 1782855320);
-INSERT INTO public.exercises VALUES (334, 'note', 'G — high register', 'What note is this?', 'hard', '{"note":"G5"}', '["C","C#","D","D#","E","F","F#","G","G#","A","A#","B"]', 'G', 1782855320, 1782855320);
+INSERT INTO public.exercises VALUES (314, 'note', 'C — Natural', 'What note is this?', 'easy', '{"note":"C"}', '["C","D","E","F","G","A","B"]', 'C', 1782855320, 1782855320);
+INSERT INTO public.exercises VALUES (315, 'note', 'D — Natural', 'What note is this?', 'easy', '{"note":"D"}', '["C","D","E","F","G","A","B"]', 'D', 1782855320, 1782855320);
+INSERT INTO public.exercises VALUES (316, 'note', 'E — Natural', 'What note is this?', 'easy', '{"note":"E"}', '["C","D","E","F","G","A","B"]', 'E', 1782855320, 1782855320);
+INSERT INTO public.exercises VALUES (317, 'note', 'F — Natural', 'What note is this?', 'easy', '{"note":"F"}', '["C","D","E","F","G","A","B"]', 'F', 1782855320, 1782855320);
+INSERT INTO public.exercises VALUES (318, 'note', 'G — Natural', 'What note is this?', 'easy', '{"note":"G"}', '["C","D","E","F","G","A","B"]', 'G', 1782855320, 1782855320);
+INSERT INTO public.exercises VALUES (319, 'note', 'A — Natural', 'What note is this?', 'easy', '{"note":"A"}', '["C","D","E","F","G","A","B"]', 'A', 1782855320, 1782855320);
+INSERT INTO public.exercises VALUES (320, 'note', 'B — Natural', 'What note is this?', 'easy', '{"note":"B"}', '["C","D","E","F","G","A","B"]', 'B', 1782855320, 1782855320);
+INSERT INTO public.exercises VALUES (321, 'note', 'C — 3 octaves', 'What note is this?', 'medium', '{"note":"C"}', '["C","D","E","F","G","A","B"]', 'C', 1782855320, 1782855320);
+INSERT INTO public.exercises VALUES (322, 'note', 'D — 3 octaves', 'What note is this?', 'medium', '{"note":"D"}', '["C","D","E","F","G","A","B"]', 'D', 1782855320, 1782855320);
+INSERT INTO public.exercises VALUES (323, 'note', 'E — 3 octaves', 'What note is this?', 'medium', '{"note":"E"}', '["C","D","E","F","G","A","B"]', 'E', 1782855320, 1782855320);
+INSERT INTO public.exercises VALUES (324, 'note', 'F — 3 octaves', 'What note is this?', 'medium', '{"note":"F"}', '["C","D","E","F","G","A","B"]', 'F', 1782855320, 1782855320);
+INSERT INTO public.exercises VALUES (325, 'note', 'G — 3 octaves', 'What note is this?', 'medium', '{"note":"G"}', '["C","D","E","F","G","A","B"]', 'G', 1782855320, 1782855320);
+INSERT INTO public.exercises VALUES (326, 'note', 'A — 3 octaves', 'What note is this?', 'medium', '{"note":"A"}', '["C","D","E","F","G","A","B"]', 'A', 1782855320, 1782855320);
+INSERT INTO public.exercises VALUES (327, 'note', 'B — 3 octaves', 'What note is this?', 'medium', '{"note":"B"}', '["C","D","E","F","G","A","B"]', 'B', 1782855320, 1782855320);
+INSERT INTO public.exercises VALUES (328, 'note', 'C# / D♭', 'What note is this?', 'hard', '{"note":"C#"}', '["C","C#","D","D#","E","F","F#","G","G#","A","A#","B"]', 'C#', 1782855320, 1782855320);
+INSERT INTO public.exercises VALUES (329, 'note', 'D# / E♭', 'What note is this?', 'hard', '{"note":"D#"}', '["C","C#","D","D#","E","F","F#","G","G#","A","A#","B"]', 'D#', 1782855320, 1782855320);
+INSERT INTO public.exercises VALUES (330, 'note', 'F# / G♭', 'What note is this?', 'hard', '{"note":"F#"}', '["C","C#","D","D#","E","F","F#","G","G#","A","A#","B"]', 'F#', 1782855320, 1782855320);
+INSERT INTO public.exercises VALUES (331, 'note', 'G# / A♭', 'What note is this?', 'hard', '{"note":"G#"}', '["C","C#","D","D#","E","F","F#","G","G#","A","A#","B"]', 'G#', 1782855320, 1782855320);
+INSERT INTO public.exercises VALUES (332, 'note', 'A# / B♭', 'What note is this?', 'hard', '{"note":"A#"}', '["C","C#","D","D#","E","F","F#","G","G#","A","A#","B"]', 'A#', 1782855320, 1782855320);
+INSERT INTO public.exercises VALUES (333, 'note', 'C', 'What note is this?', 'hard', '{"note":"C"}', '["C","C#","D","D#","E","F","F#","G","G#","A","A#","B"]', 'C', 1782855320, 1782855320);
+INSERT INTO public.exercises VALUES (334, 'note', 'G', 'What note is this?', 'hard', '{"note":"G"}', '["C","C#","D","D#","E","F","F#","G","G#","A","A#","B"]', 'G', 1782855320, 1782855320);
+INSERT INTO public.exercises VALUES (504, 'note', 'D', 'What note is this?', 'hard', '{"note":"D"}', '["C","C#","D","D#","E","F","F#","G","G#","A","A#","B"]', 'D', 1782855320, 1782855320);
+INSERT INTO public.exercises VALUES (505, 'note', 'E', 'What note is this?', 'hard', '{"note":"E"}', '["C","C#","D","D#","E","F","F#","G","G#","A","A#","B"]', 'E', 1782855320, 1782855320);
+INSERT INTO public.exercises VALUES (506, 'note', 'F', 'What note is this?', 'hard', '{"note":"F"}', '["C","C#","D","D#","E","F","F#","G","G#","A","A#","B"]', 'F', 1782855320, 1782855320);
+INSERT INTO public.exercises VALUES (507, 'note', 'A', 'What note is this?', 'hard', '{"note":"A"}', '["C","C#","D","D#","E","F","F#","G","G#","A","A#","B"]', 'A', 1782855320, 1782855320);
+INSERT INTO public.exercises VALUES (508, 'note', 'B', 'What note is this?', 'hard', '{"note":"B"}', '["C","C#","D","D#","E","F","F#","G","G#","A","A#","B"]', 'B', 1782855320, 1782855320);
 INSERT INTO public.exercises VALUES (347, 'chord', 'Major Chord', 'What type of chord is this?', 'easy', '{"type":"major"}', '["Major","Minor","Dominant 7th","Major 7th","Diminished","Augmented"]', 'Major', 1782855320, 1782855320);
 INSERT INTO public.exercises VALUES (348, 'chord', 'Minor Chord', 'What type of chord is this?', 'easy', '{"type":"minor"}', '["Major","Minor","Dominant 7th","Major 7th","Diminished","Augmented"]', 'Minor', 1782855320, 1782855320);
 INSERT INTO public.exercises VALUES (349, 'chord', 'Major Chord', 'What type of chord is this?', 'easy', '{"type":"major"}', '["Major","Minor","Dominant 7th","Major 7th","Diminished","Augmented"]', 'Major', 1782855320, 1782855320);
@@ -248,5 +253,5 @@ INSERT INTO public.exercises VALUES (502, 'scale', 'Half-Whole Diminished Scale'
 INSERT INTO public.exercises VALUES (503, 'scale', 'Whole-Half Diminished Scale', 'What scale type is this?', 'jazz', '{"type":"whole_half","topic":"jazz_symmetric"}', '["Whole Tone","Half-Whole Diminished","Whole-Half Diminished","Melodic Minor","Lydian Dominant","Altered"]', 'Whole-Half Diminished', 1782855328, 1782855328);
 
 -- Reset sequences to avoid conflicts with future inserts
-SELECT pg_catalog.setval('public.exercises_id_seq', 503, true);
+SELECT pg_catalog.setval('public.exercises_id_seq', 508, true);
 SELECT pg_catalog.setval('public.admin_users_id_seq', 1, false);

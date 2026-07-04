@@ -9,10 +9,6 @@ interface Props {
   nextHref?: string;
 }
 
-const C_MAJOR_NOTES = ["C", "D", "E", "F", "G", "A", "B"];
-const ALL_ACCIDENTALS = ["C#", "D#", "F#", "G#", "A#"];
-const CHROMATIC_ORDER = ["C", "C#", "D", "D#", "E", "F", "F#", "G", "G#", "A", "A#", "B"];
-
 function getOrCreateSessionToken(): string {
   const key = "eardle_session";
   try {
@@ -35,25 +31,8 @@ function shuffle<T>(arr: T[]): T[] {
   return a;
 }
 
-function getSessionAccidentals(): string[] {
-  const key = "eardle_note_accidentals";
-  try {
-    const stored = localStorage.getItem(key);
-    if (stored) return JSON.parse(stored);
-    const picked = [...ALL_ACCIDENTALS].sort(() => Math.random() - 0.5).slice(0, 3);
-    try { localStorage.setItem(key, JSON.stringify(picked)); } catch { /* ignore */ }
-    return picked;
-  } catch {
-    return [...ALL_ACCIDENTALS].sort(() => Math.random() - 0.5).slice(0, 3);
-  }
-}
-
 function resolveChoices(exercise: Exercise): string[] {
   if (exercise.category === "note" || exercise.category === "interval") {
-    if (exercise.category === "note" && exercise.difficulty === "medium") {
-      const accidentals = getSessionAccidentals();
-      return CHROMATIC_ORDER.filter((n) => C_MAJOR_NOTES.includes(n) || accidentals.includes(n));
-    }
     return exercise.choices;
   }
   return shuffle(exercise.choices);

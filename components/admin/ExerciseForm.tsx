@@ -29,7 +29,7 @@ const DEFAULT_PROMPTS: Record<Category, string> = {
 };
 
 const DEFAULT_CONFIGS: Record<Category, any> = {
-  note:        { note: "C4" },
+  note:        { note: "C" },
   interval:    { semitones: 7, playMode: "harmonic" },
   chord:       { type: "major" },
   progression: { key: "C", chords: [["C4","E4","G4"],["F4","A4","C5"],["G4","B4","D5"]], romanNumerals: ["I","IV","V"], tempo: 80 },
@@ -66,7 +66,7 @@ export function ExerciseForm({ initial }: Props) {
     if (!audioEngine) return;
     try {
       const fakeExercise = { category, config } as any;
-      if (category === "note") await audioEngine.playNote(config.note);
+      if (category === "note") await audioEngine.playNote(`${config.note}4`);
       else if (category === "interval") await audioEngine.playInterval(config.noteA, config.noteB, config.playMode);
       else if (category === "chord") await audioEngine.playChord(randomRoot(3, 4), config.type);
       else if (category === "progression") await audioEngine.playProgression(config.chords, config.tempo);

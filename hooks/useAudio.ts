@@ -8,7 +8,7 @@ const SCALE_GAPS  = [0.55, 0.375, 0.25, 0.15, 0.08] as const; // seconds between
 const TEMPO_MULTS = [0.5,  0.7,   1.0,  1.4,  1.8 ] as const; // multiplier on stored BPM
 // Fallback: if sampler loading hangs, unfreeze the exercise after this many ms
 const SAFETY_MS = 30_000;
-import { randomRoot, addSemitones, randomVoicing, buildChord, buildScale, applyVoicing, applyInversion, VoicingId } from "@/lib/audio/theory";
+import { randomRoot, randomOctaveNote, addSemitones, randomVoicing, buildChord, buildScale, applyVoicing, applyInversion, VoicingId } from "@/lib/audio/theory";
 import { Exercise, NoteConfig, IntervalConfig, ChordConfig, ProgressionConfig, ScaleConfig, UiPlayMode } from "@/types/exercise";
 
 export function useAudio() {
@@ -50,7 +50,12 @@ export function useAudio() {
     try {
       if (category === "note") {
         const c = config as NoteConfig;
-        await audioEngine.playNote(c.note);
+        if (!randomizedRef.current) {
+          randomizedRef.current = exercise.difficulty === "easy"
+            ? { root: `${c.note}4` }
+            : { root: randomOctaveNote(c.note, 3, 5) };
+        }
+        await audioEngine.playNote(randomizedRef.current.root!);
         timeoutRef.current = setTimeout(() => { setIsPlaying(false); playingRef.current = false; }, 1800);
       } else if (category === "interval") {
         const c = config as IntervalConfig;

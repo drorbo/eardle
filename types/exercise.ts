@@ -6,6 +6,8 @@ export type Difficulty = "easy" | "medium" | "hard" | "jazz";
 export type ChordFamily = "major" | "minor" | "dominant" | "altered" | "suspended" | "diminished";
 
 export interface NoteConfig {
+  /** Pitch class only, e.g. "C", "C#" — no octave. Octave is chosen at play
+   *  time based on difficulty (see hooks/useAudio.ts). */
   note: string;
   topic?: string;
 }

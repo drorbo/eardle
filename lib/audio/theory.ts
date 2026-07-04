@@ -321,6 +321,12 @@ export function randomRoot(minOctave = 3, maxOctave = 4): string {
   return `${NOTE_NAMES[noteIndex]}${octave}`;
 }
 
+/** Pick a random octave (inclusive range) for a fixed pitch class */
+export function randomOctaveNote(name: string, minOctave = 3, maxOctave = 5): string {
+  const octave = minOctave + Math.floor(Math.random() * (maxOctave - minOctave + 1));
+  return `${name}${octave}`;
+}
+
 // ─── Voicings ────────────────────────────────────────────────────────────────
 
 export type VoicingId = "close" | "open" | "spread" | "wide";
