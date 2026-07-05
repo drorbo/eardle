@@ -10,7 +10,9 @@ import { ScaleStaff } from "@/components/exercise/ScaleStaff";
 import { ProgressionStaff } from "@/components/exercise/ProgressionStaff";
 import { StatsModal } from "@/components/daily/StatsModal";
 import { ConfettiBurst } from "@/components/daily/ConfettiBurst";
+import { InfoTooltip } from "@/components/ui/InfoTooltip";
 import { addSemitones } from "@/lib/audio/theory";
+import { DAILY_INFO_TEXT } from "@/lib/daily/config";
 import { CATEGORY_META } from "@/types/exercise";
 import type { Exercise, ProgressionConfig } from "@/types/exercise";
 
@@ -63,7 +65,10 @@ export function DailyPuzzlePlayer() {
   return (
     <div className="flex flex-col items-center gap-6 w-full">
       <div className="text-center">
-        <p className="text-xs font-semibold text-gray-500 uppercase tracking-widest mb-1">Daily EarDle</p>
+        <div className="flex items-center justify-center gap-1.5 text-xs font-semibold text-gray-500 uppercase tracking-widest mb-1">
+          Daily EarDle
+          <InfoTooltip text={DAILY_INFO_TEXT} />
+        </div>
         <div className="flex items-center justify-center gap-2 text-sm text-gray-400">
           <span>{meta.emoji} {meta.label}</span>
           <span className="text-gray-700">·</span>
