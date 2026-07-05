@@ -106,6 +106,11 @@ function getOrCreateSessionToken(): string {
 export function useDailyPuzzle() {
   const [state, dispatch] = useReducer(reducer, { phase: "loading" });
   const tokenRef = useRef<string>("");
+  // Ref-based guard: React's `state.submitting` updates asynchronously, so a
+  // double-click (or a browser that double-fires the click event) can pass the
+  // state check twice before a re-render lands — same class of bug useAudio.ts's
+  // `playingRef` guards against. This ref is set synchronously, closing that gap.
+  const submittingRef = useRef(false);
 
   useEffect(() => {
     tokenRef.current = getOrCreateSessionToken();
@@ -127,8 +132,10 @@ export function useDailyPuzzle() {
 
   const submitGuess = useCallback(
     async (choice: string) => {
-      if (state.phase !== "ready" || state.submitting) return;
+      if (submittingRef.current) return;
+      if (state.phase !== "ready") return;
       if (state.status !== "not_started" && state.status !== "in_progress") return;
+      submittingRef.current = true;
       dispatch({ type: "SUBMITTING" });
       try {
         const res = await fetch("/api/daily/guess", {
@@ -144,6 +151,8 @@ export function useDailyPuzzle() {
         dispatch({ type: "GUESS_RESULT", payload });
       } catch {
         dispatch({ type: "GUESS_FAILED" });
+      } finally {
+        submittingRef.current = false;
       }
     },
     [state]
