@@ -34,6 +34,12 @@ const JAZZ_B_CHOICES = JSON.stringify([
   "ii7 - V7 - Imaj7", "Imaj7 - VI7 - ii7 - V7", "iim7b5 - V7b9 - im7",
 ]);
 
+const JAZZ_C_CHOICES = JSON.stringify([
+  "iv7 - bVII7 - Imaj7", "im7 - im7 - bIIm7 - bIIm7", "iv7 - bVII7 - bIIImaj7 - bVImaj7",
+  "Imaj7 - bIII7 - bVImaj7 - bII7", "ivm7 - bVII7 - bIIIm7 - bVI7",
+  "ii7 - V7 - Imaj7", "im7 - bVII7 - bVI7 - V7", "Imaj7 - VI7 - ii7 - V7",
+]);
+
 const PROMPT = "What chord progression is this?";
 
 const C4 = ["C4","E4","G4"], F4 = ["F4","A4","C5"], G4 = ["G4","B4","D5"];
@@ -52,6 +58,9 @@ const Em7 = ["E3","G3","B3","D4"], A7 = ["A3","C#4","E4","G4"];
 const Am7 = ["A3","C4","E4","G4"], D7 = ["D3","F#3","A3","C4"];
 const E7j = ["E3","G#3","B3","D4"];
 const Abmaj7 = ["Ab3","C4","Eb4","G4"], Dbmaj7 = ["Db3","F3","Ab3","C4"];
+const Bb7 = ["Bb3","D4","F4","Ab4"], Ebm7 = ["Eb3","Gb3","Bb3","Db4"];
+const Ebmaj7 = ["Eb3","G3","Bb3","D4"], Eb7 = ["Eb3","G3","Bb3","Db4"];
+const Db7 = ["Db3","F3","Ab3","B3"], Ab7 = ["Ab3","C4","Eb4","Gb4"];
 
 const newEasy = [
   { title: "Cadential Turnaround I - IV - V - I", answer: "I - IV - V - I", difficulty: "easy", topic: "pop", chords: [C4, F4, G4, C4], roman: ["I","IV","V","I"], tempo: 80, key: "C" },
@@ -82,6 +91,11 @@ const newJazz = [
   { title: "Minor Jazz im7 - IV7 - bVImaj7 - V7", answer: "im7 - IV7 - bVImaj7 - V7", difficulty: "jazz", topic: "jazz", choices: JAZZ_B_CHOICES, chords: [Am7, D7, Fmaj7, E7j], roman: ["im7","IV7","bVImaj7","V7"], tempo: 76, key: "Am" },
   { title: "Dominant Chain III7 - VI7 - II7 - V7", answer: "III7 - VI7 - II7 - V7", difficulty: "jazz", topic: "jazz", choices: JAZZ_A_CHOICES, chords: [E7j, A7, D7, G7], roman: ["III7","VI7","II7","V7"], tempo: 84, key: "C" },
   { title: "Chromatic Thirds Imaj7 - bVImaj7 - bIImaj7 - V7", answer: "Imaj7 - bVImaj7 - bIImaj7 - V7", difficulty: "jazz", topic: "jazz", choices: JAZZ_B_CHOICES, chords: [Cmaj7, Abmaj7, Dbmaj7, G7], roman: ["Imaj7","bVImaj7","bIImaj7","V7"], tempo: 72, key: "C" },
+  { title: "Backdoor Cadence iv7 - bVII7 - Imaj7", answer: "iv7 - bVII7 - Imaj7", difficulty: "jazz", topic: "jazz", choices: JAZZ_C_CHOICES, chords: [Fm7, Bb7, Cmaj7], roman: ["iv7","bVII7","Imaj7"], tempo: 76, key: "C" },
+  { title: "Modal Vamp im7 - bIIm7 (So What)", answer: "im7 - im7 - bIIm7 - bIIm7", difficulty: "jazz", topic: "jazz", choices: JAZZ_C_CHOICES, chords: [Dm7, Dm7, Ebm7, Ebm7], roman: ["im7","im7","bIIm7","bIIm7"], tempo: 88, key: "Dm" },
+  { title: "Minor Plagal Chain iv7 - bVII7 - bIIImaj7 - bVImaj7", answer: "iv7 - bVII7 - bIIImaj7 - bVImaj7", difficulty: "jazz", topic: "jazz", choices: JAZZ_C_CHOICES, chords: [Fm7, Bb7, Ebmaj7, Abmaj7], roman: ["iv7","bVII7","bIIImaj7","bVImaj7"], tempo: 72, key: "C" },
+  { title: "Chromatic Mediant Turnaround Imaj7 - bIII7 - bVImaj7 - bII7", answer: "Imaj7 - bIII7 - bVImaj7 - bII7", difficulty: "jazz", topic: "jazz", choices: JAZZ_C_CHOICES, chords: [Cmaj7, Eb7, Abmaj7, Db7], roman: ["Imaj7","bIII7","bVImaj7","bII7"], tempo: 76, key: "C" },
+  { title: "Sequential ii-V Chain ivm7 - bVII7 - bIIIm7 - bVI7", answer: "ivm7 - bVII7 - bIIIm7 - bVI7", difficulty: "jazz", topic: "jazz", choices: JAZZ_C_CHOICES, chords: [Fm7, Bb7, Ebm7, Ab7], roman: ["ivm7","bVII7","bIIIm7","bVI7"], tempo: 80, key: "C" },
 ];
 
 const JAZZ_A_ANSWERS = new Set([
