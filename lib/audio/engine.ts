@@ -36,6 +36,13 @@ class AudioEngine {
     await Tone.start();
     this.Tone = Tone;
 
+    // iOS 16.4+: tell Safari this is media playback so it ignores the ring/silent
+    // switch (Web Audio otherwise respects it, unlike <audio>/<video> elements).
+    // No effect (and no error) on browsers that don't support this API.
+    if ("audioSession" in navigator) {
+      (navigator as unknown as { audioSession: { type: string } }).audioSession.type = "playback";
+    }
+
     // sampler.loaded is a boolean getter, not a Promise — use onload/onerror instead
     await new Promise<void>((resolve, reject) => {
       const sampler = new Tone.Sampler({
