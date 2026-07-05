@@ -21,3 +21,9 @@ body {
          placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-indigo-500
          text-sm;
 }
+
+/* Daily EarDle win celebration */
+@keyframes confetti-fall {
+  0%   { transform: translateY(-10px) rotate(0deg); opacity: 1; }
+  100% { transform: translateY(160px) rotate(360deg); opacity: 0; }
+}

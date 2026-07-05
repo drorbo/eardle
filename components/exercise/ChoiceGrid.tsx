@@ -16,13 +16,27 @@ interface ChoiceGridProps {
   choices: string[];
   selected?: string;
   answer?: string;
+  // Choices already guessed wrong this run (Daily EarDle multi-guess flow). Only
+  // meaningful while `answer` is NOT yet passed — this path never reads `answer`,
+  // so a wrong guess can never accidentally reveal the correct one early.
+  triedWrong?: string[];
   disabled: boolean;
   onSelect: (choice: string) => void;
   cols?: 2 | 3 | 4;
 }
 
-export function ChoiceGrid({ choices, selected, answer, disabled, onSelect, cols = 2 }: ChoiceGridProps) {
+export function ChoiceGrid({ choices, selected, answer, triedWrong, disabled, onSelect, cols = 2 }: ChoiceGridProps) {
   function getStyle(choice: string) {
+    // Correct answer always wins, even if it happens to also be in `triedWrong`
+    // (can't actually happen, but keeps priority unambiguous).
+    if (answer && choice === answer) {
+      return "bg-green-900/60 border-green-500 text-green-200";
+    }
+    if (triedWrong?.includes(choice)) {
+      return answer
+        ? "bg-red-900/60 border-red-500 text-red-200" // revealed: show every wrong guess made
+        : "bg-gray-800/40 border-gray-700 text-gray-600 line-through"; // still in progress: just "tried"
+    }
     if (!selected) {
       return "bg-gray-800 border-gray-700 hover:border-indigo-500 hover:bg-gray-750 text-white";
     }
@@ -44,11 +58,13 @@ export function ChoiceGrid({ choices, selected, answer, disabled, onSelect, cols
 
   return (
     <div className={`grid ${gridClass} gap-2 w-full max-w-lg`}>
-      {choices.map((choice, i) => (
+      {choices.map((choice, i) => {
+        const isTriedWrong = !answer && !!triedWrong?.includes(choice);
+        return (
         <button
           key={choice}
-          onClick={() => !disabled && onSelect(choice)}
-          disabled={disabled}
+          onClick={() => !disabled && !isTriedWrong && onSelect(choice)}
+          disabled={disabled || isTriedWrong}
           aria-label={`Choice ${i + 1}: ${displayLabel(choice)}`}
           className={`
             relative px-3 py-3 sm:py-2 rounded-lg border text-sm font-medium
@@ -63,7 +79,8 @@ export function ChoiceGrid({ choices, selected, answer, disabled, onSelect, cols
           )}
           {displayLabel(choice)}
         </button>
-      ))}
+        );
+      })}
     </div>
   );
 }

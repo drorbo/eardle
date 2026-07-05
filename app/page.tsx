@@ -1,10 +1,13 @@
 export const dynamic = "force-dynamic";
 
 import { CategoryCard } from "@/components/ui/CategoryCard";
-import { Category } from "@/types/exercise";
+import { DailyHeroCard } from "@/components/ui/DailyHeroCard";
+import { Category, CATEGORY_META } from "@/types/exercise";
 import { db } from "@/lib/db";
 import { exercises } from "@/lib/db/schema";
-import { eq, sql } from "drizzle-orm";
+import { sql } from "drizzle-orm";
+import { getOrCreateDailyPuzzle } from "@/lib/daily/generate";
+import { todaysPuzzleDateStr } from "@/lib/daily/config";
 
 async function getCounts(): Promise<Record<Category, number>> {
   const rows = await db
@@ -17,11 +20,14 @@ async function getCounts(): Promise<Record<Category, number>> {
 }
 
 export default async function HomePage() {
-  const counts = await getCounts();
+  const [counts, dailyPuzzle] = await Promise.all([
+    getCounts(),
+    getOrCreateDailyPuzzle(todaysPuzzleDateStr()),
+  ]);
 
   return (
     <div className="max-w-5xl mx-auto px-4 sm:px-6 py-8 sm:py-20">
-      <div className="text-center mb-8 sm:mb-16">
+      <div className="text-center mb-6 sm:mb-10">
         <h1 className="text-4xl sm:text-6xl font-bold text-white mb-4 tracking-tight">
           Train Your Ear
         </h1>
@@ -29,6 +35,16 @@ export default async function HomePage() {
           Interactive exercises to sharpen your musical hearing — notes, intervals, chords, progressions, and scales.
         </p>
       </div>
+
+      <DailyHeroCard
+        category={dailyPuzzle?.category}
+        difficulty={dailyPuzzle?.difficulty}
+        emoji={dailyPuzzle ? CATEGORY_META[dailyPuzzle.category as Category].emoji : undefined}
+      />
+
+      <p className="text-center text-xs font-semibold text-gray-600 uppercase tracking-widest mb-4">
+        Or practice freely
+      </p>
 
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-5">
         {(["note", "interval", "chord", "progression", "scale"] as Category[]).map((cat) => (

@@ -61,6 +61,16 @@ function ScaleIcon({ className }: { className?: string }) {
   );
 }
 
+function DailyIcon({ className }: { className?: string }) {
+  return (
+    <svg className={className} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+      <rect x="3" y="4" width="18" height="17" rx="2" />
+      <path d="M3 9h18M8 2v4M16 2v4" />
+      <path d="m9 14 2 2 4-4" />
+    </svg>
+  );
+}
+
 function FeedbackIcon({ className }: { className?: string }) {
   return (
     <svg className={className} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
@@ -203,6 +213,12 @@ export function Navbar() {
           </Link>
 
           <div className="hidden sm:flex items-center gap-1">
+            <NavIcon
+              href="/daily"
+              label="Daily EarDle"
+              active={pathname === "/daily"}
+              icon={<DailyIcon className="w-5 h-5" />}
+            />
             {(Object.entries(CATEGORY_META) as [string, typeof CATEGORY_META[keyof typeof CATEGORY_META]][]).map(
               ([key, meta]) => {
                 const Icon = CATEGORY_ICONS[key];
@@ -304,7 +320,14 @@ export function Navbar() {
       {/* Mobile dropdown */}
       {mobileOpen && (
         <div className="sm:hidden border-t border-gray-800 bg-gray-950 px-4 py-3 space-y-1">
-          <p className="text-[10px] font-semibold text-gray-600 uppercase tracking-widest px-3 pb-1">
+          <Link
+            href="/daily"
+            className="flex items-center gap-3 px-3 py-3 rounded-xl text-gray-300 hover:text-white hover:bg-gray-800 transition text-sm"
+          >
+            <span className="text-lg">📅</span>
+            Daily EarDle
+          </Link>
+          <p className="text-[10px] font-semibold text-gray-600 uppercase tracking-widest px-3 pb-1 pt-1">
             Categories
           </p>
           {(Object.entries(CATEGORY_META) as [string, typeof CATEGORY_META[keyof typeof CATEGORY_META]][]).map(

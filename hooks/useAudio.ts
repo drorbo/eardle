@@ -8,7 +8,8 @@ const SCALE_GAPS  = [0.55, 0.375, 0.25, 0.15, 0.08] as const; // seconds between
 const TEMPO_MULTS = [0.5,  0.7,   1.0,  1.4,  1.8 ] as const; // multiplier on stored BPM
 // Fallback: if sampler loading hangs, unfreeze the exercise after this many ms
 const SAFETY_MS = 30_000;
-import { randomRoot, randomOctaveNote, addSemitones, randomVoicing, buildChord, buildScale, applyVoicing, applyInversion, VoicingId } from "@/lib/audio/theory";
+import { randomRoot, randomOctaveNote, addSemitones, buildChord, buildScale, applyVoicing, applyInversion, VoicingId } from "@/lib/audio/theory";
+import { generatePerformanceParams, PerformanceParams } from "@/lib/audio/randomize";
 import { Exercise, NoteConfig, IntervalConfig, ChordConfig, ProgressionConfig, ScaleConfig, UiPlayMode } from "@/types/exercise";
 
 export function useAudio() {
@@ -26,7 +27,7 @@ export function useAudio() {
     voicing?: VoicingId;
   } | null>(null);
 
-  const play = useCallback(async (exercise: Exercise, playModeOverride?: UiPlayMode, speedLevel = 3) => {
+  const play = useCallback(async (exercise: Exercise, playModeOverride?: UiPlayMode, speedLevel = 3, forcedParams?: PerformanceParams) => {
     if (!audioEngine) return;
     // Ref-based guard: prevents concurrent play() calls regardless of stale React closures
     if (playingRef.current) return;
@@ -87,16 +88,7 @@ export function useAudio() {
         const isInversionEx = typeof c.inversion === "number";
 
         if (!randomizedRef.current) {
-          if (isInversionEx) {
-            // Inversion exercises: fixed inversion from config, no random voicing.
-            // Always root at octave 3 so the highest inverted note stays in octave 4-5.
-            randomizedRef.current = { root: randomRoot(3, 3), voicing: "close" };
-          } else {
-            // Regular chord exercises: random voicing, octave 3-4.
-            const voicing = randomVoicing(c.type);
-            const maxOctave = voicing === "close" ? 4 : 3;
-            randomizedRef.current = { root: randomRoot(3, maxOctave), voicing };
-          }
+          randomizedRef.current = forcedParams ?? generatePerformanceParams(category, config);
         }
 
         const baseNotes = buildChord(randomizedRef.current.root!, c.type);
@@ -114,7 +106,7 @@ export function useAudio() {
         timeoutRef.current = setTimeout(() => { setIsPlaying(false); playingRef.current = false; }, 1800);
       } else if (category === "progression") {
         const c = config as ProgressionConfig;
-        if (!randomizedRef.current) randomizedRef.current = { delta: Math.floor(Math.random() * 11) - 5 };
+        if (!randomizedRef.current) randomizedRef.current = forcedParams ?? generatePerformanceParams(category, config);
         const transposedChords = c.chords.map(chord => chord.map(n => addSemitones(n, randomizedRef.current!.delta!)));
         const tempoMult = TEMPO_MULTS[Math.max(0, Math.min(4, speedLevel - 1))];
         await audioEngine.playProgression(transposedChords, c.tempo, tempoMult);
@@ -122,7 +114,7 @@ export function useAudio() {
         timeoutRef.current = setTimeout(() => { setIsPlaying(false); playingRef.current = false; }, totalDuration);
       } else if (category === "scale") {
         const c = config as ScaleConfig;
-        if (!randomizedRef.current) randomizedRef.current = { root: randomRoot(3, 4) };
+        if (!randomizedRef.current) randomizedRef.current = forcedParams ?? generatePerformanceParams(category, config);
         const noteGap = SCALE_GAPS[Math.max(0, Math.min(4, speedLevel - 1))];
         const scaleNotes = buildScale(randomizedRef.current.root!, c.type);
         setPlayedNotes(scaleNotes);
