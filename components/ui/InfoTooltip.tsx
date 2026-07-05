@@ -8,31 +8,35 @@ interface Props {
 }
 
 export function InfoTooltip({ text, className }: Props) {
-  const [open, setOpen] = useState(false);
+  const [clicked, setClicked] = useState(false);
   const ref = useRef<HTMLSpanElement>(null);
 
   useEffect(() => {
-    if (!open) return;
+    if (!clicked) return;
     function onClickOutside(e: MouseEvent) {
-      if (ref.current && !ref.current.contains(e.target as Node)) setOpen(false);
+      if (ref.current && !ref.current.contains(e.target as Node)) setClicked(false);
     }
     document.addEventListener("mousedown", onClickOutside);
     return () => document.removeEventListener("mousedown", onClickOutside);
-  }, [open]);
+  }, [clicked]);
 
   return (
-    <span ref={ref} className={`relative inline-flex ${className ?? ""}`}>
+    // Named group (group/info) so desktop :hover only opens THIS tooltip, not
+    // any other "group" ancestor (e.g. a whole-card hover elsewhere).
+    <span ref={ref} className={`relative inline-flex group/info ${className ?? ""}`}>
       <button
         type="button"
         aria-label="More info"
-        onMouseEnter={() => setOpen(true)}
-        onMouseLeave={() => setOpen(false)}
         onClick={(e) => {
-          // Also used inside a whole-card link elsewhere — never let this bubble
-          // into a parent navigation.
+          // Click-only (no onMouseEnter): a real tap synthesizes both a
+          // mouseenter AND a click, so combining hover-to-open with
+          // click-to-toggle meant the first tap opened then immediately
+          // closed it again — needed a second tap to actually show. Hover
+          // is now pure CSS (group-hover, no JS state), so tap-to-toggle
+          // can't race against it anymore.
           e.preventDefault();
           e.stopPropagation();
-          setOpen((v) => !v);
+          setClicked((v) => !v);
         }}
         className="
           flex items-center justify-center w-5 h-5 rounded-full border border-gray-500
@@ -42,17 +46,21 @@ export function InfoTooltip({ text, className }: Props) {
       >
         i
       </button>
-      {open && (
-        <div
-          className="
-            absolute z-50 top-full mt-2 left-1/2 -translate-x-1/2 w-64 sm:w-72 p-3
-            rounded-xl bg-gray-800 border border-gray-700 text-xs text-gray-300
-            leading-relaxed shadow-xl text-left normal-case font-normal tracking-normal
-          "
-        >
-          {text}
-        </div>
-      )}
+      <div
+        className={`
+          absolute z-50 top-full mt-2 left-1/2 -translate-x-1/2 w-64 sm:w-72 p-3
+          rounded-xl bg-gray-800 border border-gray-700 text-xs text-gray-300
+          leading-relaxed shadow-xl text-left normal-case font-normal tracking-normal
+          transition-opacity duration-150
+          ${
+            clicked
+              ? "opacity-100 pointer-events-auto"
+              : "opacity-0 pointer-events-none group-hover/info:opacity-100 group-hover/info:pointer-events-auto"
+          }
+        `}
+      >
+        {text}
+      </div>
     </span>
   );
 }
