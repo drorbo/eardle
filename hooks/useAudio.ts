@@ -60,9 +60,7 @@ export function useAudio() {
       } else if (category === "interval") {
         const c = config as IntervalConfig;
         if (!randomizedRef.current) {
-          // Compound intervals (9ths/10ths) need a lower root so the upper note stays on-staff
-          const maxOctave = c.semitones > 12 ? 3 : 4;
-          const noteA = randomRoot(3, maxOctave);
+          const noteA = randomRoot(3, 5);
           randomizedRef.current = { noteA, noteB: addSemitones(noteA, c.semitones) };
         }
 
