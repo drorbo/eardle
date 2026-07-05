@@ -40,6 +40,24 @@ const JAZZ_C_CHOICES = JSON.stringify([
   "ii7 - V7 - Imaj7", "im7 - bVII7 - bVI7 - V7", "Imaj7 - VI7 - ii7 - V7",
 ]);
 
+// Second batch of easy/medium/hard additions — separate pools (not folded into
+// EASY_CHOICES/MEDIUM_CHOICES/HARD_CHOICES above) since those already have a
+// full 8 slots and blanket-reusing them would omit these new answers.
+const EASY_CHOICES_2 = JSON.stringify([
+  "IV - V - vi - I", "I - vi - iii - IV", "I - IV - I - V", "I - IV - I - I",
+  "I - IV - V", "I - V - vi - IV", "I - IV - V - I", "I - V - IV - I",
+]);
+
+const MEDIUM_CHOICES_2 = JSON.stringify([
+  "I - iii - vi - IV", "I - IV - I - IV", "vi - ii - V - I",
+  "ii - V - I", "I - vi - IV - V", "I - iii - IV - V", "I - bVII - IV - I", "I - vi - ii - V",
+]);
+
+const HARD_CHOICES_2 = JSON.stringify([
+  "I - VI7 - ii - V7", "bIII - bVI - bII - V", "i - iv - V7 - i",
+  "I - III - IV - iv", "ii - IV - I - V", "I - bVI - bVII - I", "i - V7 - bVI - III", "I - bVII - bVI - V",
+]);
+
 const PROMPT = "What chord progression is this?";
 
 const C4 = ["C4","E4","G4"], F4 = ["F4","A4","C5"], G4 = ["G4","B4","D5"];
@@ -61,6 +79,7 @@ const Abmaj7 = ["Ab3","C4","Eb4","G4"], Dbmaj7 = ["Db3","F3","Ab3","C4"];
 const Bb7 = ["Bb3","D4","F4","Ab4"], Ebm7 = ["Eb3","Gb3","Bb3","Db4"];
 const Ebmaj7 = ["Eb3","G3","Bb3","D4"], Eb7 = ["Eb3","G3","Bb3","Db4"];
 const Db7 = ["Db3","F3","Ab3","B3"], Ab7 = ["Ab3","C4","Eb4","Gb4"];
+const Eb3maj = ["Eb3","G3","Bb3"], Db3maj = ["Db3","F3","Ab3"];
 
 const newEasy = [
   { title: "Cadential Turnaround I - IV - V - I", answer: "I - IV - V - I", difficulty: "easy", topic: "pop", chords: [C4, F4, G4, C4], roman: ["I","IV","V","I"], tempo: 80, key: "C" },
@@ -83,6 +102,25 @@ const newHard = [
   { title: "Chromatic Two-Step bVI - bVII - I", answer: "bVI - bVII - I", difficulty: "hard", topic: "modal", chords: [Ab3, Bb3, C3], roman: ["bVI","bVII","I"], tempo: 72, key: "C" },
   { title: "Harmonic Minor i - V7 - bVI - III", answer: "i - V7 - bVI - III", difficulty: "hard", topic: "minor", chords: [Am_i, E7, F_VI, C_III], roman: ["i","V7","bVI","III"], tempo: 76, key: "Am" },
   { title: "Andalusian Descent I - bVII - bVI - V", answer: "I - bVII - bVI - V", difficulty: "hard", topic: "modal", chords: [C3, Bb3, Ab3, G3], roman: ["I","bVII","bVI","V"], tempo: 76, key: "C" },
+];
+
+const newEasy2 = [
+  { title: "Pop-Punk Cadence IV - V - vi - I", answer: "IV - V - vi - I", difficulty: "easy", topic: "pop", chords: [F3, G3, Am3, C3], roman: ["IV","V","vi","I"], tempo: 80, key: "C" },
+  { title: "Emotional Turn I - vi - iii - IV", answer: "I - vi - iii - IV", difficulty: "easy", topic: "diatonic", chords: [C3, Am3, E3m, F3], roman: ["I","vi","iii","IV"], tempo: 76, key: "C" },
+  { title: "Blues Shuffle I - IV - I - V", answer: "I - IV - I - V", difficulty: "easy", topic: "blues", chords: [C3, F3, C3, G3], roman: ["I","IV","I","V"], tempo: 88, key: "C" },
+  { title: "Blues Turnaround I - IV - I - I", answer: "I - IV - I - I", difficulty: "easy", topic: "blues", chords: [C3, F3, C3, C3], roman: ["I","IV","I","I"], tempo: 84, key: "C" },
+];
+
+const newMedium2 = [
+  { title: "Ascending Thirds I - iii - vi - IV", answer: "I - iii - vi - IV", difficulty: "medium", topic: "diatonic", chords: [C3, E3m, Am3, F3], roman: ["I","iii","vi","IV"], tempo: 80, key: "C" },
+  { title: "Quick Change Blues I - IV - I - IV", answer: "I - IV - I - IV", difficulty: "medium", topic: "blues", chords: [C3, F3, C3, F3], roman: ["I","IV","I","IV"], tempo: 92, key: "C" },
+  { title: "Secondary Approach vi - ii - V - I", answer: "vi - ii - V - I", difficulty: "medium", topic: "diatonic", chords: [Am3, D3m, G3, C3], roman: ["vi","ii","V","I"], tempo: 84, key: "C" },
+];
+
+const newHard2 = [
+  { title: "Blues Turnaround I - VI7 - ii - V7", answer: "I - VI7 - ii - V7", difficulty: "hard", topic: "blues", chords: [C3, A7, D3m, G7], roman: ["I","VI7","ii","V7"], tempo: 88, key: "C" },
+  { title: "Chromatic Descent bIII - bVI - bII - V", answer: "bIII - bVI - bII - V", difficulty: "hard", topic: "modal", chords: [Eb3maj, Ab3, Db3maj, G3], roman: ["bIII","bVI","bII","V"], tempo: 72, key: "C" },
+  { title: "Harmonic Minor Cadence i - iv - V7 - i", answer: "i - iv - V7 - i", difficulty: "hard", topic: "minor", chords: [Am_i, Dm_iv, E7, Am_i], roman: ["i","iv","V7","i"], tempo: 76, key: "Am" },
 ];
 
 const newJazz = [
@@ -128,6 +166,9 @@ async function run() {
     ...newEasy.map(e => ({ ...e, choices: EASY_CHOICES })),
     ...newMedium.map(e => ({ ...e, choices: MEDIUM_CHOICES })),
     ...newHard.map(e => ({ ...e, choices: HARD_CHOICES })),
+    ...newEasy2.map(e => ({ ...e, choices: EASY_CHOICES_2 })),
+    ...newMedium2.map(e => ({ ...e, choices: MEDIUM_CHOICES_2 })),
+    ...newHard2.map(e => ({ ...e, choices: HARD_CHOICES_2 })),
     ...newJazz,
   ];
 
