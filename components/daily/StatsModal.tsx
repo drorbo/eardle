@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import { Modal } from "@/components/ui/Modal";
 import { GuessDistributionChart } from "./GuessDistributionChart";
+import { ConfettiBurst } from "./ConfettiBurst";
 
 interface PersonalStats {
   gamesPlayed: number;
@@ -25,6 +26,10 @@ interface Props {
   sessionToken: string;
   // Highlights the bar matching this run's own result, if any.
   todaysResult?: { status: "won" | "lost"; finalGuessCount?: number };
+  // Shown at the top of the modal — the modal auto-opens the instant the
+  // puzzle finishes, so this (and the confetti, on a win) needs to live here
+  // rather than on the page behind it, which is immediately covered.
+  funnyLine?: string | null;
 }
 
 function StatTile({ label, value }: { label: string; value: number }) {
@@ -36,7 +41,7 @@ function StatTile({ label, value }: { label: string; value: number }) {
   );
 }
 
-export function StatsModal({ open, onClose, sessionToken, todaysResult }: Props) {
+export function StatsModal({ open, onClose, sessionToken, todaysResult, funnyLine }: Props) {
   const [tab, setTab] = useState<"personal" | "community">("personal");
   const [personal, setPersonal] = useState<PersonalStats | null>(null);
   const [community, setCommunity] = useState<CommunityStats | null>(null);
@@ -60,6 +65,11 @@ export function StatsModal({ open, onClose, sessionToken, todaysResult }: Props)
 
   return (
     <Modal open={open} onClose={onClose} title="Statistics">
+      {todaysResult?.status === "won" && <ConfettiBurst />}
+      {funnyLine && (
+        <p className="text-center text-gray-400 text-sm italic mb-4">{funnyLine}</p>
+      )}
+
       <div className="flex gap-2 mb-4">
         <button onClick={() => setTab("personal")} className={tabClass(tab === "personal")}>
           Personal

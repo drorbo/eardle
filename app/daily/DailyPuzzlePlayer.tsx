@@ -9,7 +9,6 @@ import { ChordStaff } from "@/components/exercise/ChordStaff";
 import { ScaleStaff } from "@/components/exercise/ScaleStaff";
 import { ProgressionStaff } from "@/components/exercise/ProgressionStaff";
 import { StatsModal } from "@/components/daily/StatsModal";
-import { ConfettiBurst } from "@/components/daily/ConfettiBurst";
 import { InfoTooltip } from "@/components/ui/InfoTooltip";
 import { addSemitones } from "@/lib/audio/theory";
 import { DAILY_INFO_TEXT, DAILY_WON_LINES, DAILY_LOST_LINES } from "@/lib/daily/config";
@@ -87,10 +86,9 @@ export function DailyPuzzlePlayer() {
 
       <p className="text-lg text-white text-center">{state.exercise.prompt}</p>
 
-      <div className="relative">
-        {finished && state.status === "won" && <ConfettiBurst />}
-        <PlayButton onClick={handlePlay} isPlaying={isPlaying} disabled={state.submitting} />
-      </div>
+      {/* Confetti lives in StatsModal instead — that modal auto-opens the instant
+          the puzzle finishes, immediately covering anything rendered here. */}
+      <PlayButton onClick={handlePlay} isPlaying={isPlaying} disabled={state.submitting} />
 
       {!finished && (
         <p className="text-sm text-gray-500">
@@ -156,6 +154,7 @@ export function DailyPuzzlePlayer() {
         onClose={() => setStatsOpen(false)}
         sessionToken={sessionToken}
         todaysResult={finished ? { status: state.status as "won" | "lost", finalGuessCount: state.guesses.length } : undefined}
+        funnyLine={funnyLine}
       />
     </div>
   );
