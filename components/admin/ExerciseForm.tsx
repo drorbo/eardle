@@ -17,7 +17,7 @@ const DEFAULT_CHOICES: Record<Category, string[]> = {
   interval:    INTERVAL_NAMES as unknown as string[],
   chord:       ["Major", "Minor", "Dominant 7th", "Major 7th", "Diminished", "Augmented", "Minor 7th", "Half-Diminished", "Diminished 7th", "Major 9th", "Dominant 7th b9", "Major 6th", "Major 6/9", "Major 7th #11", "Major 9th #11", "Major 13th", "Augmented Major 7th", "Minor 9th", "Minor 11th", "Minor 13th", "Minor-Major 7th", "Minor-Major 9th", "Minor 6th", "Dominant 9th", "Dominant 13th", "Dominant 7th #11", "Dominant 9th #11", "Dominant 13th #11", "7♭9", "7♯9", "7♭13", "7♭9♭13", "7♯9♭13", "7♭9♯11", "7♯9♯11", "Augmented 7th", "Dominant 7th ♭5", "7sus4", "9sus4", "13sus4"],
   progression: ["I - IV - V", "I - V - vi - IV", "ii - V - I", "I - vi - IV - V", "I - IV - vi - V", "vi - IV - I - V", "I - III - IV - iv", "ii - IV - I - V", "ii7 - V7 - Imaj7", "iim7b5 - V7b9 - im7", "Imaj7 - VI7 - ii7 - V7", "I7 - IV7 - I7 - V7", "ii7 - bII7 - Imaj7", "iii7 - VI7 - ii7 - V7", "Imaj7 - IVmaj7 - iii7 - VI7", "im7 - bVII7 - bVI7 - V7"],
-  scale:       ["Major", "Dorian", "Phrygian", "Lydian", "Mixolydian", "Aeolian", "Locrian", "Harmonic Minor", "Melodic Minor", "Blues", "Pentatonic Major", "Dorian ♭2", "Lydian Augmented", "Lydian Dominant", "Mixolydian ♭6", "Locrian ♯2", "Altered", "Whole Tone", "Half-Whole Diminished", "Whole-Half Diminished"],
+  scale:       ["Major", "Dorian", "Phrygian", "Lydian", "Mixolydian", "Aeolian (Minor)", "Locrian", "Harmonic Minor", "Melodic Minor", "Blues", "Pentatonic Major", "Dorian ♭2", "Lydian Augmented", "Lydian Dominant", "Mixolydian ♭6", "Locrian ♯2", "Altered", "Whole Tone", "Half-Whole Diminished", "Whole-Half Diminished"],
 };
 
 const DEFAULT_PROMPTS: Record<Category, string> = {

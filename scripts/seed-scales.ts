@@ -9,7 +9,7 @@ import { exercises } from "../lib/db/schema";
 import { and, eq, sql } from "drizzle-orm";
 
 const MAJOR_MODES_CHOICES = JSON.stringify([
-  "Major", "Dorian", "Phrygian", "Lydian", "Mixolydian", "Aeolian", "Locrian",
+  "Major", "Dorian", "Phrygian", "Lydian", "Mixolydian", "Aeolian (Minor)", "Locrian",
 ]);
 
 const MEL_MINOR_CHOICES = JSON.stringify([
@@ -25,9 +25,9 @@ const SYMMETRIC_CHOICES = JSON.stringify([
 const PROMPT = "What scale type is this?";
 
 const majorModeNew = [
-  { title: "Aeolian Scale",  type: "aeolian",  difficulty: "easy",   answer: "Aeolian" },
-  { title: "Aeolian Scale",  type: "aeolian",  difficulty: "medium", answer: "Aeolian" },
-  { title: "Aeolian Scale",  type: "aeolian",  difficulty: "hard",   answer: "Aeolian" },
+  { title: "Aeolian Scale",  type: "aeolian",  difficulty: "easy",   answer: "Aeolian (Minor)" },
+  { title: "Aeolian Scale",  type: "aeolian",  difficulty: "medium", answer: "Aeolian (Minor)" },
+  { title: "Aeolian Scale",  type: "aeolian",  difficulty: "hard",   answer: "Aeolian (Minor)" },
   { title: "Phrygian Scale", type: "phrygian", difficulty: "medium", answer: "Phrygian" },
   { title: "Phrygian Scale", type: "phrygian", difficulty: "hard",   answer: "Phrygian" },
   { title: "Locrian Scale",  type: "locrian",  difficulty: "hard",   answer: "Locrian" },
@@ -59,6 +59,18 @@ async function run() {
     ))
     .returning({ id: exercises.id });
   updated += r1.length;
+
+  // Step 1b: existing aeolian rows' `answer` predates the "(Minor)" suffix —
+  // Step 1 above only touches `choices`, so fix `answer` separately.
+  const r1b = await db.update(exercises)
+    .set({ answer: "Aeolian (Minor)" })
+    .where(and(
+      eq(exercises.category, "scale"),
+      sql`(${exercises.config}::jsonb)->>'type' = 'aeolian'`,
+      eq(exercises.answer, "Aeolian")
+    ))
+    .returning({ id: exercises.id });
+  updated += r1b.length;
 
   // Step 2: re-topic jazz_altered → melodic_minor_modes (in application code)
   const toRetopic = await db.select()
