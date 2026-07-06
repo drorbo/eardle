@@ -22,7 +22,7 @@ export function ConfettiBurst() {
   }));
 
   return (
-    <div className="pointer-events-none absolute inset-0 overflow-hidden">
+    <div className="pointer-events-none absolute inset-0 overflow-hidden z-10">
       {pieces.map((p, i) => (
         <span
           key={i}

@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { useDailyPuzzle } from "@/hooks/useDailyPuzzle";
 import { useAudio } from "@/hooks/useAudio";
 import { PlayButton } from "@/components/exercise/PlayButton";
@@ -12,7 +12,7 @@ import { StatsModal } from "@/components/daily/StatsModal";
 import { ConfettiBurst } from "@/components/daily/ConfettiBurst";
 import { InfoTooltip } from "@/components/ui/InfoTooltip";
 import { addSemitones } from "@/lib/audio/theory";
-import { DAILY_INFO_TEXT } from "@/lib/daily/config";
+import { DAILY_INFO_TEXT, DAILY_WON_LINES, DAILY_LOST_LINES } from "@/lib/daily/config";
 import { CATEGORY_META } from "@/types/exercise";
 import type { Exercise, ProgressionConfig } from "@/types/exercise";
 
@@ -30,6 +30,15 @@ export function DailyPuzzlePlayer() {
     }
     prevStatusRef.current = state.status;
   }, [state]);
+
+  // Picked once per completed status (not on every render/guess) so it doesn't
+  // shuffle underneath the user while they're looking at it.
+  const status = state.phase === "ready" ? state.status : null;
+  const funnyLine = useMemo(() => {
+    if (status !== "won" && status !== "lost") return null;
+    const pool = status === "won" ? DAILY_WON_LINES : DAILY_LOST_LINES;
+    return pool[Math.floor(Math.random() * pool.length)];
+  }, [status]);
 
   if (state.phase === "loading") {
     return (
@@ -107,6 +116,7 @@ export function DailyPuzzlePlayer() {
               Out of guesses — it was <span className="text-white">{state.exercise.answer}</span>
             </p>
           )}
+          {funnyLine && <p className="text-gray-400 text-sm italic">{funnyLine}</p>}
           {state.exercise.title && <p className="text-gray-500 text-sm">{state.exercise.title}</p>}
           <button
             onClick={() => setStatsOpen(true)}
