@@ -116,6 +116,12 @@ export function DailyPuzzlePlayer() {
           )}
           {funnyLine && <p className="text-gray-400 text-sm italic">{funnyLine}</p>}
           {state.exercise.title && <p className="text-gray-500 text-sm">{state.exercise.title}</p>}
+          {state.exercise.explanation && (
+            <div className="w-full max-w-lg mx-auto rounded-2xl p-4 bg-gray-900/60 border border-gray-800 text-sm text-gray-300 leading-relaxed text-left">
+              <p className="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-1.5">💡 Good to know</p>
+              {state.exercise.explanation}
+            </div>
+          )}
           <button
             onClick={() => setStatsOpen(true)}
             className="px-5 py-2.5 rounded-xl bg-indigo-600 hover:bg-indigo-500 text-white font-semibold transition"

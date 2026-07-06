@@ -49,6 +49,7 @@ export async function getOrCreateDailyPuzzle(dateStr: string): Promise<DailyPuzz
       config,
       choices,
       answer: candidate.answer,
+      explanation: candidate.explanation,
     });
     const performanceParams = JSON.stringify(generatePerformanceParams(category, config));
 

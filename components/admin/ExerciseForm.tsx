@@ -49,6 +49,7 @@ export function ExerciseForm({ initial }: Props) {
   const [config, setConfig] = useState<any>(initial?.config ?? DEFAULT_CONFIGS.note);
   const [choices, setChoices] = useState<string[]>(initial?.choices ?? DEFAULT_CHOICES.note);
   const [answer, setAnswer] = useState(initial?.answer ?? "");
+  const [explanation, setExplanation] = useState(initial?.explanation ?? "");
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState("");
 
@@ -85,7 +86,7 @@ export function ExerciseForm({ initial }: Props) {
     const res = await fetch(url, {
       method,
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ category, title, prompt, difficulty, config, choices, answer }),
+      body: JSON.stringify({ category, title, prompt, difficulty, config, choices, answer, explanation: explanation.trim() || null }),
     });
     setSaving(false);
     if (!res.ok) {
@@ -170,6 +171,17 @@ export function ExerciseForm({ initial }: Props) {
           onChange={(e) => setChoices(e.target.value.split("\n").map((s) => s.trim()).filter(Boolean))}
         />
         <p className="text-xs text-gray-500 mt-1">{choices.length} choices</p>
+      </div>
+
+      {/* Explanation */}
+      <div>
+        <label className="label">Explanation (optional, shown after solving)</label>
+        <textarea
+          className="input h-24"
+          value={explanation}
+          onChange={(e) => setExplanation(e.target.value)}
+          placeholder="2-3 sentences, e.g. what the mode/chord/scale is and where it's used"
+        />
       </div>
 
       {error && <p className="text-red-400 text-sm">{error}</p>}

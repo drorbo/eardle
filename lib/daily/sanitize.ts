@@ -9,6 +9,7 @@ export interface DailyExerciseSnapshot {
   config: ExerciseConfig;
   choices: string[];
   answer: string;
+  explanation: string | null;
 }
 
 /**

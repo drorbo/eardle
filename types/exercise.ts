@@ -56,6 +56,7 @@ export interface Exercise {
   config: ExerciseConfig;
   choices: string[];
   answer: string;
+  explanation: string | null;
   createdAt: number;
   updatedAt: number;
 }

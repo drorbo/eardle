@@ -262,6 +262,13 @@ export function ExercisePlayer({ exercise, nextHref, sessionToken, onAnswered }:
           />
         )}
 
+        {isAnswered && exercise.explanation && (
+          <div className="w-full max-w-lg rounded-2xl p-4 bg-gray-900/60 border border-gray-800 text-sm text-gray-300 leading-relaxed">
+            <p className="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-1.5">💡 Good to know</p>
+            {exercise.explanation}
+          </div>
+        )}
+
         {isAnswered && exercise.category === "chord" && playedNotes && (
           <div className="w-full bg-white rounded-xl p-3">
             <ChordStaff notes={playedNotes} />

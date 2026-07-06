@@ -96,6 +96,14 @@ export function ExerciseDetail({ exercise, onClose }: Props) {
           </div>
         </div>
 
+        {/* Explanation */}
+        {exercise.explanation && (
+          <div className="bg-gray-900 rounded-xl p-4">
+            <p className="text-xs font-medium text-gray-500 uppercase tracking-wider mb-2">Explanation</p>
+            <p className="text-gray-300 text-sm leading-relaxed">{exercise.explanation}</p>
+          </div>
+        )}
+
         {/* Config JSON */}
         <div className="bg-gray-900 rounded-xl p-4">
           <p className="text-xs font-medium text-gray-500 uppercase tracking-wider mb-2">Config</p>

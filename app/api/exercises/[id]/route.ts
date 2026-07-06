@@ -17,7 +17,7 @@ export async function PUT(req: NextRequest, { params }: { params: Promise<{ id: 
 
   const { id } = await params;
   const body = await req.json();
-  const { category, title, prompt, difficulty, config, choices, answer } = body;
+  const { category, title, prompt, difficulty, config, choices, answer, explanation } = body;
 
   const [updated] = await db
     .update(exercises)
@@ -29,6 +29,7 @@ export async function PUT(req: NextRequest, { params }: { params: Promise<{ id: 
       config: JSON.stringify(config),
       choices: JSON.stringify(choices),
       answer,
+      explanation: explanation || null,
       updatedAt: Math.floor(Date.now() / 1000),
     })
     .where(eq(exercises.id, Number(id)))

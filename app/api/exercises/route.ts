@@ -39,7 +39,7 @@ export async function POST(req: NextRequest) {
   if (!session) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
   const body = await req.json();
-  const { category, title, prompt, difficulty, config, choices, answer } = body;
+  const { category, title, prompt, difficulty, config, choices, answer, explanation } = body;
 
   if (!category || !title || !prompt || !difficulty || !config || !choices || !answer) {
     return NextResponse.json({ error: "Missing fields" }, { status: 400 });
@@ -55,6 +55,7 @@ export async function POST(req: NextRequest) {
       config: JSON.stringify(config),
       choices: JSON.stringify(choices),
       answer,
+      explanation: explanation || null,
     })
     .returning();
 

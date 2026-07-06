@@ -12,6 +12,7 @@ export const exercises = pgTable("exercises", {
   config: text("config").notNull(),
   choices: text("choices").notNull(),
   answer: text("answer").notNull(),
+  explanation: text("explanation"),
   createdAt: integer("created_at").notNull().$defaultFn(() => Math.floor(Date.now() / 1000)),
   updatedAt: integer("updated_at").notNull().$defaultFn(() => Math.floor(Date.now() / 1000)),
 });

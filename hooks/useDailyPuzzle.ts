@@ -15,6 +15,7 @@ export interface DailyExercisePayload {
   config: Record<string, unknown>;
   title?: string;
   answer?: string;
+  explanation?: string | null;
 }
 
 interface TodayResponse {
