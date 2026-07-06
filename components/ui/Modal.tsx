@@ -6,10 +6,11 @@ interface ModalProps {
   open: boolean;
   onClose: () => void;
   title?: string;
+  icon?: React.ReactNode;
   children: React.ReactNode;
 }
 
-export function Modal({ open, onClose, title, children }: ModalProps) {
+export function Modal({ open, onClose, title, icon, children }: ModalProps) {
   useEffect(() => {
     if (!open) return;
     function onKey(e: KeyboardEvent) {
@@ -33,16 +34,19 @@ export function Modal({ open, onClose, title, children }: ModalProps) {
         aria-modal="true"
         className="relative w-full max-w-lg max-h-[85vh] overflow-y-auto rounded-2xl bg-gray-800 border border-gray-700/50 p-5 sm:p-6"
       >
-        <div className="flex items-center justify-between mb-4">
-          {title && <h2 className="text-lg font-bold text-white">{title}</h2>}
-          <button
-            onClick={onClose}
-            aria-label="Close"
-            className="ml-auto p-1.5 rounded-lg text-gray-400 hover:text-white hover:bg-gray-700 transition"
-          >
-            ✕
-          </button>
-        </div>
+        <button
+          onClick={onClose}
+          aria-label="Close"
+          className="absolute top-5 right-5 sm:top-6 sm:right-6 p-1.5 rounded-lg text-gray-400 hover:text-white hover:bg-gray-700 transition"
+        >
+          ✕
+        </button>
+        {(icon || title) && (
+          <div className="flex flex-col items-center text-center gap-2 mb-4">
+            {icon}
+            {title && <h2 className="text-lg font-bold text-white">{title}</h2>}
+          </div>
+        )}
         {children}
       </div>
     </div>

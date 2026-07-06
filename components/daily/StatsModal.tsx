@@ -64,7 +64,21 @@ export function StatsModal({ open, onClose, sessionToken, todaysResult, funnyLin
     }`;
 
   return (
-    <Modal open={open} onClose={onClose} title="Statistics">
+    <Modal
+      open={open}
+      onClose={onClose}
+      title="Statistics"
+      icon={
+        <div
+          className="w-12 h-12 rounded-full flex items-center justify-center shadow-lg shadow-indigo-900/40"
+          style={{ background: "linear-gradient(135deg, #7c3aed, #2563eb)" }}
+        >
+          <svg className="w-6 h-6 text-white" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+            <path d="M18 20V10M12 20V4M6 20v-6" />
+          </svg>
+        </div>
+      }
+    >
       {todaysResult?.status === "won" && <ConfettiBurst />}
       {funnyLine && (
         <p className="text-center text-gray-400 text-sm italic mb-4">{funnyLine}</p>
