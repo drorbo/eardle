@@ -131,11 +131,13 @@ function NavIcon({
   label,
   icon,
   active,
+  badge,
 }: {
   href: string;
   label: string;
   icon: React.ReactNode;
   active?: boolean;
+  badge?: React.ReactNode;
 }) {
   return (
     <Link
@@ -147,10 +149,26 @@ function NavIcon({
       }`}
     >
       <span className="w-5 h-5 flex-shrink-0">{icon}</span>
+      {badge && (
+        <span className="absolute -top-1 -right-1 pointer-events-none">{badge}</span>
+      )}
       <span className="pointer-events-none absolute top-full mt-2 left-1/2 -translate-x-1/2 px-2 py-1 rounded-lg bg-gray-800 border border-gray-700 text-white text-xs whitespace-nowrap opacity-0 group-hover:opacity-100 transition-opacity z-50">
         {label}
       </span>
     </Link>
+  );
+}
+
+function DailyStreakBadge({ streak, playedToday }: { streak: number; playedToday: boolean }) {
+  if (streak <= 0) return null;
+  return (
+    <span
+      className={`flex items-center gap-0.5 px-1 py-0.5 rounded-full text-[10px] font-bold leading-none ${
+        playedToday ? "bg-orange-500 text-white" : "bg-gray-700 text-gray-300"
+      }`}
+    >
+      🔥{streak}
+    </span>
   );
 }
 
@@ -186,8 +204,22 @@ export function Navbar() {
   const { data: session, status } = useSession();
   const pathname = usePathname();
   const [mobileOpen, setMobileOpen] = useState(false);
+  const [dailyStatus, setDailyStatus] = useState({ currentStreak: 0, playedToday: false });
 
   useEffect(() => { setMobileOpen(false); }, [pathname]);
+
+  useEffect(() => {
+    if (status === "loading") return;
+    // Read-only — Navbar shouldn't mint a new guest identity, only reflect one
+    // that already exists (created by playing Daily or a regular exercise).
+    let token: string | null = null;
+    try { token = localStorage.getItem("eardle_session"); } catch { /* ignore */ }
+    if (!session?.user && !token) return; // nothing to look up, stays at default
+    fetch(`/api/daily/nav-status${token ? `?token=${encodeURIComponent(token)}` : ""}`)
+      .then((r) => r.json())
+      .then(setDailyStatus)
+      .catch(() => {});
+  }, [status, session?.user]);
 
   const user = session?.user;
   const avatarSrc = user?.avatarUrl ?? (user?.id ? dicebearUrl(user.id) : null);
@@ -218,6 +250,7 @@ export function Navbar() {
               label="Daily EarDle"
               active={pathname === "/daily"}
               icon={<DailyIcon className="w-5 h-5" />}
+              badge={<DailyStreakBadge streak={dailyStatus.currentStreak} playedToday={dailyStatus.playedToday} />}
             />
             {(Object.entries(CATEGORY_META) as [string, typeof CATEGORY_META[keyof typeof CATEGORY_META]][]).map(
               ([key, meta]) => {
@@ -326,6 +359,7 @@ export function Navbar() {
           >
             <span className="text-lg">📅</span>
             Daily EarDle
+            <DailyStreakBadge streak={dailyStatus.currentStreak} playedToday={dailyStatus.playedToday} />
           </Link>
           <p className="text-[10px] font-semibold text-gray-600 uppercase tracking-widest px-3 pb-1 pt-1">
             Categories

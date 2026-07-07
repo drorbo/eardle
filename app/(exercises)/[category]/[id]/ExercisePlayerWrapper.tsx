@@ -42,10 +42,12 @@ function resolveChoices(exercise: Exercise): string[] {
 export function ExercisePlayerWrapper({ exercise, nextHref }: Props) {
   const [sessionToken, setSessionToken] = useState("");
   const [resolvedExercise, setResolvedExercise] = useState<Exercise>(exercise);
+  const [initialStreak, setInitialStreak] = useState(0);
   const answeredRef = useRef(false);
 
   useEffect(() => {
-    setSessionToken(getOrCreateSessionToken());
+    const token = getOrCreateSessionToken();
+    setSessionToken(token);
     try {
       setResolvedExercise({ ...exercise, choices: resolveChoices(exercise) });
     } catch { /* keep original choices */ }
@@ -54,6 +56,13 @@ export function ExercisePlayerWrapper({ exercise, nextHref }: Props) {
     // the user finishes reading the prompt and clicks Play. Idempotent/safe
     // to call again on every exercise navigation — a no-op once already warm.
     audioEngine?.warm();
+    // ExercisePlayer's component instance persists across exercise navigation
+    // (only exercise.id changes), so re-fetching here keeps its streak display
+    // in sync rather than only reading it once ever.
+    fetch(`/api/streaks?token=${encodeURIComponent(token)}`)
+      .then((r) => r.json())
+      .then((data) => setInitialStreak(data.exercise?.current ?? 0))
+      .catch(() => {});
   }, [exercise.id]); // eslint-disable-line react-hooks/exhaustive-deps
 
   function handleAnswered(correct: boolean) {
@@ -80,6 +89,7 @@ export function ExercisePlayerWrapper({ exercise, nextHref }: Props) {
       nextHref={nextHref}
       sessionToken={sessionToken}
       onAnswered={handleAnswered}
+      initialStreak={initialStreak}
     />
   );
 }

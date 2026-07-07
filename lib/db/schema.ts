@@ -123,6 +123,29 @@ export const dailyAttempts = pgTable(
   })
 );
 
+export const streaks = pgTable(
+  "streaks",
+  {
+    id: serial("id").primaryKey(),
+    userId: integer("user_id").references(() => users.id, { onDelete: "cascade" }),
+    sessionToken: text("session_token").notNull(),
+    kind: text("kind", { enum: ["exercise", "daily"] }).notNull(),
+    currentStreak: integer("current_streak").notNull().default(0),
+    longestStreak: integer("longest_streak").notNull().default(0),
+    updatedAt: integer("updated_at").notNull().$defaultFn(() => Math.floor(Date.now() / 1000)),
+  },
+  (table) => ({
+    // Same dual-identity pattern as daily_attempts: userId OR sessionToken,
+    // never both required, via two partial unique indexes.
+    oneRowPerUser: uniqueIndex("streaks_user_kind_uq")
+      .on(table.userId, table.kind)
+      .where(sql`${table.userId} is not null`),
+    oneRowPerGuestToken: uniqueIndex("streaks_token_kind_uq")
+      .on(table.sessionToken, table.kind)
+      .where(sql`${table.userId} is null`),
+  })
+);
+
 export type Exercise = typeof exercises.$inferSelect;
 export type NewExercise = typeof exercises.$inferInsert;
 export type Session = typeof sessions.$inferSelect;
@@ -131,3 +154,4 @@ export type User = typeof users.$inferSelect;
 export type Feedback = typeof feedback.$inferSelect;
 export type DailyPuzzle = typeof dailyPuzzles.$inferSelect;
 export type DailyAttempt = typeof dailyAttempts.$inferSelect;
+export type Streak = typeof streaks.$inferSelect;

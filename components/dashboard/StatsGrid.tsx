@@ -16,9 +16,15 @@ interface RecentAttempt {
   createdAt: number;
 }
 
+interface Streaks {
+  exercise: { current: number; longest: number };
+  daily: { current: number; longest: number };
+}
+
 interface Props {
   byCategory: Partial<Record<Category, CategoryStat>>;
   recentAttempts: RecentAttempt[];
+  streaks?: Streaks | null;
 }
 
 const CATEGORIES: Category[] = ["note", "interval", "chord", "progression", "scale"];
@@ -42,11 +48,30 @@ function AccuracyBar({ value }: { value: number }) {
   );
 }
 
-export function StatsGrid({ byCategory, recentAttempts }: Props) {
+export function StatsGrid({ byCategory, recentAttempts, streaks }: Props) {
   const totalAttempts = Object.values(byCategory).reduce((s, v) => s + (v?.total ?? 0), 0);
 
   return (
     <div className="space-y-8">
+      {/* Streak records */}
+      {streaks && (streaks.exercise.longest > 0 || streaks.daily.longest > 0) && (
+        <div>
+          <h2 className="text-xs font-semibold text-gray-500 uppercase tracking-widest mb-4">
+            Longest Streaks
+          </h2>
+          <div className="grid grid-cols-2 gap-3">
+            <div className="p-4 rounded-xl bg-gray-900 border border-gray-800">
+              <p className="text-2xl font-bold text-orange-400">🔥 {streaks.exercise.longest}</p>
+              <p className="text-xs text-gray-500 mt-1">Longest Exercise Streak</p>
+            </div>
+            <div className="p-4 rounded-xl bg-gray-900 border border-gray-800">
+              <p className="text-2xl font-bold text-orange-400">🔥 {streaks.daily.longest}</p>
+              <p className="text-xs text-gray-500 mt-1">Longest Daily Streak</p>
+            </div>
+          </div>
+        </div>
+      )}
+
       {/* Category cards */}
       <div>
         <h2 className="text-xs font-semibold text-gray-500 uppercase tracking-widest mb-4">

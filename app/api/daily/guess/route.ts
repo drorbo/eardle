@@ -6,6 +6,7 @@ import { and, eq, isNull } from "drizzle-orm";
 import { getOrCreateDailyPuzzle } from "@/lib/daily/generate";
 import { DailyExerciseSnapshot } from "@/lib/daily/sanitize";
 import { MAX_GUESSES, todaysPuzzleDateStr } from "@/lib/daily/config";
+import { persistDailyStreak } from "@/lib/daily/streak";
 
 export async function POST(req: NextRequest) {
   const [session, body] = await Promise.all([auth(), req.json()]);
@@ -82,6 +83,10 @@ export async function POST(req: NextRequest) {
       );
     }
 
+    if (newStatus !== "in_progress") {
+      await persistDailyStreak(userId, token);
+    }
+
     return NextResponse.json({
       correct,
       status: newStatus,
@@ -118,6 +123,10 @@ export async function POST(req: NextRequest) {
     // Lost a race against a concurrent first guess from the same identity (unique
     // index violation) — this specific guess was never recorded, ask the client to retry.
     return NextResponse.json({ error: "Guess conflict, please retry" }, { status: 409 });
+  }
+
+  if (status !== "in_progress") {
+    await persistDailyStreak(userId, token);
   }
 
   return NextResponse.json({

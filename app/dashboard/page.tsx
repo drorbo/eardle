@@ -11,10 +11,23 @@ interface Stats {
   recentAttempts: { exerciseId: number; category: string; correct: boolean; createdAt: number }[];
 }
 
+interface Streaks {
+  exercise: { current: number; longest: number };
+  daily: { current: number; longest: number };
+}
+
 async function fetchStats(token?: string): Promise<Stats> {
   const url = token ? `/api/user/stats?token=${encodeURIComponent(token)}` : "/api/user/stats";
   const res = await fetch(url);
   if (!res.ok) return { byCategory: {}, recentAttempts: [] };
+  return res.json();
+}
+
+async function fetchStreaks(token?: string): Promise<Streaks> {
+  const empty = { current: 0, longest: 0 };
+  const url = token ? `/api/streaks?token=${encodeURIComponent(token)}` : "/api/streaks";
+  const res = await fetch(url);
+  if (!res.ok) return { exercise: empty, daily: empty };
   return res.json();
 }
 
@@ -31,6 +44,7 @@ async function migrateIfNeeded() {
 export default function DashboardPage() {
   const { data: session, status } = useSession();
   const [stats, setStats] = useState<Stats | null>(null);
+  const [streaks, setStreaks] = useState<Streaks | null>(null);
   const user = session?.user;
 
   useEffect(() => {
@@ -40,13 +54,15 @@ export default function DashboardPage() {
       // If authenticated, migrate guest progress first (idempotent)
       if (session?.user?.id) {
         await migrateIfNeeded();
-        const s = await fetchStats();
+        const [s, st] = await Promise.all([fetchStats(), fetchStreaks()]);
         setStats(s);
+        setStreaks(st);
       } else {
         // Guest: use localStorage session token
         const token = localStorage.getItem("eardle_session") ?? undefined;
-        const s = await fetchStats(token);
+        const [s, st] = await Promise.all([fetchStats(token), fetchStreaks(token)]);
         setStats(s);
+        setStreaks(st);
       }
     }
 
@@ -83,7 +99,7 @@ export default function DashboardPage() {
       </div>
 
       {stats ? (
-        <StatsGrid byCategory={stats.byCategory} recentAttempts={stats.recentAttempts} />
+        <StatsGrid byCategory={stats.byCategory} recentAttempts={stats.recentAttempts} streaks={streaks} />
       ) : (
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
           {Array.from({ length: 5 }).map((_, i) => (

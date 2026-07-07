@@ -12,12 +12,14 @@ import { FeedbackBanner } from "./FeedbackBanner";
 import { ChordStaff } from "./ChordStaff";
 import { IntervalStaff } from "./IntervalStaff";
 import { ScaleStaff } from "./ScaleStaff";
+import { ConfettiBurst } from "@/components/daily/ConfettiBurst";
 
 interface ExercisePlayerProps {
   exercise: Exercise;
   nextHref?: string;
   sessionToken: string;
   onAnswered?: (correct: boolean) => void;
+  initialStreak?: number;
 }
 
 const PLAY_MODES: Array<{ id: UiPlayMode; label: string; icon: string }> = [
@@ -35,11 +37,20 @@ const SPEED_LEVELS: Array<{ level: number; label: string; icon: string }> = [
   { level: 5, label: "Very Fast", icon: "5" },
 ];
 
-export function ExercisePlayer({ exercise, nextHref, sessionToken, onAnswered }: ExercisePlayerProps) {
+export function ExercisePlayer({ exercise, nextHref, sessionToken, onAnswered, initialStreak = 0 }: ExercisePlayerProps) {
   const { play, stop, isPlaying, isLoadingSamples, playedNotes, lastPlayedMode, instrument, setInstrument } = useAudio();
   const { state, onPlay, onAudioDone, onSelect, onReset } = useExercise(exercise);
   const prevIdRef = useRef(exercise.id);
   const router = useRouter();
+  const [currentStreak, setCurrentStreak] = useState(initialStreak);
+  const [isNewRecord, setIsNewRecord] = useState(false);
+
+  // ExercisePlayer's component instance persists across exercise navigation
+  // (Wrapper re-fetches per exercise.id, doesn't remount this component), so
+  // this keeps the displayed streak in sync with each freshly-fetched value.
+  useEffect(() => {
+    setCurrentStreak(initialStreak);
+  }, [initialStreak]);
 
   const [uiPlayMode, setUiPlayMode] = useState<UiPlayMode>(() => {
     if (exercise.category !== "interval") return "harmonic";
@@ -77,11 +88,19 @@ export function ExercisePlayer({ exercise, nextHref, sessionToken, onAnswered }:
       const correct = choice === exercise.answer;
       onSelect(choice);
       onAnswered?.(correct);
-      fetch("/api/sessions", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ sessionToken, exerciseId: exercise.id, answered: choice, correct }),
-      }).catch(() => {});
+      setIsNewRecord(false);
+      try {
+        const res = await fetch("/api/sessions", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ sessionToken, exerciseId: exercise.id, answered: choice, correct }),
+        });
+        const data = await res.json();
+        if (typeof data.currentStreak === "number") setCurrentStreak(data.currentStreak);
+        if (data.isNewRecord) setIsNewRecord(true);
+      } catch {
+        // Non-critical — the streak display just won't update for this answer.
+      }
     },
     [exercise.answer, exercise.id, onSelect, onAnswered, sessionToken]
   );
@@ -91,6 +110,7 @@ export function ExercisePlayer({ exercise, nextHref, sessionToken, onAnswered }:
     if (prevIdRef.current !== exercise.id) {
       stop();
       onReset();
+      setIsNewRecord(false);
       prevIdRef.current = exercise.id;
     }
   }, [exercise.id, stop, onReset]);
@@ -208,6 +228,8 @@ export function ExercisePlayer({ exercise, nextHref, sessionToken, onAnswered }:
 
   return (
     <div className="relative w-full">
+      {isNewRecord && <ConfettiBurst />}
+
       {/* Floating Next button — fixed below navbar, always reachable without scrolling */}
       {isAnswered && nextHref && (
         <Link
@@ -220,6 +242,14 @@ export function ExercisePlayer({ exercise, nextHref, sessionToken, onAnswered }:
       )}
 
       <div className="flex flex-col items-center gap-5 sm:gap-8 w-full max-w-xl mx-auto">
+        <div
+          className={`flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold ${
+            currentStreak > 0 ? "bg-orange-950/60 text-orange-300 border border-orange-900" : "bg-gray-900/60 text-gray-500 border border-gray-800"
+          }`}
+        >
+          🔥 Streak: {currentStreak}
+        </div>
+
         <div className="text-center">
           <p className="text-gray-400 text-sm uppercase tracking-widest mb-2">
             {state.phase === "idle"
@@ -283,6 +313,10 @@ export function ExercisePlayer({ exercise, nextHref, sessionToken, onAnswered }:
             correctAnswer={exercise.answer}
             selected={state.selected}
           />
+        )}
+
+        {isNewRecord && (
+          <p className="text-orange-400 font-bold text-sm">🎉 New personal best streak!</p>
         )}
 
         {isAnswered && exercise.explanation && (

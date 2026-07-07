@@ -3,13 +3,7 @@ import { auth } from "@/lib/auth";
 import { db } from "@/lib/db";
 import { dailyAttempts, dailyPuzzles } from "@/lib/db/schema";
 import { and, eq, isNull, ne } from "drizzle-orm";
-
-function isNextCalendarDay(prev: string, next: string): boolean {
-  const prevDate = new Date(`${prev}T00:00:00Z`);
-  const expected = new Date(prevDate);
-  expected.setUTCDate(expected.getUTCDate() + 1);
-  return expected.toISOString().slice(0, 10) === next;
-}
+import { computeStreaksFromRows } from "@/lib/daily/streak";
 
 export async function GET(req: NextRequest) {
   const [session, token] = await Promise.all([
@@ -50,24 +44,7 @@ export async function GET(req: NextRequest) {
     count: wins.filter((w) => w.finalGuessCount === g).length,
   }));
 
-  let currentStreak = 0;
-  let longestStreak = 0;
-  let running = 0;
-  let prevDate: string | null = null;
-  for (const row of rows) {
-    const continuesStreak = row.status === "won" && (prevDate === null || isNextCalendarDay(prevDate, row.puzzleDate));
-    if (row.status === "won" && continuesStreak) {
-      running += 1;
-    } else if (row.status === "won") {
-      running = 1; // won, but broke the day-to-day chain — restart at 1
-    } else {
-      running = 0; // a loss always breaks the streak
-    }
-    longestStreak = Math.max(longestStreak, running);
-    prevDate = row.puzzleDate;
-  }
-  // Current streak only counts if the most recent finished puzzle was a win.
-  currentStreak = rows.length > 0 && rows[rows.length - 1].status === "won" ? running : 0;
+  const { currentStreak, longestStreak } = computeStreaksFromRows(rows);
 
   return NextResponse.json({ gamesPlayed, winPct, currentStreak, longestStreak, distribution, lostCount });
 }
