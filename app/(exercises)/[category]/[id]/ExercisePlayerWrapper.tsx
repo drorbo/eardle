@@ -3,6 +3,7 @@
 import { useEffect, useRef, useState } from "react";
 import { Exercise } from "@/types/exercise";
 import { ExercisePlayer } from "@/components/exercise/ExercisePlayer";
+import { audioEngine } from "@/lib/audio/engine";
 
 interface Props {
   exercise: Exercise;
@@ -49,6 +50,10 @@ export function ExercisePlayerWrapper({ exercise, nextHref }: Props) {
       setResolvedExercise({ ...exercise, choices: resolveChoices(exercise) });
     } catch { /* keep original choices */ }
     answeredRef.current = false;
+    // Start loading piano samples as soon as the exercise renders, well before
+    // the user finishes reading the prompt and clicks Play. Idempotent/safe
+    // to call again on every exercise navigation — a no-op once already warm.
+    audioEngine?.warm();
   }, [exercise.id]); // eslint-disable-line react-hooks/exhaustive-deps
 
   function handleAnswered(correct: boolean) {

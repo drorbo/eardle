@@ -1,6 +1,8 @@
 "use client";
 
 import { useEffect, useCallback, useRef, useState } from "react";
+import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { Exercise, IntervalConfig, UiPlayMode } from "@/types/exercise";
 import { useAudio } from "@/hooks/useAudio";
 import { useExercise } from "@/hooks/useExercise";
@@ -34,9 +36,10 @@ const SPEED_LEVELS: Array<{ level: number; label: string; icon: string }> = [
 ];
 
 export function ExercisePlayer({ exercise, nextHref, sessionToken, onAnswered }: ExercisePlayerProps) {
-  const { play, stop, isPlaying, playedNotes, lastPlayedMode } = useAudio();
+  const { play, stop, isPlaying, isLoadingSamples, playedNotes, lastPlayedMode, instrument, setInstrument } = useAudio();
   const { state, onPlay, onAudioDone, onSelect, onReset } = useExercise(exercise);
   const prevIdRef = useRef(exercise.id);
+  const router = useRouter();
 
   const [uiPlayMode, setUiPlayMode] = useState<UiPlayMode>(() => {
     if (exercise.category !== "interval") return "harmonic";
@@ -63,7 +66,8 @@ export function ExercisePlayer({ exercise, nextHref, sessionToken, onAnswered }:
   });
 
   const handlePlay = useCallback(async () => {
-    if (state.phase === "playing") return;
+    // Deliberately allowed to fire again mid-playback — play() stops and
+    // restarts from the beginning rather than being a no-op.
     if (state.phase !== "answered") onPlay();
     await play(exercise, uiPlayMode, speedLevel);
   }, [state.phase, onPlay, play, exercise, uiPlayMode, speedLevel]);
@@ -104,11 +108,11 @@ export function ExercisePlayer({ exercise, nextHref, sessionToken, onAnswered }:
       if (e.target instanceof HTMLInputElement || e.target instanceof HTMLTextAreaElement) return;
       if (e.code === "Space") {
         e.preventDefault();
-        if (state.phase !== "playing") handlePlay();
+        handlePlay();
       }
       if ((e.code === "Enter" || e.key === "n") && state.phase === "answered" && nextHref) {
         e.preventDefault();
-        window.location.href = nextHref;
+        router.push(nextHref);
       }
       const num = parseInt(e.key);
       if (num >= 1 && num <= exercise.choices.length && (state.phase === "ready" || state.phase === "playing")) {
@@ -117,7 +121,7 @@ export function ExercisePlayer({ exercise, nextHref, sessionToken, onAnswered }:
     }
     window.addEventListener("keydown", handleKey);
     return () => window.removeEventListener("keydown", handleKey);
-  }, [state.phase, handlePlay, handleSelect, exercise.choices]);
+  }, [state.phase, handlePlay, handleSelect, exercise.choices, nextHref, router]);
 
   const isAnswered = state.phase === "answered";
   const choicesDisabled = state.phase === "idle";
@@ -206,13 +210,13 @@ export function ExercisePlayer({ exercise, nextHref, sessionToken, onAnswered }:
     <div className="relative w-full">
       {/* Floating Next button — fixed below navbar, always reachable without scrolling */}
       {isAnswered && nextHref && (
-        <a
+        <Link
           href={nextHref}
           className="fixed top-[7rem] left-1/2 -translate-x-1/2 z-40 flex items-center gap-2 px-5 py-2 rounded-full bg-indigo-600 hover:bg-indigo-500 text-white font-semibold text-sm shadow-lg shadow-indigo-900/40 transition"
         >
           Next Exercise →
           <span className="hidden sm:inline text-xs opacity-60 font-normal">Enter / N</span>
-        </a>
+        </Link>
       )}
 
       <div className="flex flex-col items-center gap-5 sm:gap-8 w-full max-w-xl mx-auto">
@@ -227,7 +231,26 @@ export function ExercisePlayer({ exercise, nextHref, sessionToken, onAnswered }:
           <h2 className="text-2xl sm:text-3xl font-bold text-white">{exercise.prompt}</h2>
         </div>
 
-        <PlayButton onClick={handlePlay} isPlaying={isPlaying} />
+        <PlayButton onClick={handlePlay} isPlaying={isPlaying} isLoading={isLoadingSamples} />
+
+        <div className="flex gap-1 bg-gray-900/80 border border-gray-800 rounded-xl p-1" role="group" aria-label="Sound">
+          <button
+            onClick={() => setInstrument("piano")}
+            className={`px-3 py-1.5 rounded-lg text-xs font-semibold transition ${
+              instrument === "piano" ? "bg-violet-600 text-white" : "text-gray-400 hover:text-white hover:bg-gray-800"
+            }`}
+          >
+            🎹 Piano
+          </button>
+          <button
+            onClick={() => setInstrument("synth")}
+            className={`px-3 py-1.5 rounded-lg text-xs font-semibold transition ${
+              instrument === "synth" ? "bg-violet-600 text-white" : "text-gray-400 hover:text-white hover:bg-gray-800"
+            }`}
+          >
+            ⚡ Quick
+          </button>
+        </div>
 
         {/* Mobile controls: horizontal strip between play button and choices */}
         {hasControls && (
@@ -291,13 +314,13 @@ export function ExercisePlayer({ exercise, nextHref, sessionToken, onAnswered }:
         )}
 
         {isAnswered && nextHref && (
-          <a
+          <Link
             href={nextHref}
             className="mt-2 px-8 py-3 rounded-xl bg-indigo-600 hover:bg-indigo-500 text-white font-semibold text-lg transition"
           >
             Next Exercise →
             <span className="hidden sm:inline ml-2 text-xs opacity-60 font-normal">Enter / N</span>
-          </a>
+          </Link>
         )}
       </div>
 

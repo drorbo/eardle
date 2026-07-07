@@ -11,6 +11,7 @@ import { ProgressionStaff } from "@/components/exercise/ProgressionStaff";
 import { StatsModal } from "@/components/daily/StatsModal";
 import { InfoTooltip } from "@/components/ui/InfoTooltip";
 import { addSemitones } from "@/lib/audio/theory";
+import { audioEngine } from "@/lib/audio/engine";
 import { DAILY_INFO_TEXT, DAILY_WON_LINES, DAILY_LOST_LINES } from "@/lib/daily/config";
 import { CATEGORY_META } from "@/types/exercise";
 import type { Exercise, ProgressionConfig } from "@/types/exercise";
@@ -20,6 +21,10 @@ export function DailyPuzzlePlayer() {
   const { play, isPlaying, playedNotes } = useAudio();
   const [statsOpen, setStatsOpen] = useState(false);
   const prevStatusRef = useRef<string | null>(null);
+
+  useEffect(() => {
+    audioEngine?.warm();
+  }, []);
 
   useEffect(() => {
     if (state.phase !== "ready") return;

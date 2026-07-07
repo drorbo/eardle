@@ -1,6 +1,7 @@
 import { buildChord, buildScale, applyVoicing, ChordType, ScaleType, VoicingId } from "./theory";
 
 type PlayMode = "harmonic" | "melodic";
+export type InstrumentId = "piano" | "synth";
 
 // Salamander Grand Piano — hosted on the Tone.js CDN, no bundled files needed
 const SALAMANDER_BASE = "https://tonejs.github.io/audio/salamander/";
@@ -16,34 +17,49 @@ const SALAMANDER_URLS: Record<string, string> = {
 };
 
 class AudioEngine {
-  private synth: any = null;
+  private pianoSynth: any = null;
+  private synthVoice: any = null;
   private Tone: any = null;
-  private initPromise: Promise<void> | null = null;
+  private samplesPromise: Promise<void> | null = null;
+  private samplesReady = false;
+  private started = false;
+  private instrument: InstrumentId = "piano";
   private pendingTimeouts: number[] = [];
 
-  private init(): Promise<void> {
-    if (!this.initPromise) {
-      this.initPromise = this._doInit();
-      // Reset on failure so the next play() call can retry
-      this.initPromise.catch(() => { this.initPromise = null; });
-    }
-    return this.initPromise;
+  private get activeSynth(): any {
+    return this.instrument === "synth" ? this.synthVoice : this.pianoSynth;
   }
 
-  private async _doInit() {
-    // Dynamic import keeps Tone.js out of the server bundle
-    const Tone = await import("tone");
-    await Tone.start();
-    this.Tone = Tone;
+  setInstrument(id: InstrumentId) {
+    this.instrument = id;
+  }
 
-    // iOS 16.4+: tell Safari this is media playback so it ignores the ring/silent
-    // switch (Web Audio otherwise respects it, unlike <audio>/<video> elements).
-    // No effect (and no error) on browsers that don't support this API.
-    if ("audioSession" in navigator) {
-      (navigator as unknown as { audioSession: { type: string } }).audioSession.type = "playback";
+  getInstrument(): InstrumentId {
+    return this.instrument;
+  }
+
+  // Whether the CURRENTLY selected instrument can play instantly right now.
+  isReady(): boolean {
+    return this.instrument === "synth" ? true : this.samplesReady;
+  }
+
+  // Safe to call before any user gesture (e.g. on page mount) — only fetches
+  // and decodes audio buffers. Tone.js lazily creates its own AudioContext
+  // (in "suspended" state pre-gesture) the moment any Tone.js object is
+  // constructed; decoding doesn't require the context to be running, only
+  // actual sound *output* does. Idempotent — safe to call repeatedly.
+  loadSamples(): Promise<void> {
+    if (!this.samplesPromise) {
+      this.samplesPromise = this._doLoadSamples();
+      // Reset on failure so a later call can retry
+      this.samplesPromise.catch(() => { this.samplesPromise = null; });
     }
+    return this.samplesPromise;
+  }
 
-    // sampler.loaded is a boolean getter, not a Promise — use onload/onerror instead
+  private async _doLoadSamples() {
+    const Tone = await import("tone");
+    this.Tone = Tone;
     await new Promise<void>((resolve, reject) => {
       const sampler = new Tone.Sampler({
         urls: SALAMANDER_URLS,
@@ -52,8 +68,44 @@ class AudioEngine {
         onload: resolve,
         onerror: reject,
       }).toDestination();
-      this.synth = sampler;
+      this.pianoSynth = sampler;
     });
+    this.samplesReady = true;
+  }
+
+  // Fire-and-forget warm-up for external callers (e.g. on exercise page
+  // mount) — starts the piano fetch well before the user clicks Play.
+  warm() {
+    this.loadSamples().catch(() => {});
+  }
+
+  // Gesture-gated: must only run from inside a real play*() call, which is
+  // always triggered by a user click/keyboard shortcut.
+  private async ensureStarted() {
+    if (this.started) return;
+    if (!this.Tone) {
+      this.Tone = await import("tone");
+    }
+    await this.Tone.start();
+    this.started = true;
+
+    // iOS 16.4+: tell Safari this is media playback so it ignores the ring/silent
+    // switch (Web Audio otherwise respects it, unlike <audio>/<video> elements).
+    // No effect (and no error) on browsers that don't support this API.
+    if ("audioSession" in navigator) {
+      (navigator as unknown as { audioSession: { type: string } }).audioSession.type = "playback";
+    }
+
+    if (!this.synthVoice) {
+      this.synthVoice = new this.Tone.PolySynth(this.Tone.Synth).toDestination();
+    }
+  }
+
+  private async init() {
+    await this.ensureStarted();
+    if (this.instrument === "piano") {
+      await this.loadSamples();
+    }
   }
 
   // Cancel all future-scheduled note callbacks so stop() truly silences everything
@@ -69,19 +121,19 @@ class AudioEngine {
 
   async playNote(note: string, duration = "2n") {
     await this.init();
-    this.synth.triggerAttackRelease(note, duration);
+    this.activeSynth.triggerAttackRelease(note, duration);
   }
 
   async playInterval(noteA: string, noteB: string, mode: PlayMode = "harmonic") {
     await this.init();
     if (mode === "harmonic") {
-      this.synth.triggerAttackRelease([noteA, noteB], "2n");
+      this.activeSynth.triggerAttackRelease([noteA, noteB], "2n");
     } else {
       this._cancelPending();
       const startTime = this.Tone.now() + 0.1;
-      this.synth.triggerAttackRelease(noteA, "2n", startTime);
+      this.activeSynth.triggerAttackRelease(noteA, "2n", startTime);
       const id = this.Tone.getContext().setTimeout(() => {
-        if (this.synth) try { this.synth.triggerAttackRelease(noteB, "2n", startTime + 0.7); } catch {}
+        if (this.activeSynth) try { this.activeSynth.triggerAttackRelease(noteB, "2n", startTime + 0.7); } catch {}
       }, 0.7) as unknown as number;
       this.pendingTimeouts.push(id);
     }
@@ -89,13 +141,13 @@ class AudioEngine {
 
   async playNotes(notes: string[]) {
     await this.init();
-    this.synth.triggerAttackRelease(notes, "2n");
+    this.activeSynth.triggerAttackRelease(notes, "2n");
   }
 
   async playChord(root: string, type: ChordType, voicing: VoicingId = "close") {
     await this.init();
     const notes = applyVoicing(buildChord(root, type), voicing);
-    this.synth.triggerAttackRelease(notes, "2n");
+    this.activeSynth.triggerAttackRelease(notes, "2n");
   }
 
   async playProgression(chords: string[][], tempo = 80, tempoMult = 1) {
@@ -107,7 +159,7 @@ class AudioEngine {
     chords.forEach((chord, i) => {
       const chordTime = startTime + i * beatDuration * 2;
       const id = ctx.setTimeout(() => {
-        if (this.synth) try { this.synth.triggerAttackRelease(chord, "2n", chordTime); } catch {}
+        if (this.activeSynth) try { this.activeSynth.triggerAttackRelease(chord, "2n", chordTime); } catch {}
       }, i * beatDuration * 2) as unknown as number;
       this.pendingTimeouts.push(id);
     });
@@ -122,7 +174,7 @@ class AudioEngine {
     notes.forEach((note, i) => {
       const noteTime = startTime + i * noteGap;
       const id = ctx.setTimeout(() => {
-        if (this.synth) try { this.synth.triggerAttackRelease(note, noteGap * 0.9, noteTime); } catch {}
+        if (this.activeSynth) try { this.activeSynth.triggerAttackRelease(note, noteGap * 0.9, noteTime); } catch {}
       }, i * noteGap) as unknown as number;
       this.pendingTimeouts.push(id);
     });
@@ -130,9 +182,9 @@ class AudioEngine {
 
   stop() {
     this._cancelPending();
-    if (this.synth) {
+    if (this.activeSynth) {
       try {
-        this.synth.releaseAll();
+        this.activeSynth.releaseAll();
       } catch {
         // ignore
       }

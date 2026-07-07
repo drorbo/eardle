@@ -1,7 +1,7 @@
 "use client";
 
-import { useCallback, useRef, useState } from "react";
-import { audioEngine } from "@/lib/audio/engine";
+import { useCallback, useEffect, useRef, useState } from "react";
+import { audioEngine, InstrumentId } from "@/lib/audio/engine";
 
 // Speed level 1–5 mappings (index = level - 1)
 const SCALE_GAPS  = [0.55, 0.375, 0.25, 0.15, 0.08] as const; // seconds between notes
@@ -12,10 +12,17 @@ import { randomRoot, randomOctaveNote, addSemitones, buildChord, buildScale, app
 import { generatePerformanceParams, PerformanceParams } from "@/lib/audio/randomize";
 import { Exercise, NoteConfig, IntervalConfig, ChordConfig, ProgressionConfig, ScaleConfig, UiPlayMode } from "@/types/exercise";
 
+const INSTRUMENT_KEY = "eardle-instrument";
+
 export function useAudio() {
   const [isPlaying, setIsPlaying] = useState(false);
+  const [isLoadingSamples, setIsLoadingSamples] = useState(false);
   const [playedNotes, setPlayedNotes] = useState<string[] | null>(null);
   const [lastPlayedMode, setLastPlayedMode] = useState<"harmonic" | "melodic-up" | "melodic-down">("harmonic");
+  const [instrument, setInstrumentState] = useState<InstrumentId>(() => {
+    if (typeof window === "undefined") return "piano";
+    return localStorage.getItem(INSTRUMENT_KEY) === "synth" ? "synth" : "piano";
+  });
   const timeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const playingRef = useRef(false);
   const exerciseIdRef = useRef<number | null>(null);
@@ -27,15 +34,31 @@ export function useAudio() {
     voicing?: VoicingId;
   } | null>(null);
 
+  useEffect(() => {
+    audioEngine?.setInstrument(instrument);
+  }, [instrument]);
+
+  const setInstrument = useCallback((id: InstrumentId) => {
+    setInstrumentState(id);
+    try { localStorage.setItem(INSTRUMENT_KEY, id); } catch {}
+  }, []);
+
   const play = useCallback(async (exercise: Exercise, playModeOverride?: UiPlayMode, speedLevel = 3, forcedParams?: PerformanceParams) => {
     if (!audioEngine) return;
-    // Ref-based guard: prevents concurrent play() calls regardless of stale React closures
-    if (playingRef.current) return;
+    // Restart-on-replay: a second click while already playing stops the
+    // current sound and starts over, rather than being silently ignored.
+    if (playingRef.current) {
+      audioEngine.stop();
+      if (timeoutRef.current) clearTimeout(timeoutRef.current);
+    }
     playingRef.current = true;
+
+    const needsLoad = !audioEngine.isReady();
+    if (needsLoad) setIsLoadingSamples(true);
 
     if (timeoutRef.current) clearTimeout(timeoutRef.current);
     // Guarantee recovery if the sampler load hangs indefinitely
-    timeoutRef.current = setTimeout(() => { setIsPlaying(false); playingRef.current = false; }, SAFETY_MS);
+    timeoutRef.current = setTimeout(() => { setIsPlaying(false); setIsLoadingSamples(false); playingRef.current = false; }, SAFETY_MS);
     audioEngine.stop();
     setIsPlaying(true);
 
@@ -122,8 +145,10 @@ export function useAudio() {
         // Longest scale has 9 notes (octatonic); add 1.5s piano release
         timeoutRef.current = setTimeout(() => { setIsPlaying(false); playingRef.current = false; }, 9 * noteGap * 1000 + 1500);
       }
+      if (needsLoad) setIsLoadingSamples(false);
     } catch {
       setIsPlaying(false);
+      setIsLoadingSamples(false);
       playingRef.current = false;
     }
   }, []);
@@ -132,8 +157,9 @@ export function useAudio() {
     if (timeoutRef.current) clearTimeout(timeoutRef.current);
     audioEngine?.stop();
     setIsPlaying(false);
+    setIsLoadingSamples(false);
     playingRef.current = false;
   }, []);
 
-  return { play, stop, isPlaying, playedNotes, lastPlayedMode };
+  return { play, stop, isPlaying, isLoadingSamples, playedNotes, lastPlayedMode, instrument, setInstrument };
 }

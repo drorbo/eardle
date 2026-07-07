@@ -3,15 +3,16 @@
 interface PlayButtonProps {
   onClick: () => void;
   isPlaying: boolean;
+  isLoading?: boolean;
   disabled?: boolean;
 }
 
-export function PlayButton({ onClick, isPlaying, disabled }: PlayButtonProps) {
+export function PlayButton({ onClick, isPlaying, isLoading, disabled }: PlayButtonProps) {
   return (
     <button
       onClick={onClick}
-      disabled={disabled || isPlaying}
-      aria-label={isPlaying ? "Playing…" : "Play audio"}
+      disabled={disabled}
+      aria-label={isLoading ? "Loading sound…" : isPlaying ? "Playing…" : "Play audio"}
       className="
         relative flex items-center justify-center
         w-24 h-24 sm:w-28 sm:h-28
@@ -22,7 +23,12 @@ export function PlayButton({ onClick, isPlaying, disabled }: PlayButtonProps) {
         focus:outline-none focus:ring-4 focus:ring-indigo-400
       "
     >
-      {isPlaying ? (
+      {isLoading ? (
+        <svg className="w-9 h-9 text-white animate-spin" viewBox="0 0 24 24" fill="none">
+          <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="3" />
+          <path className="opacity-90" d="M12 2a10 10 0 0 1 10 10" stroke="currentColor" strokeWidth="3" strokeLinecap="round" />
+        </svg>
+      ) : isPlaying ? (
         <span className="flex gap-1 items-end h-6">
           {[0, 1, 2, 3].map((i) => (
             <span
