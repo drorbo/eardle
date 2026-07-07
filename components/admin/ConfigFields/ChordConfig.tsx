@@ -6,6 +6,8 @@ const CHORD_TYPE_OPTIONS = [
   { group: "Triads",              value: "dim",        label: "Diminished" },
   { group: "Triads",              value: "aug",        label: "Augmented" },
   { group: "Triads",              value: "sus4",       label: "Sus4" },
+  { group: "Triads",              value: "add2",       label: "Major add2" },
+  { group: "Triads",              value: "add4",       label: "Major add4" },
   { group: "Major family",        value: "maj6",       label: "Major 6th" },
   { group: "Major family",        value: "maj6_9",     label: "Major 6/9" },
   { group: "Major family",        value: "maj7",       label: "Major 7th" },

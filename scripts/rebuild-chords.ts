@@ -28,6 +28,9 @@ const EXPLANATIONS: Record<string, string> = {
   maj6: "A major 6th chord replaces a major 7th chord's 7th with the 6th scale degree instead, giving it a bright, open, slightly retro sound without the 7th's tension. It was a signature sound of swing-era and early jazz endings.",
   min6: "A minor 6th chord adds the 6th scale degree (rather than a 7th) on top of a minor triad, giving it a slightly unresolved, wistful color distinct from a plain minor 7th. It shows up often in jazz and film-score minor-key passages.",
   sus4: "A suspended 4th chord replaces a chord's 3rd with a 4th, removing the note that normally defines whether a chord is major or minor. That missing 3rd creates an open, floating tension that usually wants to resolve back down to the 3rd.",
+  sus9: "A sus9 chord (also called 9sus4) replaces a dominant 9th chord's 3rd with a 4th, keeping the 7th and 9th on top. It has an open, ambiguous quality that avoids resolving to major or minor, often used in modern pop and jazz as a color chord on its own rather than a passing suspension.",
+  add2: "A major add2 chord adds the 2nd scale degree on top of a plain major triad, without removing the 3rd (unlike a sus2 chord, which replaces it). That extra note adds a bright, open, slightly modern color while keeping the chord clearly major, common in pop and contemporary singer-songwriter music.",
+  add4: "A major add4 chord adds the perfect 4th on top of a plain major triad, without removing the 3rd (unlike a sus4 chord, which replaces it). The 3rd and 4th sitting a half-step apart create a bit of inner tension, giving the chord a bright but slightly unresolved, open color.",
 };
 
 const EASY_CHOICES = JSON.stringify(["Major", "Minor", "Dominant 7th", "Diminished"]);
@@ -35,6 +38,7 @@ const MEDIUM_CHOICES = JSON.stringify(["Major", "Minor", "Dominant 7th", "Dimini
 const HARD_CHOICES = JSON.stringify([
   "Major", "Minor", "Dominant 7th", "Diminished", "Major 7th", "Minor 7th", "Augmented",
   "Diminished 7th", "Half-Diminished", "Major 9th", "Minor 9th", "Major 6th", "Minor 6th", "Sus4",
+  "Sus9", "Major add2", "Major add4",
 ]);
 
 const plainExercises = [
@@ -70,6 +74,9 @@ const plainExercises = [
   { title: "Major 6th",           difficulty: "hard", type: "maj6",   answer: "Major 6th",        choices: HARD_CHOICES },
   { title: "Minor 6th",           difficulty: "hard", type: "min6",   answer: "Minor 6th",        choices: HARD_CHOICES },
   { title: "Suspended 4th",       difficulty: "hard", type: "sus4",   answer: "Sus4",             choices: HARD_CHOICES },
+  { title: "Suspended 9th",       difficulty: "hard", type: "sus9",   answer: "Sus9",             choices: HARD_CHOICES },
+  { title: "Major add2",          difficulty: "hard", type: "add2",   answer: "Major add2",       choices: HARD_CHOICES },
+  { title: "Major add4",          difficulty: "hard", type: "add4",   answer: "Major add4",       choices: HARD_CHOICES },
 ];
 
 // ─── Inversions ──────────────────────────────────────────────────────────────
