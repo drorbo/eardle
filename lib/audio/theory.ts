@@ -13,6 +13,7 @@ export const CHORD_TYPES = {
   minor:      [0, 3, 7],
   dim:        [0, 3, 6],
   aug:        [0, 4, 8],
+  sus4:       [0, 5, 7],
 
   // Major family
   maj6:       [0, 4, 7, 9],
@@ -195,6 +196,7 @@ const CHORD_INTERVALS: Record<ChordType, IvDef[]> = {
   minor:      [[0,0],[3,2],[7,4]],
   dim:        [[0,0],[3,2],[6,4]],
   aug:        [[0,0],[4,2],[8,4]],
+  sus4:       [[0,0],[5,3],[7,4]],
 
   maj6:       [[0,0],[4,2],[7,4],[9,5]],
   maj6_9:     [[0,0],[4,2],[7,4],[9,5],[14,1]],
