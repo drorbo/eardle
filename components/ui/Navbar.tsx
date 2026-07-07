@@ -219,7 +219,26 @@ export function Navbar() {
       .then((r) => r.json())
       .then(setDailyStatus)
       .catch(() => {});
-  }, [status, session?.user]);
+    // Navbar is a persistent layout component (doesn't remount on navigation),
+    // so without this it would keep showing whatever streak/played-today state
+    // was true when it first mounted — refetch on every route change (catches
+    // "just navigated away after finishing today's puzzle") and immediately
+    // when DailyPuzzlePlayer dispatches this event on completion (catches
+    // "finished but stayed on /daily", no navigation needed).
+  }, [status, session?.user, pathname]);
+
+  useEffect(() => {
+    function onDailyCompleted() {
+      let token: string | null = null;
+      try { token = localStorage.getItem("eardle_session"); } catch { /* ignore */ }
+      fetch(`/api/daily/nav-status${token ? `?token=${encodeURIComponent(token)}` : ""}`)
+        .then((r) => r.json())
+        .then(setDailyStatus)
+        .catch(() => {});
+    }
+    window.addEventListener("eardle:daily-completed", onDailyCompleted);
+    return () => window.removeEventListener("eardle:daily-completed", onDailyCompleted);
+  }, []);
 
   const user = session?.user;
   const avatarSrc = user?.avatarUrl ?? (user?.id ? dicebearUrl(user.id) : null);
@@ -318,8 +337,11 @@ export function Navbar() {
           )}
         </div>
 
-        {/* Mobile: avatar + hamburger */}
+        {/* Mobile: daily streak + avatar + hamburger */}
         <div className="flex sm:hidden items-center gap-2">
+          <Link href="/daily" aria-label="Daily EarDle">
+            <DailyStreakBadge streak={dailyStatus.currentStreak} playedToday={dailyStatus.playedToday} />
+          </Link>
           {user && avatarSrc && (
             <Link href="/profile">
               <Image

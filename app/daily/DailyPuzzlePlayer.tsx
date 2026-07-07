@@ -31,6 +31,10 @@ export function DailyPuzzlePlayer() {
     const wasPlayable = prevStatusRef.current === "in_progress" || prevStatusRef.current === "not_started";
     if (wasPlayable && (state.status === "won" || state.status === "lost")) {
       setStatsOpen(true);
+      // Navbar's streak badge is a persistent layout component that only
+      // fetches on mount/navigation — this lets it update immediately even
+      // if the user stays on this page after finishing.
+      window.dispatchEvent(new Event("eardle:daily-completed"));
     }
     prevStatusRef.current = state.status;
   }, [state]);
