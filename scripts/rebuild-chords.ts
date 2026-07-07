@@ -91,7 +91,6 @@ const SEVENTH_ADJACENT: Record<string, string[]> = {
   "Dominant 7th": ["Major 7th", "Minor 7th"],
   "Major 7th": ["Dominant 7th", "Minor 7th"],
   "Minor 7th": ["Major 7th", "Dominant 7th"],
-  "Diminished 7th": ["Half-Diminished", "Minor 7th"],
   "Half-Diminished": ["Diminished 7th", "Minor 7th"],
 };
 
@@ -113,12 +112,11 @@ const inversionExercises = [
       choices: TRIAD_CHOICES,
     }));
   }),
-  // All septachords — full root+1st+2nd+3rd, at hard
+  // All septachords except diminished 7th — full root+1st+2nd+3rd, at hard
   ...[
     { type: "dom7", label: "Dominant 7th" },
     { type: "maj7", label: "Major 7th" },
     { type: "min7", label: "Minor 7th" },
-    { type: "dim7", label: "Diminished 7th" },
     { type: "min7b5", label: "Half-Diminished" },
   ].flatMap(({ type, label }) =>
     [0, 1, 2, 3].map((inv) => ({
