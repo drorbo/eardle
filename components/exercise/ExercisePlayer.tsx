@@ -248,7 +248,7 @@ export function ExercisePlayer({ exercise, nextHref, sessionToken, onAnswered }:
               instrument === "synth" ? "bg-violet-600 text-white" : "text-gray-400 hover:text-white hover:bg-gray-800"
             }`}
           >
-            ⚡ Quick
+            ⚡ Synth
           </button>
         </div>
 

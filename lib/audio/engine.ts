@@ -98,6 +98,9 @@ class AudioEngine {
 
     if (!this.synthVoice) {
       this.synthVoice = new this.Tone.PolySynth(this.Tone.Synth).toDestination();
+      // The default synth voice is noticeably louder/harsher than the piano
+      // samples' natural decay — quiet it down to a comparable level.
+      this.synthVoice.volume.value = -12;
     }
   }
 
