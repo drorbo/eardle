@@ -40,9 +40,14 @@ export function AdminExerciseBrowser({ exercises, selectedCategory, selectedTopi
   async function handleDelete(id: number) {
     if (!confirm("Delete this exercise?")) return;
     setDeleting(id);
-    if (selectedId === id) setSelectedId(null);
-    await fetch(`/api/exercises/${id}`, { method: "DELETE" });
+    const res = await fetch(`/api/exercises/${id}`, { method: "DELETE" });
     setDeleting(null);
+    if (!res.ok) {
+      const data = await res.json().catch(() => ({}));
+      alert(data.error ?? "Failed to delete this exercise.");
+      return;
+    }
+    if (selectedId === id) setSelectedId(null);
     router.refresh();
   }
 

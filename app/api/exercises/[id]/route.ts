@@ -44,6 +44,25 @@ export async function DELETE(_req: NextRequest, { params }: { params: Promise<{ 
   if (!session) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
   const { id } = await params;
-  await db.delete(exercises).where(eq(exercises.id, Number(id)));
+  try {
+    await db.delete(exercises).where(eq(exercises.id, Number(id)));
+  } catch (err: unknown) {
+    // Postgres 23503 = foreign_key_violation. daily_puzzles/daily_attempts
+    // reference exercises with onDelete: "restrict" specifically so a delete
+    // is blocked (not silently cascaded) once an exercise has real daily
+    // puzzle history — surface that clearly instead of a generic 500.
+    // The postgres-js driver wraps the raw error under `.cause`, not on the
+    // top-level error object itself.
+    const pgCode =
+      (err && typeof err === "object" && "code" in err && (err as { code?: string }).code) ||
+      (err && typeof err === "object" && "cause" in err && err.cause && typeof err.cause === "object" && "code" in err.cause && (err.cause as { code?: string }).code);
+    if (pgCode === "23503") {
+      return NextResponse.json(
+        { error: "Can't delete — this exercise has been used in a Daily EarDle puzzle and has attempt history tied to it." },
+        { status: 409 }
+      );
+    }
+    throw err;
+  }
   return NextResponse.json({ ok: true });
 }
