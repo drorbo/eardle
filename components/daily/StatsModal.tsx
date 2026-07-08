@@ -30,6 +30,9 @@ interface Props {
   // puzzle finishes, so this (and the confetti, on a win) needs to live here
   // rather than on the page behind it, which is immediately covered.
   funnyLine?: string | null;
+  // Pre-built Wordle-style share text, only present once today's attempt is
+  // finished (mirrors todaysResult's own gating).
+  shareText?: string | null;
 }
 
 function StatTile({ label, value }: { label: string; value: number }) {
@@ -41,10 +44,11 @@ function StatTile({ label, value }: { label: string; value: number }) {
   );
 }
 
-export function StatsModal({ open, onClose, sessionToken, todaysResult, funnyLine }: Props) {
+export function StatsModal({ open, onClose, sessionToken, todaysResult, funnyLine, shareText }: Props) {
   const [tab, setTab] = useState<"personal" | "community">("personal");
   const [personal, setPersonal] = useState<PersonalStats | null>(null);
   const [community, setCommunity] = useState<CommunityStats | null>(null);
+  const [copyState, setCopyState] = useState<"idle" | "copied" | "failed">("idle");
 
   useEffect(() => {
     if (!open) return;
@@ -57,6 +61,21 @@ export function StatsModal({ open, onClose, sessionToken, todaysResult, funnyLin
       .then(setCommunity)
       .catch(() => {});
   }, [open, sessionToken]);
+
+  useEffect(() => {
+    if (!open) setCopyState("idle");
+  }, [open]);
+
+  async function handleShare() {
+    if (!shareText) return;
+    try {
+      await navigator.clipboard.writeText(shareText);
+      setCopyState("copied");
+    } catch {
+      setCopyState("failed");
+    }
+    setTimeout(() => setCopyState("idle"), 1500);
+  }
 
   const tabClass = (active: boolean) =>
     `flex-1 py-2 rounded-lg text-sm font-semibold transition ${
@@ -82,6 +101,23 @@ export function StatsModal({ open, onClose, sessionToken, todaysResult, funnyLin
       {todaysResult?.status === "won" && <ConfettiBurst />}
       {funnyLine && (
         <p className="text-center text-gray-400 text-sm italic mb-4">{funnyLine}</p>
+      )}
+
+      {shareText && (
+        <div className="flex justify-center mb-4">
+          <button
+            onClick={handleShare}
+            className="flex items-center gap-1.5 px-4 py-1.5 rounded-full bg-gray-900 border border-gray-800 hover:border-gray-700 text-sm font-semibold text-white transition"
+          >
+            {copyState === "copied" ? (
+              "✅ Copied!"
+            ) : copyState === "failed" ? (
+              "Couldn't copy"
+            ) : (
+              <>📤 Share Result</>
+            )}
+          </button>
+        </div>
       )}
 
       <div className="flex gap-2 mb-4">

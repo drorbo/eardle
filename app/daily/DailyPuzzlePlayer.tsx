@@ -13,6 +13,7 @@ import { InfoTooltip } from "@/components/ui/InfoTooltip";
 import { addSemitones } from "@/lib/audio/theory";
 import { audioEngine } from "@/lib/audio/engine";
 import { DAILY_INFO_TEXT, DAILY_WON_LINES, DAILY_LOST_LINES } from "@/lib/daily/config";
+import { buildDailyShareText } from "@/lib/daily/share";
 import { CATEGORY_META } from "@/types/exercise";
 import type { Exercise, ProgressionConfig } from "@/types/exercise";
 
@@ -47,6 +48,22 @@ export function DailyPuzzlePlayer() {
     const pool = status === "won" ? DAILY_WON_LINES : DAILY_LOST_LINES;
     return pool[Math.floor(Math.random() * pool.length)];
   }, [status]);
+
+  const shareText = useMemo(() => {
+    if (state.phase !== "ready") return null;
+    if (state.status !== "won" && state.status !== "lost") return null;
+    const meta = CATEGORY_META[state.category];
+    return buildDailyShareText({
+      date: state.date,
+      categoryEmoji: meta.emoji,
+      categoryLabel: meta.label,
+      difficulty: state.difficulty,
+      guesses: state.guesses,
+      answer: state.exercise.answer ?? "",
+      maxGuesses: state.maxGuesses,
+      status: state.status,
+    });
+  }, [state]);
 
   if (state.phase === "loading") {
     return (
@@ -170,6 +187,7 @@ export function DailyPuzzlePlayer() {
         sessionToken={sessionToken}
         todaysResult={finished ? { status: state.status as "won" | "lost", finalGuessCount: state.guesses.length } : undefined}
         funnyLine={funnyLine}
+        shareText={shareText}
       />
     </div>
   );
