@@ -37,20 +37,18 @@ export function Modal({ open, onClose, title, icon, topRight, children }: ModalP
         aria-modal="true"
         className="relative w-full max-w-lg max-h-[85vh] overflow-y-auto rounded-2xl bg-gray-800 border border-gray-700/50 p-5 sm:p-6"
       >
-        {topRight && (
-          <div className="absolute top-5 right-14 sm:top-6 sm:right-16">
-            {topRight}
-          </div>
-        )}
-        <button
-          onClick={onClose}
-          aria-label="Close"
-          className="absolute top-5 right-5 sm:top-6 sm:right-6 p-1.5 rounded-lg text-gray-400 hover:text-white hover:bg-gray-700 transition"
-        >
-          ✕
-        </button>
+        <div className="absolute top-5 right-5 sm:top-6 sm:right-6 flex items-center gap-2">
+          {topRight}
+          <button
+            onClick={onClose}
+            aria-label="Close"
+            className="flex-shrink-0 p-1.5 rounded-lg text-gray-400 hover:text-white hover:bg-gray-700 transition"
+          >
+            ✕
+          </button>
+        </div>
         {(icon || title) && (
-          <div className="flex flex-col items-center text-center gap-2 mb-4">
+          <div className={`flex flex-col items-center text-center gap-2 mb-4 ${topRight ? "pt-12" : ""}`}>
             {icon}
             {title && <h2 className="text-lg font-bold text-white">{title}</h2>}
           </div>
