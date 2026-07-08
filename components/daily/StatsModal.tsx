@@ -103,7 +103,7 @@ export function StatsModal({ open, onClose, sessionToken, todaysResult, funnyLin
           href="/"
           className="flex items-center gap-1 px-2.5 py-1 rounded-full bg-gray-900/80 border border-gray-700 text-[11px] font-semibold text-gray-300 hover:text-white hover:border-gray-600 transition"
         >
-          🎹 Enjoying the game? Try practice modes!
+          🎹 Try Practice Mode
         </Link>
       }
     >
