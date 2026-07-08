@@ -7,10 +7,13 @@ interface ModalProps {
   onClose: () => void;
   title?: string;
   icon?: React.ReactNode;
+  // Secondary action rendered just left of the close button — for a modal
+  // that wants one extra top-right affordance without hardcoding it here.
+  topRight?: React.ReactNode;
   children: React.ReactNode;
 }
 
-export function Modal({ open, onClose, title, icon, children }: ModalProps) {
+export function Modal({ open, onClose, title, icon, topRight, children }: ModalProps) {
   useEffect(() => {
     if (!open) return;
     function onKey(e: KeyboardEvent) {
@@ -34,6 +37,11 @@ export function Modal({ open, onClose, title, icon, children }: ModalProps) {
         aria-modal="true"
         className="relative w-full max-w-lg max-h-[85vh] overflow-y-auto rounded-2xl bg-gray-800 border border-gray-700/50 p-5 sm:p-6"
       >
+        {topRight && (
+          <div className="absolute top-5 right-14 sm:top-6 sm:right-16">
+            {topRight}
+          </div>
+        )}
         <button
           onClick={onClose}
           aria-label="Close"

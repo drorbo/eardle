@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import Link from "next/link";
 import { Modal } from "@/components/ui/Modal";
 import { GuessDistributionChart } from "./GuessDistributionChart";
 import { ConfettiBurst } from "./ConfettiBurst";
@@ -96,6 +97,14 @@ export function StatsModal({ open, onClose, sessionToken, todaysResult, funnyLin
             <path d="M18 20V10M12 20V4M6 20v-6" />
           </svg>
         </div>
+      }
+      topRight={
+        <Link
+          href="/"
+          className="flex items-center gap-1 px-2.5 py-1 rounded-full bg-gray-900/80 border border-gray-700 text-[11px] font-semibold text-gray-300 hover:text-white hover:border-gray-600 transition whitespace-nowrap"
+        >
+          🎹 Try All Modes
+        </Link>
       }
     >
       {todaysResult?.status === "won" && <ConfettiBurst />}
