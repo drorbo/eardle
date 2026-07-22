@@ -14,6 +14,8 @@ export interface NoteConfig {
 
 export type UiPlayMode = "harmonic" | "melodic-up" | "melodic-down" | "random";
 
+export type ChordPlayMode = "harmonic" | "bass" | "arpeggio";
+
 export interface IntervalConfig {
   semitones: number;
   playMode: "harmonic" | "melodic";

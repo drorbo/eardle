@@ -10,7 +10,7 @@ const TEMPO_MULTS = [0.5,  0.7,   1.0,  1.4,  1.8 ] as const; // multiplier on s
 const SAFETY_MS = 30_000;
 import { randomRoot, randomOctaveNote, addSemitones, buildChord, buildScale, applyVoicing, applyInversion, VoicingId } from "@/lib/audio/theory";
 import { generatePerformanceParams, PerformanceParams } from "@/lib/audio/randomize";
-import { Exercise, NoteConfig, IntervalConfig, ChordConfig, ProgressionConfig, ScaleConfig, UiPlayMode } from "@/types/exercise";
+import { Exercise, NoteConfig, IntervalConfig, ChordConfig, ProgressionConfig, ScaleConfig, UiPlayMode, ChordPlayMode } from "@/types/exercise";
 
 const INSTRUMENT_KEY = "eardle-instrument";
 
@@ -43,7 +43,7 @@ export function useAudio() {
     try { localStorage.setItem(INSTRUMENT_KEY, id); } catch {}
   }, []);
 
-  const play = useCallback(async (exercise: Exercise, playModeOverride?: UiPlayMode, speedLevel = 3, forcedParams?: PerformanceParams) => {
+  const play = useCallback(async (exercise: Exercise, playModeOverride?: UiPlayMode, speedLevel = 3, forcedParams?: PerformanceParams, chordMode: ChordPlayMode = "harmonic") => {
     if (!audioEngine) return;
     // Restart-on-replay: a second click while already playing stops the
     // current sound and starts over, rather than being silently ignored.
@@ -121,12 +121,19 @@ export function useAudio() {
 
         setPlayedNotes(notes);
 
-        if (isInversionEx) {
+        let duration = 1800;
+        if (chordMode === "bass") {
+          await audioEngine.playNote(notes[0], "2n");
+        } else if (chordMode === "arpeggio") {
+          const gap = 0.09;
+          await audioEngine.playArpeggio(notes, gap);
+          duration = notes.length * gap * 1000 + 1800;
+        } else if (isInversionEx) {
           await audioEngine.playNotes(notes);
         } else {
           await audioEngine.playChord(randomizedRef.current.root!, c.type, randomizedRef.current.voicing!);
         }
-        timeoutRef.current = setTimeout(() => { setIsPlaying(false); playingRef.current = false; }, 1800);
+        timeoutRef.current = setTimeout(() => { setIsPlaying(false); playingRef.current = false; }, duration);
       } else if (category === "progression") {
         const c = config as ProgressionConfig;
         if (!randomizedRef.current) randomizedRef.current = forcedParams ?? generatePerformanceParams(category, config);

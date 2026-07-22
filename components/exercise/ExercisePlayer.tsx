@@ -3,7 +3,7 @@
 import { useEffect, useCallback, useRef, useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { Exercise, IntervalConfig, UiPlayMode } from "@/types/exercise";
+import { Exercise, IntervalConfig, UiPlayMode, ChordPlayMode } from "@/types/exercise";
 import { useAudio } from "@/hooks/useAudio";
 import { useExercise } from "@/hooks/useExercise";
 import { PlayButton } from "./PlayButton";
@@ -76,11 +76,11 @@ export function ExercisePlayer({ exercise, nextHref, sessionToken, onAnswered, i
     return 3;
   });
 
-  const handlePlay = useCallback(async () => {
+  const handlePlay = useCallback(async (chordMode: ChordPlayMode = "harmonic") => {
     // Deliberately allowed to fire again mid-playback — play() stops and
     // restarts from the beginning rather than being a no-op.
     if (state.phase !== "answered") onPlay();
-    await play(exercise, uiPlayMode, speedLevel);
+    await play(exercise, uiPlayMode, speedLevel, undefined, chordMode);
   }, [state.phase, onPlay, play, exercise, uiPlayMode, speedLevel]);
 
   const handleSelect = useCallback(
@@ -261,7 +261,27 @@ export function ExercisePlayer({ exercise, nextHref, sessionToken, onAnswered, i
           <h2 className="text-2xl sm:text-3xl font-bold text-white">{exercise.prompt}</h2>
         </div>
 
-        <PlayButton onClick={handlePlay} isPlaying={isPlaying} isLoading={isLoadingSamples} />
+        <div className="flex items-center gap-3 sm:gap-4">
+          {exercise.category === "chord" && (
+            <button
+              onClick={() => handlePlay("bass")}
+              title="Play bass note only"
+              className="w-11 h-11 sm:w-12 sm:h-12 rounded-lg text-lg font-bold text-gray-400 bg-gray-900/80 border border-gray-800 hover:text-white hover:bg-gray-800 active:scale-95 transition"
+            >
+              𝄢
+            </button>
+          )}
+          <PlayButton onClick={() => handlePlay()} isPlaying={isPlaying} isLoading={isLoadingSamples} />
+          {exercise.category === "chord" && (
+            <button
+              onClick={() => handlePlay("arpeggio")}
+              title="Play as arpeggio"
+              className="w-11 h-11 sm:w-12 sm:h-12 rounded-lg text-lg font-bold text-gray-400 bg-gray-900/80 border border-gray-800 hover:text-white hover:bg-gray-800 active:scale-95 transition"
+            >
+              ∿
+            </button>
+          )}
+        </div>
 
         <div className="flex gap-1 bg-gray-900/80 border border-gray-800 rounded-xl p-1" role="group" aria-label="Sound">
           <button

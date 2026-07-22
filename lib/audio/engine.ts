@@ -168,6 +168,22 @@ class AudioEngine {
     });
   }
 
+  // Notes ring/overlap ("2n" duration) rather than being clipped short like
+  // a scale run, giving it a strummed/rasgueado feel instead of a run.
+  async playArpeggio(notes: string[], noteGap = 0.09) {
+    await this.init();
+    this._cancelPending();
+    const ctx = this.Tone.getContext();
+    const startTime = this.Tone.now() + 0.1;
+    notes.forEach((note, i) => {
+      const noteTime = startTime + i * noteGap;
+      const id = ctx.setTimeout(() => {
+        if (this.activeSynth) try { this.activeSynth.triggerAttackRelease(note, "2n", noteTime); } catch {}
+      }, i * noteGap) as unknown as number;
+      this.pendingTimeouts.push(id);
+    });
+  }
+
   async playScale(root: string, type: ScaleType, noteGap = 0.25) {
     await this.init();
     this._cancelPending();
