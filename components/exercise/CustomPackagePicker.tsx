@@ -21,6 +21,7 @@ const DIFFICULTY_COLOR: Record<Difficulty, string> = {
 interface Props {
   category: Category;
   exercises: Exercise[];
+  initialSelectedIds?: number[];
 }
 
 interface PickerItem {
@@ -52,9 +53,13 @@ function dedupeItems(exercises: Exercise[]): PickerItem[] {
   return [...byKey.values()];
 }
 
-export function CustomPackagePicker({ category, exercises }: Props) {
+export function CustomPackagePicker({ category, exercises, initialSelectedIds }: Props) {
   const router = useRouter();
-  const [selected, setSelected] = useState<Set<number>>(new Set());
+  const [selected, setSelected] = useState<Set<number>>(() => {
+    const validIds = new Set(exercises.map((e) => e.id));
+    return new Set((initialSelectedIds ?? []).filter((id) => validIds.has(id)));
+  });
+  const [copyState, setCopyState] = useState<"idle" | "copied" | "failed">("idle");
 
   const groups = useMemo(() => {
     const items = dedupeItems(exercises);
@@ -95,6 +100,18 @@ export function CustomPackagePicker({ category, exercises }: Props) {
   function start() {
     if (selected.size === 0) return;
     router.push(`/${category}/practice?ids=${[...selected].join(",")}`);
+  }
+
+  async function handleShare() {
+    if (selected.size === 0) return;
+    const url = `${window.location.origin}/${category}/practice/custom?ids=${[...selected].join(",")}`;
+    try {
+      await navigator.clipboard.writeText(url);
+      setCopyState("copied");
+    } catch {
+      setCopyState("failed");
+    }
+    setTimeout(() => setCopyState("idle"), 1500);
   }
 
   return (
@@ -148,7 +165,14 @@ export function CustomPackagePicker({ category, exercises }: Props) {
         })}
       </div>
 
-      <div className="sticky bottom-4 mt-8 flex justify-center">
+      <div className="sticky bottom-4 mt-8 flex justify-center gap-3">
+        <button
+          onClick={handleShare}
+          disabled={selected.size === 0}
+          className="px-5 py-3 rounded-xl bg-surface border border-border text-text font-bold transition hover:border-border-subtle disabled:bg-surface-2 disabled:text-text-subtle disabled:cursor-not-allowed disabled:border-transparent"
+        >
+          {copyState === "copied" ? "✅ Copied!" : copyState === "failed" ? "Couldn't copy" : "🔗 Share Package"}
+        </button>
         <button
           onClick={start}
           disabled={selected.size === 0}

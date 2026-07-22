@@ -7,13 +7,16 @@ import { CustomPackagePicker } from "@/components/exercise/CustomPackagePicker";
 
 interface Props {
   params: Promise<{ category: string }>;
+  searchParams: Promise<{ ids?: string }>;
 }
 
-export default async function CustomPackagePage({ params }: Props) {
+export default async function CustomPackagePage({ params, searchParams }: Props) {
   const { category } = await params;
+  const { ids } = await searchParams;
   if (!CATEGORY_META[category as Category]) notFound();
   const cat = category as Category;
   const meta = CATEGORY_META[cat];
+  const initialIds = ids?.split(",").map(Number).filter(Boolean) ?? [];
 
   const rows = await db
     .select()
@@ -39,7 +42,7 @@ export default async function CustomPackagePage({ params }: Props) {
         </div>
       </div>
 
-      <CustomPackagePicker category={cat} exercises={items} />
+      <CustomPackagePicker category={cat} exercises={items} initialSelectedIds={initialIds} />
     </div>
   );
 }
