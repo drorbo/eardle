@@ -10,7 +10,7 @@ export default async function LearnOverviewPage() {
   const topics = await getTopicsWithLessons();
 
   return (
-    <div className="max-w-3xl mx-auto px-4 sm:px-6 py-8">
+    <div className="max-w-3xl">
       <div className="mb-8">
         <h1 className="text-2xl sm:text-3xl font-bold text-text mb-2">Learn</h1>
         <p className="text-text-muted text-sm">

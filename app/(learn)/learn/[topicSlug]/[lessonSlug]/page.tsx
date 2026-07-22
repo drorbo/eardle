@@ -35,7 +35,7 @@ export default async function LessonPage({ params }: Props) {
       : null;
 
   return (
-    <div className="max-w-2xl mx-auto px-4 py-6 sm:py-12">
+    <div className="max-w-2xl">
       <div className="mb-6 flex items-center gap-3 flex-wrap text-sm">
         <Link href="/learn" className="text-text-subtle hover:text-text-secondary transition">
           ← Learn

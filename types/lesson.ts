@@ -61,12 +61,19 @@ export interface LessonSummary {
   published: boolean;
 }
 
+// A topic's nav category is derived from its lessons' practiceCategory (the
+// first lesson that has one) — "fundamentals" for prerequisite-only topics
+// with no direct practice link. No separate schema field: it falls out of
+// data that already exists, so it can't drift out of sync.
+export type NavCategoryId = Category | "fundamentals";
+
 export interface TopicWithLessons {
   id: number;
   slug: string;
   title: string;
   description: string | null;
   sortOrder: number;
+  category: NavCategoryId;
   lessons: LessonSummary[];
 }
 

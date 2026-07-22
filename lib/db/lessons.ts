@@ -2,7 +2,7 @@ import { asc, eq } from "drizzle-orm";
 import { db } from "@/lib/db";
 import { topics, lessons } from "@/lib/db/schema";
 import type { Category } from "@/types/exercise";
-import type { LessonBlock, LessonDetail, LessonSummary, TopicWithLessons } from "@/types/lesson";
+import type { LessonBlock, LessonDetail, LessonSummary, NavCategoryId, TopicWithLessons } from "@/types/lesson";
 
 /**
  * All topics, each with its lessons, both in suggested-path order.
@@ -18,6 +18,7 @@ export async function getTopicsWithLessons(options?: { includeUnpublished?: bool
   ]);
 
   const byTopic = new Map<number, LessonSummary[]>();
+  const categoryByTopic = new Map<number, NavCategoryId>();
   for (const l of lessonRows) {
     const topic = topicRows.find((t) => t.id === l.topicId);
     if (!topic) continue; // orphaned row, shouldn't happen (FK cascade), skip defensively
@@ -33,6 +34,9 @@ export async function getTopicsWithLessons(options?: { includeUnpublished?: bool
       published: l.published,
     });
     byTopic.set(l.topicId, list);
+    if (!categoryByTopic.has(l.topicId) && l.practiceCategory) {
+      categoryByTopic.set(l.topicId, l.practiceCategory as Category);
+    }
   }
 
   return topicRows.map((t) => ({
@@ -41,6 +45,7 @@ export async function getTopicsWithLessons(options?: { includeUnpublished?: bool
     title: t.title,
     description: t.description,
     sortOrder: t.sortOrder,
+    category: categoryByTopic.get(t.id) ?? "fundamentals",
     lessons: byTopic.get(t.id) ?? [],
   }));
 }
