@@ -2,6 +2,7 @@ import { notFound } from "next/navigation";
 import { CATEGORY_META, Category, Exercise } from "@/types/exercise";
 import { ExercisePlayerWrapper } from "./ExercisePlayerWrapper";
 import { ExerciseErrorBoundary } from "@/components/exercise/ErrorBoundary";
+import { SharePackageButton } from "@/components/exercise/SharePackageButton";
 import { db } from "@/lib/db";
 import { exercises as exercisesTable } from "@/lib/db/schema";
 import { eq, and, sql, ne, inArray } from "drizzle-orm";
@@ -67,6 +68,7 @@ export default async function ExercisePage({ params, searchParams }: Props) {
               Practice Mode
             </span>
           )}
+          {ids && <SharePackageButton category={category} ids={ids} />}
         </div>
 
         <ExerciseErrorBoundary>
