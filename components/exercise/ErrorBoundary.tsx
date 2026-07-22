@@ -18,7 +18,7 @@ export class ExerciseErrorBoundary extends React.Component<
       return (
         <div className="flex flex-col items-center gap-4 py-16 text-center">
           <p className="text-4xl">⚠️</p>
-          <p className="text-gray-400 text-sm">Something went wrong loading this exercise.</p>
+          <p className="text-text-muted text-sm">Something went wrong loading this exercise.</p>
           <button
             onClick={() => this.setState({ error: null })}
             className="px-4 py-2 rounded-lg bg-indigo-600 hover:bg-indigo-500 text-white text-sm transition"

@@ -1,17 +1,67 @@
 @import "tailwindcss";
+@custom-variant dark (&:where(.dark, .dark *));
 
 :root {
-  --background: #030712;
-  --foreground: #f9fafb;
+  /* Light (default) — vivid, highly-saturated lavender (Tailwind's
+     violet-400 family) — unmistakably purple, not a pale tint. */
+  --bg: #a78bfa;
+  --surface: #ffffff;
+  --surface-2: #c4b5fd;
+  --border-subtle: #8b5cf6;
+  --border: #7c3aed;
+  --text: #1e1b2e;
+  --text-secondary: #2e1065;
+  --text-muted: #3f2a6e;
+  --text-subtle: #4c3480;
+  --text-faint: #6845a3;
+  --accent-banner-bg: #c4b5fd;
+  --accent-banner-border: #a78bfa;
+  --accent-banner-text: #3730a3;
+  --accent-hover-bg: #c4b5fd;
+}
+
+.dark {
+  /* Dark — a darker, still clearly-saturated purple (Tailwind's
+     violet-950/900/800 family) — dark for comfortable low-light use, but
+     unmistakably purple rather than a neutral near-black. */
+  --bg: #2e1065;
+  --surface: #3b1476;
+  --surface-2: #4c1d95;
+  --border-subtle: #5b21b6;
+  --border: #6d28d9;
+  --text: #f5f3ff;
+  --text-secondary: #ede9fe;
+  --text-muted: #ddd6fe;
+  --text-subtle: #c4b5fd;
+  --text-faint: #a78bfa;
+  --accent-banner-bg: rgb(196 181 253 / 0.25);
+  --accent-banner-border: rgb(196 181 253 / 0.4);
+  --accent-banner-text: #ede9fe;
+  --accent-hover-bg: rgb(124 58 237 / 0.6);
+}
+
+@theme inline {
+  --color-bg: var(--bg);
+  --color-surface: var(--surface);
+  --color-surface-2: var(--surface-2);
+  --color-border-subtle: var(--border-subtle);
+  --color-border: var(--border);
+  --color-text: var(--text);
+  --color-text-secondary: var(--text-secondary);
+  --color-text-muted: var(--text-muted);
+  --color-text-subtle: var(--text-subtle);
+  --color-text-faint: var(--text-faint);
+  --color-accent-banner-bg: var(--accent-banner-bg);
+  --color-accent-banner-border: var(--accent-banner-border);
+  --color-accent-banner-text: var(--accent-banner-text);
+  --color-accent-hover-bg: var(--accent-hover-bg);
 }
 
 body {
-  background: var(--background);
-  color: var(--foreground);
   font-family: var(--font-geist-sans), system-ui, sans-serif;
 }
 
-/* Admin form utility classes */
+/* Admin form utility classes — shared with admin panel, do not theme */
 .label {
   @apply block text-sm font-medium text-gray-400 mb-1.5;
 }
@@ -20,6 +70,25 @@ body {
   @apply w-full px-3 py-2.5 rounded-xl bg-gray-800 border border-gray-700 text-white
          placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-indigo-500
          text-sm;
+}
+
+/* Public form utility classes — theme-aware equivalents of .label/.input */
+.field-label {
+  @apply block text-sm font-medium text-text-muted mb-1.5;
+}
+
+.field-input {
+  @apply w-full px-3 py-2.5 rounded-xl bg-surface-2 border border-border text-text
+         placeholder-text-subtle focus:outline-none focus:ring-2 focus:ring-indigo-500
+         text-sm;
+}
+
+/* Light-mode elevation cue — dark mode relies on lighter surface backgrounds instead */
+.surface-elevated {
+  box-shadow: 0 1px 2px rgba(30, 27, 46, 0.04), 0 8px 20px -4px rgba(76, 29, 149, 0.10);
+}
+.dark .surface-elevated {
+  box-shadow: none;
 }
 
 /* Daily EarDle win celebration */

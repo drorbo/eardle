@@ -30,23 +30,23 @@ export function ChoiceGrid({ choices, selected, answer, triedWrong, disabled, on
     // Correct answer always wins, even if it happens to also be in `triedWrong`
     // (can't actually happen, but keeps priority unambiguous).
     if (answer && choice === answer) {
-      return "bg-green-900/60 border-green-500 text-green-200";
+      return "bg-green-100 border-green-500 text-green-800 dark:bg-green-900/60 dark:text-green-200";
     }
     if (triedWrong?.includes(choice)) {
       return answer
-        ? "bg-red-900/60 border-red-500 text-red-200" // revealed: show every wrong guess made
-        : "bg-gray-800/40 border-gray-700 text-gray-600 line-through"; // still in progress: just "tried"
+        ? "bg-red-100 border-red-500 text-red-800 dark:bg-red-900/60 dark:text-red-200" // revealed: show every wrong guess made
+        : "bg-surface-2/60 border-border text-text-faint line-through"; // still in progress: just "tried"
     }
     if (!selected) {
-      return "bg-gray-800 border-gray-700 hover:border-indigo-500 hover:bg-gray-750 text-white";
+      return "bg-surface-2 border-border hover:border-indigo-500 hover:bg-surface text-text";
     }
     if (choice === answer) {
-      return "bg-green-900/60 border-green-500 text-green-200";
+      return "bg-green-100 border-green-500 text-green-800 dark:bg-green-900/60 dark:text-green-200";
     }
     if (choice === selected && choice !== answer) {
-      return "bg-red-900/60 border-red-500 text-red-200";
+      return "bg-red-100 border-red-500 text-red-800 dark:bg-red-900/60 dark:text-red-200";
     }
-    return "bg-gray-800 border-gray-700 text-gray-500";
+    return "bg-surface-2 border-border text-text-subtle";
   }
 
   // 4-col grids drop to 3 cols on mobile for better tap targets

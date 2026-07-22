@@ -74,10 +74,10 @@ export function ExercisePlayerWrapper({ exercise, nextHref }: Props) {
   if (!sessionToken) {
     return (
       <div className="flex flex-col items-center gap-8 w-full max-w-xl mx-auto animate-pulse">
-        <div className="h-8 w-48 rounded-lg bg-gray-800" />
-        <div className="w-24 h-24 rounded-full bg-gray-800" />
+        <div className="h-8 w-48 rounded-lg bg-surface-2" />
+        <div className="w-24 h-24 rounded-full bg-surface-2" />
         <div className="grid grid-cols-2 gap-2 w-full max-w-lg">
-          {[...Array(4)].map((_, i) => <div key={i} className="h-11 rounded-lg bg-gray-800" />)}
+          {[...Array(4)].map((_, i) => <div key={i} className="h-11 rounded-lg bg-surface-2" />)}
         </div>
       </div>
     );

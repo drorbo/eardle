@@ -28,10 +28,10 @@ export default async function HomePage() {
   return (
     <div className="max-w-5xl mx-auto px-4 sm:px-6 py-8 sm:py-20">
       <div className="text-center mb-6 sm:mb-10">
-        <h1 className="text-4xl sm:text-6xl font-bold text-white mb-4 tracking-tight">
+        <h1 className="text-4xl sm:text-6xl font-bold text-text mb-4 tracking-tight">
           Train Your Ear
         </h1>
-        <p className="text-lg sm:text-xl text-gray-400 max-w-xl mx-auto">
+        <p className="text-lg sm:text-xl text-text-muted max-w-xl mx-auto">
           Interactive exercises to sharpen your musical hearing — notes, intervals, chords, progressions, and scales.
         </p>
       </div>
@@ -42,7 +42,7 @@ export default async function HomePage() {
         emoji={dailyPuzzle ? CATEGORY_META[dailyPuzzle.category as Category].emoji : undefined}
       />
 
-      <p className="text-center text-xs font-semibold text-gray-600 uppercase tracking-widest mb-4">
+      <p className="text-center text-xs font-semibold text-text-faint uppercase tracking-widest mb-4">
         Or practice freely
       </p>
 
@@ -52,7 +52,7 @@ export default async function HomePage() {
         ))}
       </div>
 
-      <p className="text-center text-gray-600 text-sm mt-12">
+      <p className="text-center text-text-faint text-sm mt-12">
         Press play, listen carefully, then pick your answer.
       </p>
     </div>

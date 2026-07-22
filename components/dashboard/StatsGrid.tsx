@@ -40,10 +40,10 @@ function AccuracyBar({ value }: { value: number }) {
     pct >= 80 ? "bg-green-500" : pct >= 50 ? "bg-yellow-500" : "bg-red-500";
   return (
     <div className="flex items-center gap-2">
-      <div className="flex-1 h-1.5 bg-gray-700 rounded-full overflow-hidden">
+      <div className="flex-1 h-1.5 bg-surface-2 rounded-full overflow-hidden">
         <div className={`h-full ${color} rounded-full transition-all`} style={{ width: `${pct}%` }} />
       </div>
-      <span className="text-xs text-gray-400 w-8 text-right">{pct}%</span>
+      <span className="text-xs text-text-muted w-8 text-right">{pct}%</span>
     </div>
   );
 }
@@ -56,17 +56,17 @@ export function StatsGrid({ byCategory, recentAttempts, streaks }: Props) {
       {/* Streak records */}
       {streaks && (streaks.exercise.longest > 0 || streaks.daily.longest > 0) && (
         <div>
-          <h2 className="text-xs font-semibold text-gray-500 uppercase tracking-widest mb-4">
+          <h2 className="text-xs font-semibold text-text-subtle uppercase tracking-widest mb-4">
             Longest Streaks
           </h2>
           <div className="grid grid-cols-2 gap-3">
-            <div className="p-4 rounded-xl bg-gray-900 border border-gray-800">
-              <p className="text-2xl font-bold text-orange-400">🔥 {streaks.exercise.longest}</p>
-              <p className="text-xs text-gray-500 mt-1">Longest Exercise Streak</p>
+            <div className="p-4 rounded-xl bg-surface border border-border-subtle">
+              <p className="text-2xl font-bold text-orange-600 dark:text-orange-400">🔥 {streaks.exercise.longest}</p>
+              <p className="text-xs text-text-subtle mt-1">Longest Exercise Streak</p>
             </div>
-            <div className="p-4 rounded-xl bg-gray-900 border border-gray-800">
-              <p className="text-2xl font-bold text-orange-400">🔥 {streaks.daily.longest}</p>
-              <p className="text-xs text-gray-500 mt-1">Longest Daily Streak</p>
+            <div className="p-4 rounded-xl bg-surface border border-border-subtle">
+              <p className="text-2xl font-bold text-orange-600 dark:text-orange-400">🔥 {streaks.daily.longest}</p>
+              <p className="text-xs text-text-subtle mt-1">Longest Daily Streak</p>
             </div>
           </div>
         </div>
@@ -74,7 +74,7 @@ export function StatsGrid({ byCategory, recentAttempts, streaks }: Props) {
 
       {/* Category cards */}
       <div>
-        <h2 className="text-xs font-semibold text-gray-500 uppercase tracking-widest mb-4">
+        <h2 className="text-xs font-semibold text-text-subtle uppercase tracking-widest mb-4">
           Progress by Category
         </h2>
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
@@ -87,23 +87,23 @@ export function StatsGrid({ byCategory, recentAttempts, streaks }: Props) {
               <Link
                 key={cat}
                 href={`/${cat}`}
-                className="flex flex-col gap-3 p-4 rounded-xl bg-gray-900 border border-gray-800 hover:border-gray-700 transition group"
+                className="flex flex-col gap-3 p-4 rounded-xl bg-surface border border-border-subtle hover:border-border transition group"
               >
                 <div className="flex items-center gap-2">
                   <span className="text-xl">{meta.emoji}</span>
-                  <span className="font-semibold text-white text-sm">{meta.label}</span>
+                  <span className="font-semibold text-text text-sm">{meta.label}</span>
                 </div>
 
                 {stat ? (
                   <>
                     <AccuracyBar value={accuracy ?? 0} />
-                    <div className="flex justify-between text-xs text-gray-500">
+                    <div className="flex justify-between text-xs text-text-subtle">
                       <span>{stat.correct}/{stat.total} correct</span>
                       <span>Last: {formatDate(stat.lastSeen)}</span>
                     </div>
                   </>
                 ) : (
-                  <p className="text-xs text-gray-600 mt-1">No attempts yet</p>
+                  <p className="text-xs text-text-faint mt-1">No attempts yet</p>
                 )}
               </Link>
             );
@@ -114,28 +114,28 @@ export function StatsGrid({ byCategory, recentAttempts, streaks }: Props) {
       {/* Recent activity */}
       {recentAttempts.length > 0 && (
         <div>
-          <h2 className="text-xs font-semibold text-gray-500 uppercase tracking-widest mb-4">
+          <h2 className="text-xs font-semibold text-text-subtle uppercase tracking-widest mb-4">
             Recent Activity
           </h2>
-          <div className="bg-gray-900 border border-gray-800 rounded-xl overflow-hidden">
+          <div className="bg-surface border border-border-subtle rounded-xl overflow-hidden">
             {recentAttempts.slice(0, 10).map((a, i) => {
               const meta = CATEGORY_META[a.category as Category];
               return (
                 <div
                   key={i}
-                  className="flex items-center justify-between px-4 py-2.5 border-b border-gray-800 last:border-0"
+                  className="flex items-center justify-between px-4 py-2.5 border-b border-border-subtle last:border-0"
                 >
                   <div className="flex items-center gap-2">
                     <span className="text-base">{meta?.emoji ?? "🎵"}</span>
-                    <span className="text-sm text-gray-300 capitalize">{a.category}</span>
+                    <span className="text-sm text-text-secondary capitalize">{a.category}</span>
                   </div>
                   <div className="flex items-center gap-3">
-                    <span className="text-xs text-gray-600">{formatDate(a.createdAt)}</span>
+                    <span className="text-xs text-text-faint">{formatDate(a.createdAt)}</span>
                     <span
                       className={`text-xs px-2 py-0.5 rounded-full font-medium ${
                         a.correct
-                          ? "bg-green-900/50 text-green-400"
-                          : "bg-red-900/50 text-red-400"
+                          ? "bg-green-100 text-green-700 dark:bg-green-900/50 dark:text-green-400"
+                          : "bg-red-100 text-red-700 dark:bg-red-900/50 dark:text-red-400"
                       }`}
                     >
                       {a.correct ? "✓" : "✗"}
@@ -149,9 +149,9 @@ export function StatsGrid({ byCategory, recentAttempts, streaks }: Props) {
       )}
 
       {totalAttempts === 0 && (
-        <div className="text-center py-12 text-gray-600">
+        <div className="text-center py-12 text-text-faint">
           <p className="text-4xl mb-3">🎹</p>
-          <p className="font-medium text-gray-400">No practice sessions yet</p>
+          <p className="font-medium text-text-muted">No practice sessions yet</p>
           <p className="text-sm mt-1">Start an exercise to see your progress here</p>
         </div>
       )}

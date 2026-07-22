@@ -38,9 +38,9 @@ interface Props {
 
 function StatTile({ label, value }: { label: string; value: number }) {
   return (
-    <div className="bg-gray-900 rounded-lg p-2">
-      <p className="text-xl font-bold text-white">{value}</p>
-      <p className="text-[10px] text-gray-500 uppercase tracking-wider">{label}</p>
+    <div className="bg-surface-2 rounded-lg p-2">
+      <p className="text-xl font-bold text-text">{value}</p>
+      <p className="text-[10px] text-text-subtle uppercase tracking-wider">{label}</p>
     </div>
   );
 }
@@ -80,7 +80,7 @@ export function StatsModal({ open, onClose, sessionToken, todaysResult, funnyLin
 
   const tabClass = (active: boolean) =>
     `flex-1 py-2 rounded-lg text-sm font-semibold transition ${
-      active ? "bg-violet-600 text-white" : "bg-gray-900 text-gray-400 hover:text-white"
+      active ? "bg-violet-600 text-white" : "bg-surface-2 text-text-muted hover:text-text"
     }`;
 
   return (
@@ -99,24 +99,29 @@ export function StatsModal({ open, onClose, sessionToken, todaysResult, funnyLin
         </div>
       }
       topLeft={
-        <Link
-          href="/"
-          className="flex items-center gap-1 px-2.5 py-1 rounded-full bg-gray-900/80 border border-gray-700 text-[11px] font-semibold text-gray-300 hover:text-white hover:border-gray-600 transition"
-        >
-          🎹 Try Practice Mode
-        </Link>
+        <div className="flex flex-col items-start gap-1.5 max-w-[160px] sm:max-w-[200px]">
+          <p className="text-[11px] leading-snug text-text-subtle">
+            Want to practice more exercises? Or try different categories?
+          </p>
+          <Link
+            href="/"
+            className="flex items-center gap-1 px-2.5 py-1 rounded-full bg-surface/80 border border-border text-[11px] font-semibold text-text-secondary hover:text-text hover:border-text-subtle transition whitespace-nowrap"
+          >
+            🎹 Try Practice Mode
+          </Link>
+        </div>
       }
     >
       {todaysResult?.status === "won" && <ConfettiBurst />}
       {funnyLine && (
-        <p className="text-center text-gray-400 text-sm italic mb-4">{funnyLine}</p>
+        <p className="text-center text-text-muted text-sm italic mb-4">{funnyLine}</p>
       )}
 
       {shareText && (
         <div className="flex justify-center mb-4">
           <button
             onClick={handleShare}
-            className="flex items-center gap-1.5 px-4 py-1.5 rounded-full bg-gray-900 border border-gray-800 hover:border-gray-700 text-sm font-semibold text-white transition"
+            className="flex items-center gap-1.5 px-4 py-1.5 rounded-full bg-surface-2 border border-border-subtle hover:border-border text-sm font-semibold text-text transition"
           >
             {copyState === "copied" ? (
               "✅ Copied!"
@@ -163,15 +168,15 @@ export function StatsModal({ open, onClose, sessionToken, todaysResult, funnyLin
             />
           </div>
         ) : (
-          <p className="text-gray-400 text-sm">Loading…</p>
+          <p className="text-text-muted text-sm">Loading…</p>
         ))}
 
       {tab === "community" &&
         (community ? (
           <div className="space-y-4">
             <div className="text-center">
-              <p className="text-2xl font-bold text-white">{community.totalPlayers.toLocaleString()}</p>
-              <p className="text-xs text-gray-500 uppercase tracking-wider">Players Today</p>
+              <p className="text-2xl font-bold text-text">{community.totalPlayers.toLocaleString()}</p>
+              <p className="text-xs text-text-subtle uppercase tracking-wider">Players Today</p>
             </div>
             <GuessDistributionChart
               rows={[
@@ -182,7 +187,7 @@ export function StatsModal({ open, onClose, sessionToken, todaysResult, funnyLin
             />
           </div>
         ) : (
-          <p className="text-gray-400 text-sm">Loading…</p>
+          <p className="text-text-muted text-sm">Loading…</p>
         ))}
     </Modal>
   );

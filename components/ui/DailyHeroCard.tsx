@@ -13,8 +13,10 @@ export function DailyHeroCard({ category, difficulty, emoji }: Props) {
     <div
       className="
         group relative rounded-2xl p-5 sm:p-8 mb-8 sm:mb-12
-        bg-gradient-to-br from-indigo-900/60 via-violet-900/40 to-fuchsia-900/30
-        border border-indigo-700/50 hover:border-indigo-500
+        bg-gradient-to-br from-orange-300 via-orange-200 to-yellow-200
+        border border-orange-400 hover:border-orange-500
+        dark:from-orange-700/70 dark:via-orange-600/50 dark:to-amber-600/40
+        dark:border-orange-500 dark:hover:border-orange-400
         transition-all duration-200 hover:scale-[1.01] active:scale-[0.99]
       "
     >
@@ -26,13 +28,13 @@ export function DailyHeroCard({ category, difficulty, emoji }: Props) {
         <div>
           <div className="flex items-center gap-2 mb-1.5">
             <span className="text-xl">📅</span>
-            <span className="text-xs font-bold uppercase tracking-widest text-indigo-300">New puzzle every day</span>
+            <span className="text-xs font-bold uppercase tracking-widest text-orange-800 dark:text-orange-200">New puzzle every day</span>
             <span className="pointer-events-auto">
               <InfoTooltip text={DAILY_INFO_TEXT} />
             </span>
           </div>
-          <h2 className="text-2xl sm:text-3xl font-bold text-white mb-1">Daily EarDle</h2>
-          <p className="text-sm text-gray-300">
+          <h2 className="text-2xl sm:text-3xl font-bold text-text mb-1">Daily EarDle</h2>
+          <p className="text-sm text-text-secondary">
             {category && difficulty ? (
               <>
                 Today: {emoji} <span className="capitalize">{category}</span> ·{" "}
@@ -45,8 +47,8 @@ export function DailyHeroCard({ category, difficulty, emoji }: Props) {
         </div>
         <span
           className="
-            flex-shrink-0 px-6 py-3 rounded-xl bg-white text-indigo-900 font-bold text-sm sm:text-base
-            group-hover:bg-indigo-50 transition
+            flex-shrink-0 px-6 py-3 rounded-xl bg-white text-orange-700 font-bold text-sm sm:text-base
+            group-hover:bg-orange-50 transition shadow-sm
           "
         >
           Play Today →

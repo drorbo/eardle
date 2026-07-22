@@ -39,8 +39,8 @@ export function InfoTooltip({ text, className }: Props) {
           setClicked((v) => !v);
         }}
         className="
-          flex items-center justify-center w-5 h-5 rounded-full border border-gray-500
-          text-gray-400 hover:text-white hover:border-gray-300 text-[11px] font-semibold
+          flex items-center justify-center w-5 h-5 rounded-full border border-text-subtle
+          text-text-muted hover:text-text hover:border-text-secondary text-[11px] font-semibold
           transition flex-shrink-0
         "
       >
@@ -49,7 +49,7 @@ export function InfoTooltip({ text, className }: Props) {
       <div
         className={`
           absolute z-50 top-full mt-2 left-1/2 -translate-x-1/2 w-64 sm:w-72 p-3
-          rounded-xl bg-gray-800 border border-gray-700 text-xs text-gray-300
+          rounded-xl bg-surface-2 border border-border text-xs text-text-secondary
           leading-relaxed shadow-xl text-left normal-case font-normal tracking-normal
           transition-opacity duration-150
           ${

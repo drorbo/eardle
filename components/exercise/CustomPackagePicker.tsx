@@ -59,7 +59,10 @@ export function CustomPackagePicker({ category, exercises }: Props) {
   const groups = useMemo(() => {
     const items = dedupeItems(exercises);
     return DIFFICULTY_ORDER
-      .map((d) => ({ difficulty: d, items: items.filter((i) => i.difficulty === d) }))
+      .map((d) => ({
+        difficulty: d,
+        items: items.filter((i) => i.difficulty === d).sort((a, b) => a.title.localeCompare(b.title)),
+      }))
       .filter((g) => g.items.length > 0);
   }, [exercises]);
 
@@ -107,7 +110,7 @@ export function CustomPackagePicker({ category, exercises }: Props) {
                 </span>
                 <button
                   onClick={() => toggleGroup(items)}
-                  className="text-xs text-gray-400 hover:text-white transition"
+                  className="text-xs text-text-muted hover:text-text transition"
                 >
                   {allSelected ? "Deselect all" : "Select all"}
                 </button>
@@ -120,8 +123,8 @@ export function CustomPackagePicker({ category, exercises }: Props) {
                       key={item.key}
                       className={`flex items-center gap-2 px-3 py-2 rounded-lg border cursor-pointer transition ${
                         checked
-                          ? "bg-indigo-950/60 border-indigo-700/60 text-white"
-                          : "bg-gray-800/50 border-gray-700/40 text-gray-300 hover:border-gray-600"
+                          ? "bg-indigo-50 border-indigo-300 text-text dark:bg-indigo-950/60 dark:border-indigo-700/60 dark:text-white"
+                          : "bg-surface border-border-subtle text-text-secondary hover:border-border"
                       }`}
                     >
                       <input
@@ -133,7 +136,7 @@ export function CustomPackagePicker({ category, exercises }: Props) {
                       <span className="flex flex-col">
                         <span className="text-sm">{item.title}</span>
                         {item.topicLabel && (
-                          <span className="text-[11px] text-gray-500">{item.topicLabel}</span>
+                          <span className="text-[11px] text-text-subtle">{item.topicLabel}</span>
                         )}
                       </span>
                     </label>
@@ -149,7 +152,7 @@ export function CustomPackagePicker({ category, exercises }: Props) {
         <button
           onClick={start}
           disabled={selected.size === 0}
-          className="px-6 py-3 rounded-xl bg-indigo-700 hover:bg-indigo-600 disabled:bg-gray-800 disabled:text-gray-500 text-white font-bold transition disabled:cursor-not-allowed"
+          className="px-6 py-3 rounded-xl bg-indigo-700 hover:bg-indigo-600 disabled:bg-surface-2 disabled:text-text-subtle text-white font-bold transition disabled:cursor-not-allowed"
         >
           Start Practicing {selected.size > 0 ? `(${selected.size} selected)` : ""}
         </button>

@@ -52,11 +52,11 @@ export default async function PracticePage({ params, searchParams }: Props) {
       : DIFFICULTY_OPTIONS.filter((d) => d.id !== "jazz");
 
     return (
-      <div className="min-h-screen flex items-center justify-center bg-gray-950 px-4">
+      <div className="min-h-screen flex items-center justify-center bg-bg px-4">
         <div className="text-center max-w-sm w-full">
           <span className="text-5xl mb-4 block">{meta.emoji}</span>
-          <h1 className="text-3xl font-bold text-white mb-2">{topicLabel}</h1>
-          <p className="text-gray-400 mb-10">Choose a difficulty level.</p>
+          <h1 className="text-3xl font-bold text-text mb-2">{topicLabel}</h1>
+          <p className="text-text-muted mb-10">Choose a difficulty level.</p>
           <div className="flex flex-col gap-3">
             {difficultyOptions.map((d) => (
               <a
@@ -110,14 +110,14 @@ export default async function PracticePage({ params, searchParams }: Props) {
     const difficultyLabel = DIFFICULTY_OPTIONS.find((d) => d.id === difficulty)?.label ?? difficulty;
 
     return (
-      <div className="min-h-screen flex items-center justify-center bg-gray-950 px-4">
+      <div className="min-h-screen flex items-center justify-center bg-bg px-4">
         <div className="text-center max-w-sm w-full">
           <span className="text-5xl mb-4 block">{meta.emoji}</span>
-          <h1 className="text-2xl font-bold text-white mb-2">No exercises found</h1>
-          <p className="text-gray-400 mb-8">
-            There are no {topicLabel ? <strong className="text-gray-200">{topicLabel}</strong> : null}
+          <h1 className="text-2xl font-bold text-text mb-2">No exercises found</h1>
+          <p className="text-text-muted mb-8">
+            There are no {topicLabel ? <strong className="text-text-secondary">{topicLabel}</strong> : null}
             {topicLabel ? " " : null}
-            exercises at the <strong className="text-gray-200">{difficultyLabel}</strong> level yet.
+            exercises at the <strong className="text-text-secondary">{difficultyLabel}</strong> level yet.
           </p>
           <a
             href={backHref}

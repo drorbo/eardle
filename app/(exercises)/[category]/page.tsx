@@ -9,10 +9,10 @@ interface Props {
 }
 
 const DIFFICULTIES = [
-  { id: "easy",   label: "Easy",   dot: "bg-green-400",  hover: "hover:bg-green-900/20  hover:border-green-700/50" },
-  { id: "medium", label: "Medium", dot: "bg-yellow-400", hover: "hover:bg-yellow-900/20 hover:border-yellow-700/50" },
-  { id: "hard",   label: "Hard",   dot: "bg-red-400",    hover: "hover:bg-red-900/20    hover:border-red-700/50" },
-  { id: "jazz",   label: "Jazz",   dot: "bg-amber-400",  hover: "hover:bg-amber-900/20  hover:border-amber-700/50" },
+  { id: "easy",   label: "Easy",   dot: "bg-green-400",  hover: "hover:bg-green-50  hover:border-green-300  dark:hover:bg-green-900/20  dark:hover:border-green-700/50" },
+  { id: "medium", label: "Medium", dot: "bg-yellow-400", hover: "hover:bg-yellow-50 hover:border-yellow-300 dark:hover:bg-yellow-900/20 dark:hover:border-yellow-700/50" },
+  { id: "hard",   label: "Hard",   dot: "bg-red-400",    hover: "hover:bg-red-50    hover:border-red-300    dark:hover:bg-red-900/20    dark:hover:border-red-700/50" },
+  { id: "jazz",   label: "Jazz",   dot: "bg-amber-400",  hover: "hover:bg-amber-50  hover:border-amber-300  dark:hover:bg-amber-900/20  dark:hover:border-amber-700/50" },
 ];
 
 const DIFF_DESC: Record<Category, Partial<Record<string, string>>> = {
@@ -102,8 +102,8 @@ export default async function CategoryPage({ params }: Props) {
       <div className="flex items-center gap-3 mb-7">
         <span className="text-3xl">{meta.emoji}</span>
         <div>
-          <h1 className="text-2xl sm:text-3xl font-bold text-white leading-tight">{meta.label}</h1>
-          <p className="text-gray-400 text-sm mt-0.5">{meta.description}</p>
+          <h1 className="text-2xl sm:text-3xl font-bold text-text leading-tight">{meta.label}</h1>
+          <p className="text-text-muted text-sm mt-0.5">{meta.description}</p>
         </div>
       </div>
 
@@ -111,7 +111,7 @@ export default async function CategoryPage({ params }: Props) {
 
         {/* ── By Difficulty ── */}
         <section>
-          <p className="text-xs font-semibold text-gray-500 uppercase tracking-widest mb-3">
+          <p className="text-xs font-semibold text-text-subtle uppercase tracking-widest mb-3">
             By Difficulty
           </p>
           <div className="space-y-2">
@@ -119,12 +119,12 @@ export default async function CategoryPage({ params }: Props) {
               <a
                 key={d.id}
                 href={`/${cat}/practice?difficulty=${d.id}`}
-                className={`flex items-start gap-3 px-4 py-3 rounded-xl bg-gray-800/50 border border-gray-700/40 ${d.hover} transition group`}
+                className={`flex items-start gap-3 px-4 py-3 rounded-xl bg-surface border border-border-subtle ${d.hover} transition group`}
               >
                 <span className={`mt-[5px] flex-shrink-0 w-2 h-2 rounded-full ${d.dot}`} />
                 <div>
-                  <span className="font-semibold text-white text-sm">{d.label}</span>
-                  <p className="text-xs text-gray-400 mt-0.5 leading-relaxed">
+                  <span className="font-semibold text-text text-sm">{d.label}</span>
+                  <p className="text-xs text-text-muted mt-0.5 leading-relaxed">
                     {DIFF_DESC[cat][d.id]}
                   </p>
                 </div>
@@ -134,10 +134,10 @@ export default async function CategoryPage({ params }: Props) {
             {cat !== "note" && (
               <a
                 href={`/${cat}/practice?difficulty=all`}
-                className="flex items-center justify-between px-4 py-3 rounded-xl bg-indigo-950/60 border border-indigo-800/40 hover:bg-indigo-900/40 hover:border-indigo-700/60 transition"
+                className="flex items-center justify-between px-4 py-3 rounded-xl bg-indigo-50 border border-indigo-200 hover:bg-indigo-100 hover:border-indigo-300 dark:bg-indigo-950/60 dark:border-indigo-800/40 dark:hover:bg-indigo-900/40 dark:hover:border-indigo-700/60 transition"
               >
                 <div className="flex items-baseline gap-2">
-                  <span className="text-indigo-300 font-semibold text-sm">All Levels</span>
+                  <span className="text-indigo-700 dark:text-indigo-300 font-semibold text-sm">All Levels</span>
                   <span className="text-indigo-500 text-xs">shuffle everything</span>
                 </div>
                 <span className="text-indigo-600 text-sm">→</span>
@@ -146,10 +146,10 @@ export default async function CategoryPage({ params }: Props) {
 
             <a
               href={`/${cat}/practice/custom`}
-              className="flex items-center justify-between px-4 py-3 rounded-xl bg-violet-950/60 border border-violet-800/40 hover:bg-violet-900/40 hover:border-violet-700/60 transition"
+              className="flex items-center justify-between px-4 py-3 rounded-xl bg-violet-50 border border-violet-200 hover:bg-violet-100 hover:border-violet-300 dark:bg-violet-950/60 dark:border-violet-800/40 dark:hover:bg-violet-900/40 dark:hover:border-violet-700/60 transition"
             >
               <div className="flex items-baseline gap-2">
-                <span className="text-violet-300 font-semibold text-sm">Custom Package</span>
+                <span className="text-violet-700 dark:text-violet-300 font-semibold text-sm">Custom Package</span>
                 <span className="text-violet-500 text-xs">pick exactly which ones</span>
               </div>
               <span className="text-violet-600 text-sm">→</span>
@@ -160,7 +160,7 @@ export default async function CategoryPage({ params }: Props) {
         {/* ── By Topic ── */}
         {topics.length > 0 && (
           <section>
-            <p className="text-xs font-semibold text-gray-500 uppercase tracking-widest mb-3">
+            <p className="text-xs font-semibold text-text-subtle uppercase tracking-widest mb-3">
               By Topic
             </p>
             <div className={`grid ${topicCols} gap-2`}>

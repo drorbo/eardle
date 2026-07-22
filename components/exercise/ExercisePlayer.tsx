@@ -158,7 +158,7 @@ export function ExercisePlayer({ exercise, nextHref, sessionToken, onAnswered, i
             className={`w-10 h-10 rounded-lg text-sm font-bold transition ${
               uiPlayMode === id
                 ? "bg-violet-600 text-white"
-                : "text-gray-400 hover:text-white hover:bg-gray-800"
+                : "text-text-muted hover:text-text hover:bg-surface-2"
             }`}
           >
             {icon}
@@ -179,7 +179,7 @@ export function ExercisePlayer({ exercise, nextHref, sessionToken, onAnswered, i
             className={`w-10 h-10 rounded-lg text-sm font-bold transition ${
               speedLevel === level
                 ? "bg-violet-600 text-white"
-                : "text-gray-400 hover:text-white hover:bg-gray-800"
+                : "text-text-muted hover:text-text hover:bg-surface-2"
             }`}
           >
             {icon}
@@ -190,7 +190,7 @@ export function ExercisePlayer({ exercise, nextHref, sessionToken, onAnswered, i
   }
 
   const controlPanel = (
-    <div className="flex gap-1 flex-col bg-gray-900/80 border border-gray-800 rounded-xl p-1.5 backdrop-blur-sm">
+    <div className="flex gap-1 flex-col bg-surface/80 border border-border-subtle rounded-xl p-1.5 backdrop-blur-sm">
       {exercise.category === "interval"
         ? PLAY_MODES.map(({ id, label, icon }) => (
             <button
@@ -200,7 +200,7 @@ export function ExercisePlayer({ exercise, nextHref, sessionToken, onAnswered, i
               className={`w-9 h-9 rounded-lg text-sm font-bold transition ${
                 uiPlayMode === id
                   ? "bg-violet-600 text-white"
-                  : "text-gray-400 hover:text-white hover:bg-gray-800"
+                  : "text-text-muted hover:text-text hover:bg-surface-2"
               }`}
             >
               {icon}
@@ -214,7 +214,7 @@ export function ExercisePlayer({ exercise, nextHref, sessionToken, onAnswered, i
               className={`w-9 h-9 rounded-lg text-sm font-bold transition ${
                 speedLevel === level
                   ? "bg-violet-600 text-white"
-                  : "text-gray-400 hover:text-white hover:bg-gray-800"
+                  : "text-text-muted hover:text-text hover:bg-surface-2"
               }`}
             >
               {icon}
@@ -244,21 +244,23 @@ export function ExercisePlayer({ exercise, nextHref, sessionToken, onAnswered, i
       <div className="flex flex-col items-center gap-5 sm:gap-8 w-full max-w-xl mx-auto">
         <div
           className={`flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold ${
-            currentStreak > 0 ? "bg-orange-950/60 text-orange-300 border border-orange-900" : "bg-gray-900/60 text-gray-500 border border-gray-800"
+            currentStreak > 0
+              ? "bg-orange-100 text-orange-700 border border-orange-300 dark:bg-orange-950/60 dark:text-orange-300 dark:border-orange-900"
+              : "bg-surface/60 text-text-subtle border border-border-subtle"
           }`}
         >
           🔥 Streak: {currentStreak}
         </div>
 
         <div className="text-center">
-          <p className="text-gray-400 text-sm uppercase tracking-widest mb-2">
+          <p className="text-text-muted text-sm uppercase tracking-widest mb-2">
             {state.phase === "idle"
               ? "Listening…"
               : state.phase === "answered"
               ? ""
               : "What do you hear?"}
           </p>
-          <h2 className="text-2xl sm:text-3xl font-bold text-white">{exercise.prompt}</h2>
+          <h2 className="text-2xl sm:text-3xl font-bold text-text">{exercise.prompt}</h2>
         </div>
 
         <div className="flex items-center gap-3 sm:gap-4">
@@ -266,7 +268,7 @@ export function ExercisePlayer({ exercise, nextHref, sessionToken, onAnswered, i
             <button
               onClick={() => handlePlay("bass")}
               title="Play bass note only"
-              className="w-11 h-11 sm:w-12 sm:h-12 rounded-lg text-lg font-bold text-gray-400 bg-gray-900/80 border border-gray-800 hover:text-white hover:bg-gray-800 active:scale-95 transition"
+              className="w-11 h-11 sm:w-12 sm:h-12 rounded-lg text-lg font-bold text-text-muted bg-surface/80 border border-border-subtle hover:text-text hover:bg-surface-2 active:scale-95 transition"
             >
               𝄢
             </button>
@@ -276,18 +278,18 @@ export function ExercisePlayer({ exercise, nextHref, sessionToken, onAnswered, i
             <button
               onClick={() => handlePlay("arpeggio")}
               title="Play as arpeggio"
-              className="w-11 h-11 sm:w-12 sm:h-12 rounded-lg text-lg font-bold text-gray-400 bg-gray-900/80 border border-gray-800 hover:text-white hover:bg-gray-800 active:scale-95 transition"
+              className="w-11 h-11 sm:w-12 sm:h-12 rounded-lg text-lg font-bold text-text-muted bg-surface/80 border border-border-subtle hover:text-text hover:bg-surface-2 active:scale-95 transition"
             >
               ∿
             </button>
           )}
         </div>
 
-        <div className="flex gap-1 bg-gray-900/80 border border-gray-800 rounded-xl p-1" role="group" aria-label="Sound">
+        <div className="flex gap-1 bg-surface/80 border border-border-subtle rounded-xl p-1" role="group" aria-label="Sound">
           <button
             onClick={() => setInstrument("piano")}
             className={`px-3 py-1.5 rounded-lg text-xs font-semibold transition ${
-              instrument === "piano" ? "bg-violet-600 text-white" : "text-gray-400 hover:text-white hover:bg-gray-800"
+              instrument === "piano" ? "bg-violet-600 text-white" : "text-text-muted hover:text-text hover:bg-surface-2"
             }`}
           >
             🎹 Piano
@@ -295,7 +297,7 @@ export function ExercisePlayer({ exercise, nextHref, sessionToken, onAnswered, i
           <button
             onClick={() => setInstrument("synth")}
             className={`px-3 py-1.5 rounded-lg text-xs font-semibold transition ${
-              instrument === "synth" ? "bg-violet-600 text-white" : "text-gray-400 hover:text-white hover:bg-gray-800"
+              instrument === "synth" ? "bg-violet-600 text-white" : "text-text-muted hover:text-text hover:bg-surface-2"
             }`}
           >
             ⚡ Synth
@@ -304,7 +306,7 @@ export function ExercisePlayer({ exercise, nextHref, sessionToken, onAnswered, i
 
         {/* Mobile controls: horizontal strip between play button and choices */}
         {hasControls && (
-          <div className="sm:hidden flex items-center gap-1 bg-gray-900/80 border border-gray-800 rounded-xl p-1.5">
+          <div className="sm:hidden flex items-center gap-1 bg-surface/80 border border-border-subtle rounded-xl p-1.5">
             {exercise.category === "interval"
               ? <IntervalControls />
               : <SpeedControls />
@@ -340,8 +342,8 @@ export function ExercisePlayer({ exercise, nextHref, sessionToken, onAnswered, i
         )}
 
         {isAnswered && exercise.explanation && (
-          <div className="w-full max-w-lg rounded-2xl p-4 bg-gray-900/60 border border-gray-800 text-sm text-gray-300 leading-relaxed">
-            <p className="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-1.5">💡 Good to know</p>
+          <div className="w-full max-w-lg rounded-2xl p-4 bg-surface/60 border border-border-subtle text-sm text-text-secondary leading-relaxed">
+            <p className="text-xs font-semibold text-text-subtle uppercase tracking-wider mb-1.5">💡 Good to know</p>
             {exercise.explanation}
           </div>
         )}

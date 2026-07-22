@@ -22,8 +22,20 @@ export const metadata: Metadata = {
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
-    <html lang="en" className={`${geist.variable} h-full antialiased`}>
-      <body className="min-h-full flex flex-col bg-gray-950 text-white">
+    <html lang="en" className={`${geist.variable} h-full antialiased`} suppressHydrationWarning>
+      <body className="min-h-full flex flex-col bg-bg text-text">
+        {/* Wrapped in a div (rather than rendering <script> directly) so React
+            treats this as an opaque HTML blob instead of a host "script"
+            element it tries to manage — the raw <script> still lands in the
+            server-rendered HTML and the browser executes it during initial
+            parsing, before hydration, same as before, but without React's
+            client-side script-tag warning. */}
+        <div
+          suppressHydrationWarning
+          dangerouslySetInnerHTML={{
+            __html: `<script>(function(){try{var t=localStorage.getItem('eardle-theme');if(t==='dark'){document.documentElement.classList.add('dark');}}catch(e){}})();</script>`,
+          }}
+        />
         <Providers>
           <Navbar />
           <main className="flex-1">{children}</main>

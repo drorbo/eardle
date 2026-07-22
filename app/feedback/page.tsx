@@ -39,8 +39,8 @@ export default function FeedbackPage() {
       <div className="min-h-[calc(100vh-56px)] flex items-center justify-center p-4">
         <div className="text-center max-w-sm">
           <p className="text-5xl mb-4">🎉</p>
-          <h2 className="text-xl font-bold text-white mb-2">Thank you!</h2>
-          <p className="text-gray-400 text-sm">
+          <h2 className="text-xl font-bold text-text mb-2">Thank you!</h2>
+          <p className="text-text-muted text-sm">
             Your feedback means a lot. We read every message and use it to make Eardle better.
           </p>
         </div>
@@ -52,8 +52,8 @@ export default function FeedbackPage() {
     <div className="max-w-lg mx-auto px-4 sm:px-6 py-10">
       <div className="text-center mb-8">
         <p className="text-4xl mb-3">💬</p>
-        <h1 className="text-2xl font-bold text-white mb-2">Share your thoughts</h1>
-        <p className="text-gray-400 text-sm leading-relaxed">
+        <h1 className="text-2xl font-bold text-text mb-2">Share your thoughts</h1>
+        <p className="text-text-muted text-sm leading-relaxed">
           Love something? Have a suggestion? Found a bug? We'd love to hear it all.
           Honest feedback — both praise and criticism — helps us build a better app.
         </p>
@@ -61,44 +61,44 @@ export default function FeedbackPage() {
 
       <form
         onSubmit={handleSubmit}
-        className="bg-gray-900 rounded-2xl p-8 space-y-5 border border-gray-800"
+        className="bg-surface rounded-2xl p-8 space-y-5 border border-border-subtle surface-elevated"
       >
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
           <div>
-            <label className="label">Name <span className="text-gray-600">(optional)</span></label>
+            <label className="field-label">Name <span className="text-text-faint">(optional)</span></label>
             <input
               type="text"
               value={name}
               onChange={(e) => setName(e.target.value)}
-              className="input"
+              className="field-input"
               placeholder="Your name"
             />
           </div>
           <div>
-            <label className="label">Email <span className="text-gray-600">(optional)</span></label>
+            <label className="field-label">Email <span className="text-text-faint">(optional)</span></label>
             <input
               type="email"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
-              className="input"
+              className="field-input"
               placeholder="For follow-ups"
             />
           </div>
         </div>
 
         <div>
-          <label className="label">Message</label>
+          <label className="field-label">Message</label>
           <textarea
             value={message}
             onChange={(e) => setMessage(e.target.value)}
             required
             rows={5}
-            className="input resize-none"
+            className="field-input resize-none"
             placeholder="Tell us what you think — what's great, what's missing, what could be better…"
           />
         </div>
 
-        {error && <p className="text-red-400 text-sm">{error}</p>}
+        {error && <p className="text-red-600 dark:text-red-400 text-sm">{error}</p>}
 
         <button
           type="submit"

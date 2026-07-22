@@ -36,7 +36,7 @@ export function Modal({ open, onClose, title, icon, topLeft, children }: ModalPr
       <div
         role="dialog"
         aria-modal="true"
-        className="relative w-full max-w-lg max-h-[85vh] overflow-y-auto rounded-2xl bg-gray-800 border border-gray-700/50 p-5 sm:p-6"
+        className="relative w-full max-w-lg max-h-[85vh] overflow-y-auto rounded-2xl bg-surface border border-border surface-elevated p-5 sm:p-6"
       >
         {topLeft && (
           <div className="absolute top-5 left-5 sm:top-6 sm:left-6">
@@ -46,14 +46,14 @@ export function Modal({ open, onClose, title, icon, topLeft, children }: ModalPr
         <button
           onClick={onClose}
           aria-label="Close"
-          className="absolute top-5 right-5 sm:top-6 sm:right-6 p-1.5 rounded-lg text-gray-400 hover:text-white hover:bg-gray-700 transition"
+          className="absolute top-5 right-5 sm:top-6 sm:right-6 p-1.5 rounded-lg text-text-muted hover:text-text hover:bg-surface-2 transition"
         >
           ✕
         </button>
         {(icon || title) && (
-          <div className={`flex flex-col items-center text-center gap-2 mb-4 ${topLeft ? "pt-12" : ""}`}>
+          <div className={`flex flex-col items-center text-center gap-2 mb-4 ${topLeft ? "pt-20" : ""}`}>
             {icon}
-            {title && <h2 className="text-lg font-bold text-white">{title}</h2>}
+            {title && <h2 className="text-lg font-bold text-text">{title}</h2>}
           </div>
         )}
         {children}

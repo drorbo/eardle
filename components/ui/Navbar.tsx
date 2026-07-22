@@ -6,6 +6,7 @@ import { useState, useEffect } from "react";
 import { useSession, signOut } from "next-auth/react";
 import { usePathname } from "next/navigation";
 import { CATEGORY_META } from "@/types/exercise";
+import { useTheme } from "@/components/ThemeProvider";
 
 // ── SVG icons ───────────────────────────────────────────────────────
 
@@ -116,6 +117,23 @@ function SignOutIcon({ className }: { className?: string }) {
   );
 }
 
+function SunIcon({ className }: { className?: string }) {
+  return (
+    <svg className={className} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+      <circle cx="12" cy="12" r="4" />
+      <path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M4.93 19.07l1.41-1.41M17.66 6.34l1.41-1.41" />
+    </svg>
+  );
+}
+
+function MoonIcon({ className }: { className?: string }) {
+  return (
+    <svg className={className} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+      <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z" />
+    </svg>
+  );
+}
+
 const CATEGORY_ICONS: Record<string, (p: { className?: string }) => React.JSX.Element> = {
   note:        NoteIcon,
   interval:    IntervalIcon,
@@ -144,15 +162,15 @@ function NavIcon({
       href={href}
       className={`group relative flex items-center justify-center w-10 h-10 rounded-xl transition-colors ${
         active
-          ? "bg-gray-800 text-white"
-          : "text-gray-500 hover:text-white hover:bg-gray-800"
+          ? "bg-surface-2 text-text"
+          : "text-text-subtle hover:text-text hover:bg-surface-2"
       }`}
     >
       <span className="w-5 h-5 flex-shrink-0">{icon}</span>
       {badge && (
         <span className="absolute -top-1 -right-1 pointer-events-none">{badge}</span>
       )}
-      <span className="pointer-events-none absolute top-full mt-2 left-1/2 -translate-x-1/2 px-2 py-1 rounded-lg bg-gray-800 border border-gray-700 text-white text-xs whitespace-nowrap opacity-0 group-hover:opacity-100 transition-opacity z-50">
+      <span className="pointer-events-none absolute top-full mt-2 left-1/2 -translate-x-1/2 px-2 py-1 rounded-lg bg-surface-2 border border-border text-text text-xs whitespace-nowrap opacity-0 group-hover:opacity-100 transition-opacity z-50">
         {label}
       </span>
     </Link>
@@ -164,7 +182,7 @@ function DailyStreakBadge({ streak, playedToday }: { streak: number; playedToday
   return (
     <span
       className={`flex items-center gap-0.5 px-1 py-0.5 rounded-full text-[10px] font-bold leading-none ${
-        playedToday ? "bg-orange-500 text-white" : "bg-gray-700 text-gray-300"
+        playedToday ? "bg-orange-500 text-white" : "bg-surface-2 text-text-secondary"
       }`}
     >
       🔥{streak}
@@ -184,10 +202,10 @@ function NavIconButton({
   return (
     <button
       onClick={onClick}
-      className="group relative flex items-center justify-center w-10 h-10 rounded-xl text-gray-500 hover:text-white hover:bg-gray-800 transition-colors"
+      className="group relative flex items-center justify-center w-10 h-10 rounded-xl text-text-subtle hover:text-text hover:bg-surface-2 transition-colors"
     >
       <span className="w-5 h-5 flex-shrink-0">{icon}</span>
-      <span className="pointer-events-none absolute top-full mt-2 left-1/2 -translate-x-1/2 px-2 py-1 rounded-lg bg-gray-800 border border-gray-700 text-white text-xs whitespace-nowrap opacity-0 group-hover:opacity-100 transition-opacity z-50">
+      <span className="pointer-events-none absolute top-full mt-2 left-1/2 -translate-x-1/2 px-2 py-1 rounded-lg bg-surface-2 border border-border text-text text-xs whitespace-nowrap opacity-0 group-hover:opacity-100 transition-opacity z-50">
         {label}
       </span>
     </button>
@@ -202,9 +220,18 @@ function dicebearUrl(seed: string) {
 
 export function Navbar() {
   const { data: session, status } = useSession();
+  const { theme, toggleTheme } = useTheme();
   const pathname = usePathname();
   const [mobileOpen, setMobileOpen] = useState(false);
   const [dailyStatus, setDailyStatus] = useState({ currentStreak: 0, playedToday: false });
+  // Server always renders assuming the "light" default (it can't read
+  // localStorage), so the icon/label must match that on the client's first
+  // render too — only reflect the real (possibly "dark") theme after mount,
+  // once hydration has already reconciled, to avoid a mismatch.
+  const [mounted, setMounted] = useState(false);
+  const isDark = mounted && theme === "dark";
+
+  useEffect(() => { setMounted(true); }, []);
 
   useEffect(() => { setMobileOpen(false); }, [pathname]);
 
@@ -245,11 +272,11 @@ export function Navbar() {
   const displayName = user?.nickname ?? user?.name ?? user?.email ?? "Account";
 
   return (
-    <nav className="sticky top-0 z-50 bg-gray-950/90 backdrop-blur border-b border-gray-800">
-      <div className="bg-indigo-500/10 border-b border-indigo-500/20 text-center py-1.5 px-4">
-        <p className="text-xs text-indigo-300">
+    <nav className="sticky top-0 z-50 bg-bg/90 backdrop-blur border-b border-border-subtle">
+      <div className="bg-accent-banner-bg border-b border-accent-banner-border text-center py-1.5 px-4">
+        <p className="text-xs text-accent-banner-text">
           We&apos;re in beta — please{" "}
-          <Link href="/feedback" className="underline underline-offset-2 hover:text-indigo-200 transition-colors">
+          <Link href="/feedback" className="underline underline-offset-2 hover:opacity-70 transition-opacity">
             share your feedback
           </Link>
           {" "}and help us improve!
@@ -259,7 +286,7 @@ export function Navbar() {
 
         {/* Left: logo + category icons */}
         <div className="flex items-center gap-4">
-          <Link href="/" className="text-xl font-bold text-white tracking-tight flex-shrink-0">
+          <Link href="/" className="text-xl font-bold text-text tracking-tight flex-shrink-0">
             🎧 Eardle
           </Link>
 
@@ -290,6 +317,11 @@ export function Navbar() {
 
         {/* Right: utility + auth icons */}
         <div className="hidden sm:flex items-center gap-1">
+          <NavIconButton
+            onClick={toggleTheme}
+            label={isDark ? "Switch to light mode" : "Switch to dark mode"}
+            icon={isDark ? <SunIcon className="w-5 h-5" /> : <MoonIcon className="w-5 h-5" />}
+          />
           <NavIcon
             href="/feedback"
             label="Feedback"
@@ -349,7 +381,7 @@ export function Navbar() {
                 alt={displayName}
                 width={28}
                 height={28}
-                className="rounded-full bg-gray-700"
+                className="rounded-full bg-surface-2"
                 unoptimized
               />
             </Link>
@@ -357,7 +389,7 @@ export function Navbar() {
           <button
             onClick={() => setMobileOpen((v) => !v)}
             aria-label="Toggle menu"
-            className="p-2 rounded-lg text-gray-400 hover:text-white hover:bg-gray-800 transition"
+            className="p-2 rounded-lg text-text-muted hover:text-text hover:bg-surface-2 transition"
           >
             {mobileOpen ? (
               <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -374,16 +406,16 @@ export function Navbar() {
 
       {/* Mobile dropdown */}
       {mobileOpen && (
-        <div className="sm:hidden border-t border-gray-800 bg-gray-950 px-4 py-3 space-y-1">
+        <div className="sm:hidden border-t border-border-subtle bg-bg px-4 py-3 space-y-1">
           <Link
             href="/daily"
-            className="flex items-center gap-3 px-3 py-3 rounded-xl text-gray-300 hover:text-white hover:bg-gray-800 transition text-sm"
+            className="flex items-center gap-3 px-3 py-3 rounded-xl text-text-secondary hover:text-text hover:bg-surface-2 transition text-sm"
           >
             <span className="text-lg">📅</span>
             Daily EarDle
             <DailyStreakBadge streak={dailyStatus.currentStreak} playedToday={dailyStatus.playedToday} />
           </Link>
-          <p className="text-[10px] font-semibold text-gray-600 uppercase tracking-widest px-3 pb-1 pt-1">
+          <p className="text-[10px] font-semibold text-text-faint uppercase tracking-widest px-3 pb-1 pt-1">
             Categories
           </p>
           {(Object.entries(CATEGORY_META) as [string, typeof CATEGORY_META[keyof typeof CATEGORY_META]][]).map(
@@ -391,7 +423,7 @@ export function Navbar() {
               <Link
                 key={key}
                 href={`/${key}`}
-                className="flex items-center gap-3 px-3 py-3 rounded-xl text-gray-300 hover:text-white hover:bg-gray-800 transition text-sm"
+                className="flex items-center gap-3 px-3 py-3 rounded-xl text-text-secondary hover:text-text hover:bg-surface-2 transition text-sm"
               >
                 <span className="text-lg">{meta.emoji}</span>
                 {meta.label}
@@ -399,10 +431,16 @@ export function Navbar() {
             )
           )}
 
-          <div className="border-t border-gray-800 mt-2 pt-2 space-y-1">
+          <div className="border-t border-border-subtle mt-2 pt-2 space-y-1">
+            <button
+              onClick={toggleTheme}
+              className="w-full flex items-center gap-3 px-3 py-3 rounded-xl text-text-secondary hover:text-text hover:bg-surface-2 transition text-sm text-left"
+            >
+              {isDark ? "☀️ Light Mode" : "🌙 Dark Mode"}
+            </button>
             <Link
               href="/feedback"
-              className="flex items-center gap-3 px-3 py-3 rounded-xl text-gray-300 hover:text-white hover:bg-gray-800 transition text-sm"
+              className="flex items-center gap-3 px-3 py-3 rounded-xl text-text-secondary hover:text-text hover:bg-surface-2 transition text-sm"
             >
               💬 Feedback
             </Link>
@@ -410,19 +448,19 @@ export function Navbar() {
               <>
                 <Link
                   href="/dashboard"
-                  className="flex items-center gap-3 px-3 py-3 rounded-xl text-gray-300 hover:text-white hover:bg-gray-800 transition text-sm"
+                  className="flex items-center gap-3 px-3 py-3 rounded-xl text-text-secondary hover:text-text hover:bg-surface-2 transition text-sm"
                 >
                   📊 Dashboard
                 </Link>
                 <Link
                   href="/profile"
-                  className="flex items-center gap-3 px-3 py-3 rounded-xl text-gray-300 hover:text-white hover:bg-gray-800 transition text-sm"
+                  className="flex items-center gap-3 px-3 py-3 rounded-xl text-text-secondary hover:text-text hover:bg-surface-2 transition text-sm"
                 >
                   👤 {displayName}
                 </Link>
                 <button
                   onClick={() => signOut({ callbackUrl: "/" })}
-                  className="w-full flex items-center gap-3 px-3 py-3 rounded-xl text-gray-500 hover:text-white hover:bg-gray-800 transition text-sm text-left"
+                  className="w-full flex items-center gap-3 px-3 py-3 rounded-xl text-text-subtle hover:text-text hover:bg-surface-2 transition text-sm text-left"
                 >
                   Sign Out
                 </button>
@@ -431,13 +469,13 @@ export function Navbar() {
               <>
                 <Link
                   href="/dashboard"
-                  className="flex items-center gap-3 px-3 py-3 rounded-xl text-gray-300 hover:text-white hover:bg-gray-800 transition text-sm"
+                  className="flex items-center gap-3 px-3 py-3 rounded-xl text-text-secondary hover:text-text hover:bg-surface-2 transition text-sm"
                 >
                   📊 My Progress
                 </Link>
                 <Link
                   href="/signin"
-                  className="flex items-center gap-3 px-3 py-3 rounded-xl text-indigo-400 hover:text-indigo-300 hover:bg-indigo-950/50 transition text-sm"
+                  className="flex items-center gap-3 px-3 py-3 rounded-xl text-indigo-400 hover:text-indigo-300 hover:bg-accent-hover-bg transition text-sm"
                 >
                   Sign In
                 </Link>

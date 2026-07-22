@@ -29,9 +29,17 @@ export function DailyPuzzlePlayer() {
 
   useEffect(() => {
     if (state.phase !== "ready") return;
-    const wasPlayable = prevStatusRef.current === "in_progress" || prevStatusRef.current === "not_started";
-    if (wasPlayable && (state.status === "won" || state.status === "lost")) {
+    const prevStatus = prevStatusRef.current;
+    const wasPlayable = prevStatus === "in_progress" || prevStatus === "not_started";
+    const finishedNow = state.status === "won" || state.status === "lost";
+    // Covers two cases: (1) the user just finished this guess, transitioning
+    // from playable to won/lost, and (2) the puzzle was already solved on a
+    // previous visit, so it loads pre-finished (prevStatus still null here,
+    // this is the first "ready" render) — either way, open stats on load.
+    if (finishedNow && (wasPlayable || prevStatus === null)) {
       setStatsOpen(true);
+    }
+    if (wasPlayable && finishedNow) {
       // Navbar's streak badge is a persistent layout component that only
       // fetches on mount/navigation — this lets it update immediately even
       // if the user stays on this page after finishing.
@@ -68,8 +76,8 @@ export function DailyPuzzlePlayer() {
   if (state.phase === "loading") {
     return (
       <div className="flex flex-col items-center gap-6 animate-pulse">
-        <div className="h-8 w-48 rounded-lg bg-gray-800" />
-        <div className="w-24 h-24 rounded-full bg-gray-800" />
+        <div className="h-8 w-48 rounded-lg bg-surface-2" />
+        <div className="w-24 h-24 rounded-full bg-surface-2" />
       </div>
     );
   }
@@ -77,7 +85,7 @@ export function DailyPuzzlePlayer() {
   if (state.phase === "error") {
     return (
       <div className="text-center">
-        <p className="text-gray-400">{state.message}</p>
+        <p className="text-text-muted">{state.message}</p>
       </div>
     );
   }
@@ -99,25 +107,25 @@ export function DailyPuzzlePlayer() {
   return (
     <div className="flex flex-col items-center gap-6 w-full">
       <div className="text-center">
-        <div className="flex items-center justify-center gap-1.5 text-xs font-semibold text-gray-500 uppercase tracking-widest mb-1">
+        <div className="flex items-center justify-center gap-1.5 text-xs font-semibold text-text-subtle uppercase tracking-widest mb-1">
           Daily EarDle
           <InfoTooltip text={DAILY_INFO_TEXT} />
         </div>
-        <div className="flex items-center justify-center gap-2 text-sm text-gray-400">
+        <div className="flex items-center justify-center gap-2 text-sm text-text-muted">
           <span>{meta.emoji} {meta.label}</span>
-          <span className="text-gray-700">·</span>
+          <span className="text-text-faint">·</span>
           <span className="capitalize">{state.difficulty}</span>
         </div>
       </div>
 
-      <p className="text-lg text-white text-center">{state.exercise.prompt}</p>
+      <p className="text-lg text-text text-center">{state.exercise.prompt}</p>
 
       {/* Confetti lives in StatsModal instead — that modal auto-opens the instant
           the puzzle finishes, immediately covering anything rendered here. */}
       <PlayButton onClick={handlePlay} isPlaying={isPlaying} disabled={state.submitting} />
 
       {!finished && (
-        <p className="text-sm text-gray-500">
+        <p className="text-sm text-text-subtle">
           Guess {guessNumber} of {state.maxGuesses}
         </p>
       )}
@@ -134,17 +142,17 @@ export function DailyPuzzlePlayer() {
       {finished && (
         <div className="text-center space-y-3">
           {state.status === "won" ? (
-            <p className="text-green-400 font-bold text-lg">🎉 Solved in {state.guesses.length}!</p>
+            <p className="text-green-600 dark:text-green-400 font-bold text-lg">🎉 Solved in {state.guesses.length}!</p>
           ) : (
-            <p className="text-red-400 font-bold text-lg">
-              Out of guesses — it was <span className="text-white">{state.exercise.answer}</span>
+            <p className="text-red-600 dark:text-red-400 font-bold text-lg">
+              Out of guesses — it was <span className="text-text">{state.exercise.answer}</span>
             </p>
           )}
-          {funnyLine && <p className="text-gray-400 text-sm italic">{funnyLine}</p>}
-          {state.exercise.title && <p className="text-gray-500 text-sm">{state.exercise.title}</p>}
+          {funnyLine && <p className="text-text-muted text-sm italic">{funnyLine}</p>}
+          {state.exercise.title && <p className="text-text-subtle text-sm">{state.exercise.title}</p>}
           {state.exercise.explanation && (
-            <div className="w-full max-w-lg mx-auto rounded-2xl p-4 bg-gray-900/60 border border-gray-800 text-sm text-gray-300 leading-relaxed text-left">
-              <p className="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-1.5">💡 Good to know</p>
+            <div className="w-full max-w-lg mx-auto rounded-2xl p-4 bg-surface/60 border border-border-subtle text-sm text-text-secondary leading-relaxed text-left">
+              <p className="text-xs font-semibold text-text-subtle uppercase tracking-wider mb-1.5">💡 Good to know</p>
               {state.exercise.explanation}
             </div>
           )}

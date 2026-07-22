@@ -65,16 +65,16 @@ export default function ProfilePage() {
   return (
     <div className="max-w-md mx-auto px-4 sm:px-6 py-10">
       <div className="flex items-center gap-3 mb-8">
-        <Link href="/dashboard" className="text-gray-600 hover:text-gray-400 transition text-sm">
+        <Link href="/dashboard" className="text-text-faint hover:text-text-muted transition text-sm">
           ← Dashboard
         </Link>
       </div>
 
-      <h1 className="text-2xl font-bold text-white mb-6">Edit Profile</h1>
+      <h1 className="text-2xl font-bold text-text mb-6">Edit Profile</h1>
 
       <form
         onSubmit={handleSubmit}
-        className="bg-gray-900 rounded-2xl p-8 space-y-6 border border-gray-800"
+        className="bg-surface rounded-2xl p-8 space-y-6 border border-border-subtle surface-elevated"
       >
         {/* Avatar preview */}
         <div className="flex flex-col items-center gap-3">
@@ -84,43 +84,43 @@ export default function ProfilePage() {
               alt="Avatar preview"
               width={80}
               height={80}
-              className="rounded-full bg-gray-700"
+              className="rounded-full bg-surface-2"
               unoptimized
             />
           )}
-          <p className="text-xs text-gray-500">
+          <p className="text-xs text-text-subtle">
             {avatarUrl ? "Custom avatar" : "Generated avatar (default)"}
           </p>
         </div>
 
         <div>
-          <label className="label">Nickname</label>
+          <label className="field-label">Nickname</label>
           <input
             type="text"
             value={nickname}
             onChange={(e) => setNickname(e.target.value)}
-            className="input"
+            className="field-input"
             placeholder="Your display name"
             maxLength={30}
           />
         </div>
 
         <div>
-          <label className="label">Avatar URL</label>
+          <label className="field-label">Avatar URL</label>
           <input
             type="url"
             value={avatarUrl}
             onChange={(e) => setAvatarUrl(e.target.value)}
-            className="input"
+            className="field-input"
             placeholder="https://… (leave blank for generated avatar)"
           />
-          <p className="text-xs text-gray-600 mt-1.5">
+          <p className="text-xs text-text-faint mt-1.5">
             Paste any image URL, or leave blank to use your auto-generated avatar
           </p>
         </div>
 
-        {error && <p className="text-red-400 text-sm">{error}</p>}
-        {message && <p className="text-green-400 text-sm">{message}</p>}
+        {error && <p className="text-red-600 dark:text-red-400 text-sm">{error}</p>}
+        {message && <p className="text-green-600 dark:text-green-400 text-sm">{message}</p>}
 
         <button
           type="submit"
@@ -131,8 +131,8 @@ export default function ProfilePage() {
         </button>
       </form>
 
-      <p className="text-center text-sm text-gray-600 mt-4">
-        Signed in as <span className="text-gray-400">{user.email}</span>
+      <p className="text-center text-sm text-text-faint mt-4">
+        Signed in as <span className="text-text-muted">{user.email}</span>
       </p>
     </div>
   );

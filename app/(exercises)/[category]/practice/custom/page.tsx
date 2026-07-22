@@ -32,8 +32,8 @@ export default async function CustomPackagePage({ params }: Props) {
       <div className="flex items-center gap-3 mb-2">
         <span className="text-3xl">{meta.emoji}</span>
         <div>
-          <h1 className="text-2xl sm:text-3xl font-bold text-white leading-tight">Custom Package</h1>
-          <p className="text-gray-400 text-sm mt-0.5">
+          <h1 className="text-2xl sm:text-3xl font-bold text-text leading-tight">Custom Package</h1>
+          <p className="text-text-muted text-sm mt-0.5">
             Pick exactly which {meta.label.toLowerCase()} exercises to drill this session.
           </p>
         </div>

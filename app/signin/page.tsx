@@ -48,13 +48,13 @@ export default function SignInPage() {
   return (
     <div className="min-h-[calc(100vh-56px)] flex items-center justify-center p-4">
       <div className="w-full max-w-sm">
-        <h1 className="text-2xl font-bold text-white text-center mb-2">Welcome back</h1>
-        <p className="text-gray-400 text-sm text-center mb-8">Sign in to sync your progress</p>
+        <h1 className="text-2xl font-bold text-text text-center mb-2">Welcome back</h1>
+        <p className="text-text-muted text-sm text-center mb-8">Sign in to sync your progress</p>
 
-        <div className="bg-gray-900 rounded-2xl p-8 space-y-4 border border-gray-800">
+        <div className="bg-surface rounded-2xl p-8 space-y-4 border border-border-subtle surface-elevated">
           <button
             onClick={handleGoogle}
-            className="w-full flex items-center justify-center gap-3 py-2.5 rounded-xl bg-white text-gray-900 font-medium text-sm hover:bg-gray-100 transition"
+            className="w-full flex items-center justify-center gap-3 py-2.5 rounded-xl bg-white text-gray-900 border border-gray-300 font-medium text-sm hover:bg-gray-100 transition"
           >
             <svg className="w-4 h-4" viewBox="0 0 24 24">
               <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/>
@@ -66,35 +66,35 @@ export default function SignInPage() {
           </button>
 
           <div className="flex items-center gap-3">
-            <div className="flex-1 border-t border-gray-700" />
-            <span className="text-xs text-gray-600">or</span>
-            <div className="flex-1 border-t border-gray-700" />
+            <div className="flex-1 border-t border-border" />
+            <span className="text-xs text-text-faint">or</span>
+            <div className="flex-1 border-t border-border" />
           </div>
 
           <form onSubmit={handleCredentials} className="space-y-4">
             <div>
-              <label className="label">Email</label>
+              <label className="field-label">Email</label>
               <input
                 type="email"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 required
-                className="input"
+                className="field-input"
                 placeholder="you@example.com"
               />
             </div>
             <div>
-              <label className="label">Password</label>
+              <label className="field-label">Password</label>
               <input
                 type="password"
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
                 required
-                className="input"
+                className="field-input"
                 placeholder="••••••••"
               />
             </div>
-            {error && <p className="text-red-400 text-sm">{error}</p>}
+            {error && <p className="text-red-600 dark:text-red-400 text-sm">{error}</p>}
             <button
               type="submit"
               disabled={loading}
@@ -105,7 +105,7 @@ export default function SignInPage() {
           </form>
         </div>
 
-        <p className="text-center text-sm text-gray-500 mt-6">
+        <p className="text-center text-sm text-text-subtle mt-6">
           No account?{" "}
           <Link href="/signup" className="text-indigo-400 hover:text-indigo-300">
             Create one
