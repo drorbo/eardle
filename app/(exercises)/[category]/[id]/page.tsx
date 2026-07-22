@@ -3,18 +3,26 @@ import { CATEGORY_META, Category, Exercise } from "@/types/exercise";
 import { ExercisePlayerWrapper } from "./ExercisePlayerWrapper";
 import { ExerciseErrorBoundary } from "@/components/exercise/ErrorBoundary";
 import { SharePackageButton } from "@/components/exercise/SharePackageButton";
+import { PracticeCompletionTracker } from "@/components/lesson/PracticeCompletionTracker";
 import { db } from "@/lib/db";
 import { exercises as exercisesTable } from "@/lib/db/schema";
 import { eq, and, sql, ne, inArray } from "drizzle-orm";
 
 interface Props {
   params: Promise<{ category: string; id: string }>;
-  searchParams: Promise<{ mode?: string; difficulty?: string; practiceExclude?: string; topic?: string; ids?: string }>;
+  searchParams: Promise<{
+    mode?: string;
+    difficulty?: string;
+    practiceExclude?: string;
+    topic?: string;
+    ids?: string;
+    lessonId?: string;
+  }>;
 }
 
 export default async function ExercisePage({ params, searchParams }: Props) {
   const { category, id } = await params;
-  const { mode, difficulty, practiceExclude, topic, ids } = await searchParams;
+  const { mode, difficulty, practiceExclude, topic, ids, lessonId } = await searchParams;
 
   if (!CATEGORY_META[category as Category]) notFound();
 
@@ -40,12 +48,20 @@ export default async function ExercisePage({ params, searchParams }: Props) {
     }
   }
 
+  // Custom package session tied to a lesson: this render is the exact moment
+  // the user has now been shown every exercise in the package at least once
+  // (practiceExclude, accumulated up through this exercise, covers the whole
+  // id list) — that's "practiced" for the linked lesson's progress tracking.
+  const exclSet = new Set(practiceExclude?.split(",").map(Number).filter(Boolean) ?? []);
+  const cycleJustCompleted = idsList.length > 0 && idsList.every((pid) => exclSet.has(pid));
+
   let nextHref: string | undefined;
   if (mode === "practice") {
     const excludeParam = practiceExclude ?? id;
     const topicParam = topic ? `&topic=${topic}` : "";
     const idsParam = ids ? `&ids=${ids}` : "";
-    nextHref = `/${category}/practice?difficulty=${difficulty ?? "all"}&exclude=${excludeParam}${topicParam}${idsParam}`;
+    const lessonIdParam = lessonId ? `&lessonId=${lessonId}` : "";
+    nextHref = `/${category}/practice?difficulty=${difficulty ?? "all"}&exclude=${excludeParam}${topicParam}${idsParam}${lessonIdParam}`;
   } else {
     // Browse mode: random exercise from same category, excluding current
     const [randomNext] = await db.select({ id: exercisesTable.id })
@@ -70,6 +86,8 @@ export default async function ExercisePage({ params, searchParams }: Props) {
           )}
           {ids && <SharePackageButton category={category} ids={ids} />}
         </div>
+
+        {lessonId && cycleJustCompleted && <PracticeCompletionTracker lessonId={Number(lessonId)} />}
 
         <ExerciseErrorBoundary>
           <ExercisePlayerWrapper exercise={exercise} nextHref={nextHref} />

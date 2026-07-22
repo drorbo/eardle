@@ -6,7 +6,7 @@ import { and, eq, sql, notInArray, inArray } from "drizzle-orm";
 
 interface Props {
   params: Promise<{ category: string }>;
-  searchParams: Promise<{ difficulty?: string; topic?: string; exclude?: string; ids?: string }>;
+  searchParams: Promise<{ difficulty?: string; topic?: string; exclude?: string; ids?: string; lessonId?: string }>;
 }
 
 const DIFFICULTY_OPTIONS = [
@@ -19,7 +19,7 @@ const DIFFICULTY_OPTIONS = [
 
 export default async function PracticePage({ params, searchParams }: Props) {
   const { category } = await params;
-  const { difficulty, topic, exclude, ids } = await searchParams;
+  const { difficulty, topic, exclude, ids, lessonId } = await searchParams;
 
   if (!CATEGORY_META[category as Category]) notFound();
   const cat = category as Category;
@@ -134,6 +134,7 @@ export default async function PracticePage({ params, searchParams }: Props) {
   const excludeParam = newExcludeIds.join(",");
   const topicParam = topic ? `&topic=${topic}` : "";
   const idsParam = idsList.length ? `&ids=${idsList.join(",")}` : "";
+  const lessonIdParam = lessonId ? `&lessonId=${lessonId}` : "";
 
-  redirect(`/${cat}/${next.id}?mode=practice&difficulty=${difficulty ?? "all"}&practiceExclude=${excludeParam}${topicParam}${idsParam}`);
+  redirect(`/${cat}/${next.id}?mode=practice&difficulty=${difficulty ?? "all"}&practiceExclude=${excludeParam}${topicParam}${idsParam}${lessonIdParam}`);
 }

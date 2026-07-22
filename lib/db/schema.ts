@@ -146,6 +146,81 @@ export const streaks = pgTable(
   })
 );
 
+export const topics = pgTable("topics", {
+  id: serial("id").primaryKey(),
+  slug: text("slug").notNull().unique(),
+  title: text("title").notNull(),
+  description: text("description"),
+  sortOrder: integer("sort_order").notNull().default(0),
+  createdAt: integer("created_at").notNull().$defaultFn(() => Math.floor(Date.now() / 1000)),
+  updatedAt: integer("updated_at").notNull().$defaultFn(() => Math.floor(Date.now() / 1000)),
+});
+
+export const lessons = pgTable("lessons", {
+  id: serial("id").primaryKey(),
+  topicId: integer("topic_id")
+    .notNull()
+    .references(() => topics.id, { onDelete: "cascade" }),
+  slug: text("slug").notNull().unique(),
+  title: text("title").notNull(),
+  sortOrder: integer("sort_order").notNull().default(0),
+  // Informational only — shown as a link on the lesson page, never enforced
+  // (the "free browse, nothing locked" navigation decision).
+  prerequisiteTopicId: integer("prerequisite_topic_id").references(() => topics.id, { onDelete: "set null" }),
+  // A lesson's linked "Practice what you've learned" package — fully optional.
+  // Mirrors the existing Custom Package URL shape (category + exercise ids),
+  // just persisted here instead of only living in a URL querystring.
+  practiceCategory: text("practice_category", {
+    enum: ["note", "interval", "chord", "progression", "scale"],
+  }),
+  practiceExerciseIds: text("practice_exercise_ids"), // JSON int[] string, nullable
+  // Ordered array of content blocks: {type: "text"|"audioExample"|"tip"|"commonMistake"|"summary", ...}
+  body: text("body").notNull().default("[]"),
+  blockSchemaVersion: integer("block_schema_version").notNull().default(1),
+  published: boolean("published").notNull().default(false),
+  createdAt: integer("created_at").notNull().$defaultFn(() => Math.floor(Date.now() / 1000)),
+  updatedAt: integer("updated_at").notNull().$defaultFn(() => Math.floor(Date.now() / 1000)),
+});
+
+// Insert-only snapshot of `lessons.body` on every save — no revision-diff UI yet,
+// just insurance against an accidental overwrite since content has no Git history.
+export const lessonRevisions = pgTable("lesson_revisions", {
+  id: serial("id").primaryKey(),
+  lessonId: integer("lesson_id")
+    .notNull()
+    .references(() => lessons.id, { onDelete: "cascade" }),
+  body: text("body").notNull(),
+  createdAt: integer("created_at").notNull().$defaultFn(() => Math.floor(Date.now() / 1000)),
+});
+
+export const lessonProgress = pgTable(
+  "lesson_progress",
+  {
+    id: serial("id").primaryKey(),
+    lessonId: integer("lesson_id")
+      .notNull()
+      .references(() => lessons.id, { onDelete: "cascade" }),
+    userId: integer("user_id").references(() => users.id, { onDelete: "cascade" }),
+    sessionToken: text("session_token").notNull(),
+    // "Completed" = both non-null (computed at query time, not stored). Kept as two
+    // independent signals rather than one boolean so viewed-only/practiced-only
+    // states are knowable, per how completion was defined for this feature.
+    viewedAt: integer("viewed_at"),
+    practicedAt: integer("practiced_at"),
+    updatedAt: integer("updated_at").notNull().$defaultFn(() => Math.floor(Date.now() / 1000)),
+  },
+  (table) => ({
+    // Same dual-identity pattern as streaks/daily_attempts: userId OR sessionToken,
+    // never both required, via two partial unique indexes.
+    oneRowPerUser: uniqueIndex("lesson_progress_user_lesson_uq")
+      .on(table.lessonId, table.userId)
+      .where(sql`${table.userId} is not null`),
+    oneRowPerGuestToken: uniqueIndex("lesson_progress_token_lesson_uq")
+      .on(table.lessonId, table.sessionToken)
+      .where(sql`${table.userId} is null`),
+  })
+);
+
 export type Exercise = typeof exercises.$inferSelect;
 export type NewExercise = typeof exercises.$inferInsert;
 export type Session = typeof sessions.$inferSelect;
@@ -155,3 +230,9 @@ export type Feedback = typeof feedback.$inferSelect;
 export type DailyPuzzle = typeof dailyPuzzles.$inferSelect;
 export type DailyAttempt = typeof dailyAttempts.$inferSelect;
 export type Streak = typeof streaks.$inferSelect;
+export type Topic = typeof topics.$inferSelect;
+export type NewTopic = typeof topics.$inferInsert;
+export type Lesson = typeof lessons.$inferSelect;
+export type NewLesson = typeof lessons.$inferInsert;
+export type LessonRevision = typeof lessonRevisions.$inferSelect;
+export type LessonProgress = typeof lessonProgress.$inferSelect;

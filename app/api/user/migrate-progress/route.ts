@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { auth } from "@/lib/auth";
 import { db } from "@/lib/db";
-import { sessions, streaks } from "@/lib/db/schema";
+import { sessions, streaks, lessonProgress } from "@/lib/db/schema";
 import { and, eq, isNull } from "drizzle-orm";
 
 export async function POST(req: NextRequest) {
@@ -44,6 +44,29 @@ export async function POST(req: NextRequest) {
         .set({ longestStreak: mergedLongest, currentStreak: mergedCurrent, updatedAt: Math.floor(Date.now() / 1000) })
         .where(eq(streaks.id, userRow.id));
       await db.delete(streaks).where(eq(streaks.id, guestRow.id));
+    }
+  }
+
+  // lesson_progress has a unique (userId, lessonId) constraint too — same
+  // merge-or-move approach as streaks above.
+  const guestLessonRows = await db.query.lessonProgress.findMany({
+    where: and(eq(lessonProgress.sessionToken, sessionToken), isNull(lessonProgress.userId)),
+  });
+  for (const guestRow of guestLessonRows) {
+    const userRow = await db.query.lessonProgress.findFirst({
+      where: and(eq(lessonProgress.userId, userId), eq(lessonProgress.lessonId, guestRow.lessonId)),
+    });
+    if (!userRow) {
+      await db.update(lessonProgress).set({ userId }).where(eq(lessonProgress.id, guestRow.id));
+    } else {
+      await db.update(lessonProgress)
+        .set({
+          viewedAt: userRow.viewedAt ?? guestRow.viewedAt ?? null,
+          practicedAt: userRow.practicedAt ?? guestRow.practicedAt ?? null,
+          updatedAt: Math.floor(Date.now() / 1000),
+        })
+        .where(eq(lessonProgress.id, userRow.id));
+      await db.delete(lessonProgress).where(eq(lessonProgress.id, guestRow.id));
     }
   }
 

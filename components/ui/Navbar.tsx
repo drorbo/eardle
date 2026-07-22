@@ -72,6 +72,15 @@ function DailyIcon({ className }: { className?: string }) {
   );
 }
 
+function LearnIcon({ className }: { className?: string }) {
+  return (
+    <svg className={className} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+      <path d="M22 10 12 5 2 10l10 5 10-5z" />
+      <path d="M6 12v5c0 1.5 2.5 3 6 3s6-1.5 6-3v-5" />
+    </svg>
+  );
+}
+
 function FeedbackIcon({ className }: { className?: string }) {
   return (
     <svg className={className} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
@@ -298,6 +307,12 @@ export function Navbar() {
               icon={<DailyIcon className="w-5 h-5" />}
               badge={<DailyStreakBadge streak={dailyStatus.currentStreak} playedToday={dailyStatus.playedToday} />}
             />
+            <NavIcon
+              href="/learn"
+              label="Learn"
+              active={pathname.startsWith("/learn")}
+              icon={<LearnIcon className="w-5 h-5" />}
+            />
             {(Object.entries(CATEGORY_META) as [string, typeof CATEGORY_META[keyof typeof CATEGORY_META]][]).map(
               ([key, meta]) => {
                 const Icon = CATEGORY_ICONS[key];
@@ -414,6 +429,13 @@ export function Navbar() {
             <span className="text-lg">📅</span>
             Daily EarDle
             <DailyStreakBadge streak={dailyStatus.currentStreak} playedToday={dailyStatus.playedToday} />
+          </Link>
+          <Link
+            href="/learn"
+            className="flex items-center gap-3 px-3 py-3 rounded-xl text-text-secondary hover:text-text hover:bg-surface-2 transition text-sm"
+          >
+            <span className="text-lg">🎓</span>
+            Learn
           </Link>
           <p className="text-[10px] font-semibold text-text-faint uppercase tracking-widest px-3 pb-1 pt-1">
             Categories

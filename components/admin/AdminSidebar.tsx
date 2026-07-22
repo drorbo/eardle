@@ -55,6 +55,17 @@ function SidebarInner({ categoryCounts, topicCounts }: Props) {
           <span className="opacity-50">{total}</span>
         </Link>
 
+        <Link
+          href="/admin/lessons"
+          className={`flex items-center justify-between px-3 py-2 rounded-lg text-xs transition ${
+            pathname.startsWith("/admin/lessons")
+              ? "bg-indigo-600 text-white"
+              : "text-gray-400 hover:text-white hover:bg-gray-800"
+          }`}
+        >
+          <span>🎓 Lessons</span>
+        </Link>
+
         <div className="pt-3 pb-1 px-1">
           <p className="text-[10px] font-semibold text-gray-600 uppercase tracking-widest">Categories</p>
         </div>
