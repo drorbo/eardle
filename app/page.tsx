@@ -2,6 +2,7 @@ export const dynamic = "force-dynamic";
 
 import { CategoryCard } from "@/components/ui/CategoryCard";
 import { DailyHeroCard } from "@/components/ui/DailyHeroCard";
+import { LearnFeedbackBanner } from "@/components/ui/LearnFeedbackBanner";
 import { Category, CATEGORY_META } from "@/types/exercise";
 import { db } from "@/lib/db";
 import { exercises } from "@/lib/db/schema";
@@ -27,6 +28,8 @@ export default async function HomePage() {
 
   return (
     <div className="max-w-5xl mx-auto px-4 sm:px-6 py-8 sm:py-20">
+      <LearnFeedbackBanner />
+
       <div className="text-center mb-6 sm:mb-10">
         <h1 className="text-4xl sm:text-6xl font-bold text-text mb-4 tracking-tight">
           Train Your Ear
