@@ -36,6 +36,14 @@ export default async function LessonPage({ params }: Props) {
       ? `/${lesson.practiceCategory}/practice?ids=${lesson.practiceExerciseIds.join(",")}&lessonId=${lesson.id}`
       : null;
 
+  // sequence is already fetched above for prev/next — reuse it to find the
+  // prerequisite topic's own first lesson, instead of just linking to the
+  // generic overview and making the reader hunt for it themselves.
+  const prereqLesson = lesson.prerequisiteTopicId
+    ? sequence.find((l) => l.topicId === lesson.prerequisiteTopicId)
+    : null;
+  const prereqHref = prereqLesson ? `/learn/${prereqLesson.topicSlug}/${prereqLesson.slug}` : "/learn";
+
   return (
     <div className="max-w-2xl">
       <div className="mb-6 flex items-center gap-3 flex-wrap text-sm">
@@ -51,7 +59,7 @@ export default async function LessonPage({ params }: Props) {
       {lesson.prerequisiteTopicTitle && (
         <p className="text-xs text-text-subtle mb-6">
           Builds on{" "}
-          <Link href="/learn" className="text-indigo-400 hover:text-indigo-300 underline underline-offset-2">
+          <Link href={prereqHref} className="text-indigo-400 hover:text-indigo-300 underline underline-offset-2">
             {lesson.prerequisiteTopicTitle}
           </Link>
         </p>
@@ -59,7 +67,7 @@ export default async function LessonPage({ params }: Props) {
 
       <LessonBlocks blocks={lesson.body} />
 
-      {practiceHref && (
+      {practiceHref ? (
         <div className="mt-8 p-5 rounded-2xl bg-surface border border-border-subtle surface-elevated text-center">
           <p className="text-xs font-semibold uppercase tracking-widest text-text-subtle mb-2">
             Practice what you&apos;ve learned
@@ -71,6 +79,10 @@ export default async function LessonPage({ params }: Props) {
             Start Practicing →
           </Link>
         </div>
+      ) : (
+        <p className="mt-8 text-center text-xs text-text-faint italic">
+          This lesson is a concept primer — no dedicated practice exercises yet.
+        </p>
       )}
 
       <LessonProgressPanel lessonId={lesson.id} topicId={lesson.topicId} prev={prev} next={next} />
