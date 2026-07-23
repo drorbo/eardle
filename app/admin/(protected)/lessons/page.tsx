@@ -1,3 +1,5 @@
+export const dynamic = "force-dynamic";
+
 import Link from "next/link";
 import { getTopicsWithLessons } from "@/lib/db/lessons";
 import { NewTopicForm } from "@/components/admin/lesson/TopicManager";

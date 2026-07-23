@@ -1,3 +1,5 @@
+export const dynamic = "force-dynamic";
+
 import { getTopicsWithLessons } from "@/lib/db/lessons";
 import { LearnOverviewClient } from "@/components/lesson/LearnOverviewClient";
 
