@@ -5,7 +5,7 @@
   "scripts": {
     "dev": "next dev",
     "build": "next build",
-    "start": "npx tsx scripts/init-db.ts && next start",
+    "start": "npx tsx scripts/migrate.ts && npx tsx scripts/init-db.ts && next start",
     "lint": "eslint"
   },
   "dependencies": {
