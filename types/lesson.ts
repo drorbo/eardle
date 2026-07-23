@@ -1,4 +1,5 @@
 import type { Category, ChordType, ScaleType } from "@/types/exercise";
+import type { VoicingId } from "@/lib/audio/theory";
 
 // Closed set of content block types — the admin editor only ever produces
 // blocks of these shapes, never freeform HTML/JSX (see docs/lessons-planning).
@@ -32,8 +33,12 @@ export interface AudioExamplePlayable {
   intervalMode?: "harmonic" | "melodic";
   chordType?: ChordType;
   scaleType?: ScaleType;
-  notes?: string[]; // arpeggio: explicit note list
+  notes?: string[]; // arpeggio: explicit note list (wins over chordType-derived notes)
+  inversion?: number; // arpeggio, ignored if notes is set
+  voicing?: VoicingId; // arpeggio, ignored if notes is set; takes priority over inversion
   chords?: string[][]; // progression: chord-by-chord note lists
+  chordRoots?: string[]; // progression: parallel to chords, enables degree coloring
+  chordTypes?: ChordType[]; // progression: parallel to chords, enables degree coloring
   tempo?: number; // progression
 }
 

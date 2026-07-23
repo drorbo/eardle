@@ -2,6 +2,16 @@
 
 import type { AudioExampleBlock, AudioExamplePlayable, LessonBlock } from "@/types/lesson";
 import type { ChordType, ScaleType } from "@/types/exercise";
+import { getVoicings, CHORD_TYPES } from "@/lib/audio/theory";
+
+// The chord-type field below is free text (matching the existing "chord"
+// kind's field), so while the admin is mid-typing it's often not yet a
+// valid key — getVoicings indexes CHORD_INTERVALS directly and throws on
+// an unrecognized one, so guard every call through this instead of ??
+// (which only catches undefined/null, not "" or a partial string).
+function safeChordType(t: string | undefined): ChordType {
+  return t && t in CHORD_TYPES ? (t as ChordType) : "major";
+}
 
 const BLOCK_TYPES: LessonBlock["type"][] = ["text", "tip", "commonMistake", "summary", "audioExample"];
 const BLOCK_LABELS: Record<LessonBlock["type"], string> = {
@@ -140,7 +150,7 @@ function PlayableFields({
           className="field-input flex-1 min-w-[6rem]"
         />
       )}
-      {play.kind === "chord" && (
+      {(play.kind === "chord" || play.kind === "arpeggio") && (
         <input
           value={play.chordType ?? ""}
           onChange={(e) => patch({ chordType: e.target.value as ChordType })}
@@ -170,35 +180,94 @@ function PlayableFields({
             placeholder="Note B, e.g. E4"
             className="field-input flex-1 min-w-[6rem]"
           />
+          <select
+            value={play.intervalMode ?? "harmonic"}
+            onChange={(e) => patch({ intervalMode: e.target.value as AudioExamplePlayable["intervalMode"] })}
+            className="field-input flex-1 min-w-[8rem]"
+          >
+            <option value="harmonic">Harmonic (together)</option>
+            <option value="melodic">Melodic (A then B)</option>
+          </select>
         </>
       )}
       {play.kind === "arpeggio" && (
-        <input
-          value={play.notes ? JSON.stringify(play.notes) : ""}
-          onChange={(e) => {
-            try {
-              patch({ notes: JSON.parse(e.target.value) });
-            } catch {
-              /* keep typing until valid JSON */
-            }
-          }}
-          placeholder='Notes JSON, e.g. ["C4","E4","G4"]'
-          className="field-input flex-1 min-w-[10rem]"
-        />
+        <>
+          <input
+            value={play.notes ? JSON.stringify(play.notes) : ""}
+            onChange={(e) => {
+              if (e.target.value === "") {
+                patch({ notes: undefined });
+                return;
+              }
+              try {
+                patch({ notes: JSON.parse(e.target.value) });
+              } catch {
+                /* keep typing until valid JSON */
+              }
+            }}
+            placeholder='Notes JSON, e.g. ["C4","E4","G4"] (overrides chord type below)'
+            className="field-input flex-1 min-w-[10rem]"
+          />
+          <input
+            type="number"
+            min={0}
+            value={play.inversion ?? ""}
+            onChange={(e) => patch({ inversion: e.target.value === "" ? undefined : Number(e.target.value) })}
+            placeholder="Inversion (optional)"
+            className="field-input flex-1 min-w-[8rem]"
+          />
+          <select
+            value={play.voicing ?? ""}
+            onChange={(e) => patch({ voicing: e.target.value === "" ? undefined : (e.target.value as AudioExamplePlayable["voicing"]) })}
+            className="field-input flex-1 min-w-[8rem]"
+          >
+            <option value="">Voicing (optional)</option>
+            {getVoicings(safeChordType(play.chordType)).map((v) => (
+              <option key={v.id} value={v.id}>{v.label}</option>
+            ))}
+          </select>
+          <p className="w-full text-[11px] text-text-faint">
+            Notes JSON above always wins if filled in. Otherwise built from chord type + root, with voicing taking priority over inversion.
+          </p>
+        </>
       )}
       {play.kind === "progression" && (
-        <input
-          value={play.chords ? JSON.stringify(play.chords) : ""}
-          onChange={(e) => {
-            try {
-              patch({ chords: JSON.parse(e.target.value) });
-            } catch {
-              /* keep typing until valid JSON */
+        <>
+          <input
+            value={play.chords ? JSON.stringify(play.chords) : ""}
+            onChange={(e) => {
+              try {
+                patch({ chords: JSON.parse(e.target.value) });
+              } catch {
+                /* keep typing until valid JSON */
+              }
+            }}
+            placeholder='Chords JSON, e.g. [["C4","E4","G4"],["F4","A4","C5"]]'
+            className="field-input flex-1 min-w-[14rem]"
+          />
+          <input
+            value={play.chordRoots?.join(",") ?? ""}
+            onChange={(e) =>
+              patch({ chordRoots: e.target.value === "" ? undefined : e.target.value.split(",").map((s) => s.trim()) })
             }
-          }}
-          placeholder='Chords JSON, e.g. [["C4","E4","G4"],["F4","A4","C5"]]'
-          className="field-input flex-1 min-w-[14rem]"
-        />
+            placeholder="Chord roots (optional), e.g. C4,F4,G4,C4"
+            className="field-input flex-1 min-w-[10rem]"
+          />
+          <input
+            value={play.chordTypes?.join(",") ?? ""}
+            onChange={(e) =>
+              patch({
+                chordTypes:
+                  e.target.value === "" ? undefined : (e.target.value.split(",").map((s) => s.trim()) as ChordType[]),
+              })
+            }
+            placeholder="Chord types (optional), e.g. major,major,major,major"
+            className="field-input flex-1 min-w-[10rem]"
+          />
+          <p className="w-full text-[11px] text-text-faint">
+            Chord roots/types are optional, parallel to the chords above — add them to enable degree coloring.
+          </p>
+        </>
       )}
     </div>
   );

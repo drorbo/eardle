@@ -1,6 +1,16 @@
-import { buildChord, buildScale, getChordToneDegrees, getScaleDegrees, getIntervalDegree, parseNote } from "./theory";
+import {
+  buildChord,
+  buildScale,
+  getChordToneDegrees,
+  getScaleDegrees,
+  getIntervalDegree,
+  parseNote,
+  applyInversion,
+  applyVoicing,
+} from "./theory";
 import { DEFAULT_SCALE_NOTE_GAP, DEFAULT_ARPEGGIO_NOTE_GAP } from "./engine";
 import type { AudioExamplePlayable } from "@/types/lesson";
+import type { ChordType } from "@/types/exercise";
 
 export type Degree = number | "neutral";
 
@@ -12,6 +22,35 @@ export interface ResolvedNoteEvent {
 }
 
 const NEUTRAL_FILL = (n: string[]): Degree[] => n.map(() => "neutral" as const);
+
+// applyInversion/applyVoicing only reorder a plain note array (raise some
+// notes an octave by index, then re-sort by pitch) — this re-derives the
+// matching degree for each reordered note without duplicating that
+// index-selection logic, by matching letter+accidental (octave-raising
+// never changes those) back to the original pre-reorder note it came from.
+function degreesForReordered(original: string[], degrees: Degree[], reordered: string[]): Degree[] {
+  const remaining = original.map((note, i) => ({ note, i, used: false }));
+  return reordered.map((note) => {
+    const letterAcc = note.replace(/\d+$/, "");
+    const match = remaining.find((r) => !r.used && r.note.replace(/\d+$/, "") === letterAcc);
+    if (!match) return "neutral";
+    match.used = true;
+    return degrees[match.i];
+  });
+}
+
+// Progressions commonly voice-lead individual notes into different octaves
+// than a plain root-position buildChord would produce, so match by pitch
+// class (midi % 12) rather than exact note+octave.
+function degreesByPitchClass(actualNotes: string[], chordRoot: string, chordType: ChordType): Degree[] {
+  const theoreticalNotes = buildChord(chordRoot, chordType);
+  const theoreticalDegrees = getChordToneDegrees(chordType);
+  const byPitchClass = new Map<number, Degree>();
+  theoreticalNotes.forEach((note, i) => {
+    byPitchClass.set(((parseNote(note).midi % 12) + 12) % 12, theoreticalDegrees[i]);
+  });
+  return actualNotes.map((note) => byPitchClass.get(((parseNote(note).midi % 12) + 12) % 12) ?? "neutral");
+}
 
 // Mirrors LessonBlocks.tsx's old playExample() switch, but returns
 // declarative, degree-tagged events for AudioEngine.playSequence() instead
@@ -69,8 +108,17 @@ export function resolvePlayable(p: AudioExamplePlayable): ResolvedNoteEvent[] {
         }));
       }
       const type = p.chordType ?? "major";
-      const notes = buildChord(root, type);
-      const degrees = getChordToneDegrees(type);
+      const baseNotes = buildChord(root, type);
+      const baseDegrees = getChordToneDegrees(type);
+      let notes = baseNotes;
+      let degrees: Degree[] = baseDegrees;
+      if (p.voicing) {
+        notes = applyVoicing(baseNotes, p.voicing);
+        degrees = degreesForReordered(baseNotes, baseDegrees, notes);
+      } else if (typeof p.inversion === "number") {
+        notes = applyInversion(baseNotes, p.inversion);
+        degrees = degreesForReordered(baseNotes, baseDegrees, notes);
+      }
       return notes.map((note, i) => ({
         notes: [note],
         degrees: [degrees[i]],
@@ -83,12 +131,17 @@ export function resolvePlayable(p: AudioExamplePlayable): ResolvedNoteEvent[] {
       const chords = p.chords ?? [];
       const tempo = p.tempo ?? 80;
       const beatDuration = 60 / tempo;
-      return chords.map((chord, i) => ({
-        notes: chord,
-        degrees: NEUTRAL_FILL(chord),
-        time: i * beatDuration * 2,
-        duration: "2n",
-      }));
+      return chords.map((chord, i) => {
+        const chordRoot = p.chordRoots?.[i];
+        const chordType = p.chordTypes?.[i];
+        const degrees = chordRoot && chordType ? degreesByPitchClass(chord, chordRoot, chordType) : NEUTRAL_FILL(chord);
+        return {
+          notes: chord,
+          degrees,
+          time: i * beatDuration * 2,
+          duration: "2n",
+        };
+      });
     }
   }
 }
