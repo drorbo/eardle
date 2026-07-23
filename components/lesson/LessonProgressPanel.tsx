@@ -27,7 +27,7 @@ export function LessonProgressPanel({ lessonId, topicId, prev, next }: Props) {
     }).catch(() => {});
   }, [lessonId]);
 
-  async function markUncompleted(scope: "lesson" | "topic") {
+  async function resetProgress(scope: "lesson" | "topic") {
     setResetting(true);
     try {
       await fetch("/api/lessons/progress/reset", {
@@ -58,18 +58,18 @@ export function LessonProgressPanel({ lessonId, topicId, prev, next }: Props) {
         {canReset && (
           <span className="flex items-center gap-3">
             <button
-              onClick={() => markUncompleted("lesson")}
+              onClick={() => resetProgress("lesson")}
               disabled={resetting}
               className="text-xs text-text-faint hover:text-text-subtle transition underline underline-offset-2 disabled:opacity-50"
             >
-              Mark lesson as uncompleted
+              Reset progress
             </button>
             <button
-              onClick={() => markUncompleted("topic")}
+              onClick={() => resetProgress("topic")}
               disabled={resetting}
               className="text-xs text-text-faint hover:text-text-subtle transition underline underline-offset-2 disabled:opacity-50"
             >
-              Mark topic as uncompleted
+              Reset topic progress
             </button>
           </span>
         )}

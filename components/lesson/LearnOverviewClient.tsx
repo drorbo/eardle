@@ -9,9 +9,12 @@ export function LearnOverviewClient({ topics }: { topics: TopicWithLessons[] }) 
   const { progress, loaded } = useLessonProgress();
 
   const allLessons = topics.flatMap((t) => t.lessons);
-  // First not-yet-completed lesson in suggested-path order — undefined once
-  // everything's done, or before progress has loaded (avoids a flash).
-  const continueLesson = loaded ? allLessons.find((l) => !progress[l.id]?.completed) : undefined;
+  // First not-yet-viewed lesson in suggested-path order — undefined once
+  // everything's been read, or before progress has loaded (avoids a flash).
+  // Keyed on `viewed`, not `completed`: completed also requires having
+  // practiced, so keying on it here left this stuck pointing at lesson 1
+  // for anyone who reads ahead without practicing every single lesson.
+  const continueLesson = loaded ? allLessons.find((l) => !progress[l.id]?.viewed) : undefined;
 
   return (
     <>
