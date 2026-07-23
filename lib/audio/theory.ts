@@ -320,6 +320,31 @@ export function buildScale(root: string, type: ScaleType): string[] {
   });
 }
 
+// ─── Scale-degree derivation (for degree-based UI coloring) ────────────────
+
+export const DEGREE_LABELS = ["Root", "2nd", "3rd", "4th", "5th", "6th", "7th"] as const;
+
+function ivDefDegree(ls: number | [number, number]): number {
+  return (Array.isArray(ls) ? ls[0] : ls) % 7;
+}
+
+/** Scale-degree (0=Root..6=7th) of each tone in buildChord(root, type)'s output, same order/index. */
+export function getChordToneDegrees(type: ChordType): number[] {
+  return CHORD_INTERVALS[type].map(([, ls]) => ivDefDegree(ls));
+}
+
+/** Scale-degree (0=Root..6=7th) of each note in buildScale(root, type)'s output, same order/index. */
+export function getScaleDegrees(type: ScaleType): number[] {
+  return SCALE_INTERVALS[type].map(([, ls]) => ivDefDegree(ls));
+}
+
+/** Scale-degree (0=Root..6=7th) that an interval of this many semitones lands on, mirroring addSemitones' fallback. */
+export function getIntervalDegree(semitones: number): number {
+  const abs = Math.abs(semitones);
+  const ls = INTERVAL_LS[abs] ?? Math.round(abs * 6 / 11);
+  return ls % 7;
+}
+
 /** Pick a random root note within the given octave range */
 export function randomRoot(minOctave = 3, maxOctave = 4): string {
   const noteIndex = Math.floor(Math.random() * 12);

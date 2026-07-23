@@ -61,6 +61,17 @@ body {
   font-family: var(--font-geist-sans), system-ui, sans-serif;
 }
 
+/* Scrollable but no visible scrollbar chrome — content still scrolls via
+   touch/trackpad/drag, used where a native scrollbar track looks clumsy in
+   a small widget (e.g. the lesson piano keyboard/staff strip). */
+.no-scrollbar {
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+}
+.no-scrollbar::-webkit-scrollbar {
+  display: none;
+}
+
 /* Admin form utility classes — shared with admin panel, do not theme */
 .label {
   @apply block text-sm font-medium text-gray-400 mb-1.5;

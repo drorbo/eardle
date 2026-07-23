@@ -3,6 +3,22 @@ import { buildChord, buildScale, applyVoicing, ChordType, ScaleType, VoicingId }
 type PlayMode = "harmonic" | "melodic";
 export type InstrumentId = "piano" | "synth";
 
+// Default pacing (seconds) — shared with lib/audio/lessonPlayback.ts so its
+// resolved event timings match what playScale/playArpeggio actually use.
+export const DEFAULT_SCALE_NOTE_GAP = 0.25;
+export const DEFAULT_ARPEGGIO_NOTE_GAP = 0.09;
+
+export interface SequenceEvent {
+  notes: string[];       // simultaneous notes at this instant
+  time: number;           // seconds from sequence start (0 = first note)
+  duration?: string;      // Tone.js duration string, default "2n"
+}
+export interface SequenceCallbacks {
+  onNoteStart?: (event: SequenceEvent, index: number) => void;
+  onNoteEnd?: (event: SequenceEvent, index: number) => void;
+  onComplete?: () => void;
+}
+
 // Salamander Grand Piano — hosted on the Tone.js CDN, no bundled files needed
 const SALAMANDER_BASE = "https://tonejs.github.io/audio/salamander/";
 const SALAMANDER_URLS: Record<string, string> = {
@@ -170,7 +186,7 @@ class AudioEngine {
 
   // Notes ring/overlap ("2n" duration) rather than being clipped short like
   // a scale run, giving it a strummed/rasgueado feel instead of a run.
-  async playArpeggio(notes: string[], noteGap = 0.09) {
+  async playArpeggio(notes: string[], noteGap = DEFAULT_ARPEGGIO_NOTE_GAP) {
     await this.init();
     this._cancelPending();
     const ctx = this.Tone.getContext();
@@ -184,7 +200,7 @@ class AudioEngine {
     });
   }
 
-  async playScale(root: string, type: ScaleType, noteGap = 0.25) {
+  async playScale(root: string, type: ScaleType, noteGap = DEFAULT_SCALE_NOTE_GAP) {
     await this.init();
     this._cancelPending();
     const notes = buildScale(root, type);
@@ -197,6 +213,42 @@ class AudioEngine {
       }, i * noteGap) as unknown as number;
       this.pendingTimeouts.push(id);
     });
+  }
+
+  // Generic scheduled playback with start/end callbacks — additive, used only
+  // by lesson visualizations (hooks/useTheoryPlayback.ts) to sync UI
+  // highlighting to real audio timing. Mirrors playScale/playArpeggio/
+  // playProgression's own scheduling exactly; does not replace them.
+  async playSequence(events: SequenceEvent[], callbacks: SequenceCallbacks = {}) {
+    await this.init();
+    this._cancelPending();
+    const ctx = this.Tone.getContext();
+    const startTime = this.Tone.now() + 0.1;
+    let maxEnd = 0;
+
+    events.forEach((event, i) => {
+      const duration = event.duration ?? "2n";
+      const durSec = this.Tone.Time(duration).toSeconds();
+      maxEnd = Math.max(maxEnd, event.time + durSec);
+
+      const startId = ctx.setTimeout(() => {
+        callbacks.onNoteStart?.(event, i);
+        if (this.activeSynth) try { this.activeSynth.triggerAttackRelease(event.notes, duration, startTime + event.time); } catch {}
+      }, event.time) as unknown as number;
+      this.pendingTimeouts.push(startId);
+
+      const endId = ctx.setTimeout(() => {
+        callbacks.onNoteEnd?.(event, i);
+      }, event.time + durSec) as unknown as number;
+      this.pendingTimeouts.push(endId);
+    });
+
+    if (callbacks.onComplete) {
+      const completeId = ctx.setTimeout(() => {
+        callbacks.onComplete?.();
+      }, maxEnd) as unknown as number;
+      this.pendingTimeouts.push(completeId);
+    }
   }
 
   stop() {
