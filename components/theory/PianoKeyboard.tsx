@@ -80,18 +80,23 @@ export function PianoKeyboard({
     return map;
   }, [activeNotes]);
 
-  // Auto-center on the lowest note of the active example whenever it changes.
+  // Auto-center on the midpoint of the active example's pitch range whenever
+  // it changes — centering on the lowest note instead (as this used to)
+  // pins an ascending scale's root to the left edge and pushes the rest of
+  // the scale off-screen to the right.
   useEffect(() => {
     if (!visibleNotes || visibleNotes.length === 0 || !containerRef.current) return;
-    let lowest = visibleNotes[0];
-    let lowestMidi = Infinity;
+    let minMidi = Infinity;
+    let maxMidi = -Infinity;
     for (const n of visibleNotes) {
       try {
         const midi = parseNote(n).midi;
-        if (midi < lowestMidi) { lowestMidi = midi; lowest = n; }
+        if (midi < minMidi) minMidi = midi;
+        if (midi > maxMidi) maxMidi = midi;
       } catch { /* ignore */ }
     }
-    const targetMidi = parseNote(lowest).midi;
+    if (!Number.isFinite(minMidi) || !Number.isFinite(maxMidi)) return;
+    const targetMidi = Math.round((minMidi + maxMidi) / 2);
     const el = containerRef.current.querySelector<HTMLElement>(`[data-midi="${targetMidi}"]`);
     if (!el) return;
     const reduceMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
