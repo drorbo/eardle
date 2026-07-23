@@ -92,3 +92,15 @@ export function resolvePlayable(p: AudioExamplePlayable): ResolvedNoteEvent[] {
     }
   }
 }
+
+// Bass clef reads more naturally below middle C (midi 60) — a chord/scale
+// rooted there needs several ledger lines in treble but sits comfortably
+// near/within a bass staff instead. Picked by the lowest note across the
+// whole example, not just the root, so a wide-range scale still lands on
+// whichever clef actually fits its lowest note.
+export function selectClef(events: ResolvedNoteEvent[]): "treble" | "bass" {
+  const allNotes = events.flatMap((e) => e.notes);
+  if (allNotes.length === 0) return "treble";
+  const lowestMidi = Math.min(...allNotes.map((n) => parseNote(n).midi));
+  return lowestMidi < 60 ? "bass" : "treble";
+}

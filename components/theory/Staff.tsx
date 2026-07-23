@@ -83,7 +83,12 @@ export function Staff({ events, activeNoteKeys, onNoteClick, clef = "treble", ro
 
           const duration = singleEvent ? "w" : "q";
           const staveNotes = measureEvents.map((event) => {
-            const sn = new StaveNote({ keys: event.notes.map(toVexKey), duration });
+            // clef here isn't just cosmetic — StaveNote computes each key's
+            // vertical position (line/space) against it directly, separate
+            // from whatever clef symbol the stave itself draws. Omitting it
+            // defaults to treble math regardless of the drawn clef, which is
+            // exactly why bass-clef notes rendered miles off canvas before.
+            const sn = new StaveNote({ keys: event.notes.map(toVexKey), duration, clef });
             event.notes.forEach((n, i) => {
               const acc = n.match(/^[A-G](#{1,2}|b{1,2})/)?.[1];
               if (acc) sn.addModifier(new Accidental(acc), i);

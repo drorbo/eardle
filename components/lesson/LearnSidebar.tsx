@@ -65,10 +65,13 @@ export function LearnSidebar({ topics }: { topics: TopicWithLessons[] }) {
     <nav className="text-sm">
       <Link
         href="/learn"
-        className="block mb-3 px-2 py-1.5 rounded-lg font-semibold text-text hover:bg-surface-2 transition"
+        className="block px-2 py-1.5 rounded-lg font-semibold text-text hover:bg-surface-2 transition"
       >
         📖 Learn overview
       </Link>
+      <p className="px-2 mb-3 text-[11px] leading-snug text-text-faint">
+        Grouped by category below — for the suggested reading order, start at the overview above.
+      </p>
 
       <div className="space-y-0.5">
         {grouped.map((cat) => {
@@ -91,22 +94,6 @@ export function LearnSidebar({ topics }: { topics: TopicWithLessons[] }) {
               {isOpen && (
                 <div className="ml-5 mt-0.5 mb-1 space-y-0.5 border-l border-border-subtle pl-3">
                   {cat.topics.map((topic) => {
-                    const single = topic.lessons.length === 1 ? topic.lessons[0] : null;
-                    if (single) {
-                      const active = activeSlugs?.topicSlug === topic.slug && activeSlugs?.lessonSlug === single.slug;
-                      return (
-                        <Link
-                          key={topic.id}
-                          href={`/learn/${topic.slug}/${single.slug}`}
-                          className={`flex items-start gap-2 px-2 py-1 rounded-lg transition leading-snug ${
-                            active ? "bg-surface-2 text-text font-semibold" : "text-text-muted hover:text-text hover:bg-surface-2"
-                          }`}
-                        >
-                          <span className="mt-0.5"><StatusDot status={progress[single.id]} /></span>
-                          <span>{topic.title}</span>
-                        </Link>
-                      );
-                    }
                     return (
                       <div key={topic.id} className="mb-1">
                         <p className="px-2 py-1 text-xs font-semibold uppercase tracking-wide text-text-faint leading-snug">

@@ -4,6 +4,7 @@ import { useEffect, useRef, useState } from "react";
 import type { TheoryPlayback } from "@/hooks/useTheoryPlayback";
 import { PianoKeyboard } from "@/components/theory/PianoKeyboard";
 import { Staff } from "@/components/theory/Staff";
+import { selectClef } from "@/lib/audio/lessonPlayback";
 
 export function LessonPlaybackPanel({ playback }: { playback: TheoryPlayback }) {
   const [expanded, setExpanded] = useState(false);
@@ -23,6 +24,7 @@ export function LessonPlaybackPanel({ playback }: { playback: TheoryPlayback }) 
 
   const announcement = activeExample ? `Playing: ${activeExample.label}` : "";
   const visibleNotes = resolvedEvents.flatMap((e) => e.notes);
+  const clef = selectClef(resolvedEvents);
 
   return (
     <div className="sticky top-[6rem] z-30 mb-4 rounded-2xl bg-surface border border-border-subtle surface-elevated overflow-hidden">
@@ -48,7 +50,7 @@ export function LessonPlaybackPanel({ playback }: { playback: TheoryPlayback }) 
       {expanded && (
         <div className="px-3 pb-1 space-y-0.5 border-t border-border-subtle pt-0.5">
           {resolvedEvents.length > 0 ? (
-            <Staff events={resolvedEvents} activeNoteKeys={activeNoteKeys} onNoteClick={playNoteDirect} />
+            <Staff events={resolvedEvents} activeNoteKeys={activeNoteKeys} onNoteClick={playNoteDirect} clef={clef} />
           ) : (
             <p className="text-xs text-text-subtle text-center py-2">
               Tap a ▶ Play button below to see it here.
