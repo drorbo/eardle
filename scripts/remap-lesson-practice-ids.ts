@@ -9,32 +9,42 @@
 // migrated independently over time), the ids drift and no longer point at
 // the same exercises, or at anything at all.
 //
-// This script does NOT trust raw ids as portable. Instead it identifies
-// each referenced exercise by its actual content — (category, difficulty,
-// config) — which is what an exercise semantically IS, captured below from
-// a known-good source database. For each lesson, it looks up the CURRENT
-// database's own id for that same (category, difficulty, config) combo and
-// rewrites practice_exercise_ids to point at it.
+// IMPORTANT — v2: lessons are matched by SLUG, not numeric id. An earlier
+// version of this script matched lessons by id too, which turned out to be
+// just as fragile as the exercise-id problem it was fixing — production's
+// `lessons` table has its own independent id sequence, so "lesson id 5" in
+// one database is not the same lesson as "lesson id 5" in another. Slugs
+// are the actual stable, human-authored identity of a lesson (used for URL
+// routing) and are safe to match on across databases.
+//
+// This script does NOT trust raw exercise ids as portable either. It
+// identifies each referenced exercise by its actual content — (category,
+// difficulty, config) — captured below from a known-good source database.
+// For each lesson (found by slug), it looks up the CURRENT database's own
+// id for that same (category, difficulty, config) combo and rewrites
+// practice_exercise_ids to point at it.
 //
 // Usage (run inside the app container so DATABASE_URL is already set):
 //   npx tsx scripts/remap-lesson-practice-ids.ts             # dry run — reports only, writes nothing
 //   npx tsx scripts/remap-lesson-practice-ids.ts --apply     # actually updates the database
 //
 // Safe to re-run: it always recomputes from the embedded snapshot below, so
-// running it twice (e.g. after re-seeding exercises) just re-resolves ids
-// from scratch rather than compounding any previous run.
+// running it twice (e.g. after re-seeding exercises, or to correct a bad
+// earlier run) just re-resolves ids from scratch rather than compounding
+// any previous run.
 
-import { asc, eq } from "drizzle-orm";
+import { eq } from "drizzle-orm";
 import { db, client } from "../lib/db";
 import { lessons as lessonsTable, exercises as exercisesTable } from "../lib/db/schema";
 
 // Snapshot captured from the database these lessons were authored against —
-// every exercise currently referenced by any lesson's practice_exercise_ids,
-// identified by content rather than id.
-const KNOWN_LESSONS: { id: number; title: string; practiceCategory: string; practiceExerciseIds: number[] }[] =
+// every lesson with a practice package, identified by slug (portable)
+// rather than id, plus every exercise it references, identified by content
+// (also portable) rather than id.
+const KNOWN_LESSONS: { slug: string; title: string; practiceCategory: string; practiceExerciseIds: number[] }[] =
   [
     {
-      "id": 1,
+      "slug": "the-musical-alphabet",
       "title": "The Musical Alphabet",
       "practiceCategory": "note",
       "practiceExerciseIds": [
@@ -46,7 +56,7 @@ const KNOWN_LESSONS: { id: number; title: string; practiceCategory: string; prac
       ]
     },
     {
-      "id": 5,
+      "slug": "sharps-flats-and-enharmonics",
       "title": "Sharps, Flats, and Enharmonics",
       "practiceCategory": "note",
       "practiceExerciseIds": [
@@ -58,7 +68,7 @@ const KNOWN_LESSONS: { id: number; title: string; practiceCategory: string; prac
       ]
     },
     {
-      "id": 6,
+      "slug": "semitones-vs-whole-tones",
       "title": "Semitones vs Whole Tones",
       "practiceCategory": "interval",
       "practiceExerciseIds": [
@@ -67,7 +77,7 @@ const KNOWN_LESSONS: { id: number; title: string; practiceCategory: string; prac
       ]
     },
     {
-      "id": 7,
+      "slug": "hearing-scale-degrees",
       "title": "Hearing Scale Degrees",
       "practiceCategory": "scale",
       "practiceExerciseIds": [
@@ -75,7 +85,7 @@ const KNOWN_LESSONS: { id: number; title: string; practiceCategory: string; prac
       ]
     },
     {
-      "id": 8,
+      "slug": "building-the-major-scale",
       "title": "Building the Major Scale",
       "practiceCategory": "scale",
       "practiceExerciseIds": [
@@ -83,7 +93,7 @@ const KNOWN_LESSONS: { id: number; title: string; practiceCategory: string; prac
       ]
     },
     {
-      "id": 10,
+      "slug": "three-minor-scales",
       "title": "Three Minor Scales",
       "practiceCategory": "scale",
       "practiceExerciseIds": [
@@ -93,7 +103,7 @@ const KNOWN_LESSONS: { id: number; title: string; practiceCategory: string; prac
       ]
     },
     {
-      "id": 11,
+      "slug": "naming-intervals",
       "title": "Naming Intervals",
       "practiceCategory": "interval",
       "practiceExerciseIds": [
@@ -108,7 +118,7 @@ const KNOWN_LESSONS: { id: number; title: string; practiceCategory: string; prac
       ]
     },
     {
-      "id": 13,
+      "slug": "intervals-beyond-the-octave",
       "title": "Intervals Beyond the Octave",
       "practiceCategory": "interval",
       "practiceExerciseIds": [
@@ -119,7 +129,7 @@ const KNOWN_LESSONS: { id: number; title: string; practiceCategory: string; prac
       ]
     },
     {
-      "id": 14,
+      "slug": "triads-as-stacked-thirds",
       "title": "Triads as Stacked Thirds",
       "practiceCategory": "chord",
       "practiceExerciseIds": [
@@ -130,7 +140,7 @@ const KNOWN_LESSONS: { id: number; title: string; practiceCategory: string; prac
       ]
     },
     {
-      "id": 27,
+      "slug": "sus-and-add-chords",
       "title": "Sus4, Add2, and Add4 Chords",
       "practiceCategory": "chord",
       "practiceExerciseIds": [
@@ -140,7 +150,7 @@ const KNOWN_LESSONS: { id: number; title: string; practiceCategory: string; prac
       ]
     },
     {
-      "id": 15,
+      "slug": "adding-the-seventh",
       "title": "Adding the Seventh",
       "practiceCategory": "chord",
       "practiceExerciseIds": [
@@ -152,7 +162,7 @@ const KNOWN_LESSONS: { id: number; title: string; practiceCategory: string; prac
       ]
     },
     {
-      "id": 16,
+      "slug": "root-position-and-inversions",
       "title": "Root Position and Inversions",
       "practiceCategory": "chord",
       "practiceExerciseIds": [
@@ -167,7 +177,7 @@ const KNOWN_LESSONS: { id: number; title: string; practiceCategory: string; prac
       ]
     },
     {
-      "id": 21,
+      "slug": "the-seven-modes",
       "title": "The Seven Modes",
       "practiceCategory": "scale",
       "practiceExerciseIds": [
@@ -179,7 +189,7 @@ const KNOWN_LESSONS: { id: number; title: string; practiceCategory: string; prac
       ]
     },
     {
-      "id": 22,
+      "slug": "pentatonic-and-blues-scales",
       "title": "Pentatonic and Blues Scales",
       "practiceCategory": "scale",
       "practiceExerciseIds": [
@@ -189,7 +199,7 @@ const KNOWN_LESSONS: { id: number; title: string; practiceCategory: string; prac
       ]
     },
     {
-      "id": 19,
+      "slug": "minor-key-and-modal-color",
       "title": "Minor-Key and Modal Color",
       "practiceCategory": "progression",
       "practiceExerciseIds": [
@@ -199,7 +209,7 @@ const KNOWN_LESSONS: { id: number; title: string; practiceCategory: string; prac
       ]
     },
     {
-      "id": 23,
+      "slug": "modes-of-melodic-minor",
       "title": "Modes of Melodic Minor",
       "practiceCategory": "scale",
       "practiceExerciseIds": [
@@ -211,7 +221,7 @@ const KNOWN_LESSONS: { id: number; title: string; practiceCategory: string; prac
       ]
     },
     {
-      "id": 24,
+      "slug": "whole-tone-and-diminished-scales",
       "title": "Whole Tone and Diminished Scales",
       "practiceCategory": "scale",
       "practiceExerciseIds": [
@@ -221,7 +231,7 @@ const KNOWN_LESSONS: { id: number; title: string; practiceCategory: string; prac
       ]
     },
     {
-      "id": 25,
+      "slug": "consonance-vs-dissonance",
       "title": "Consonance vs Dissonance",
       "practiceCategory": "interval",
       "practiceExerciseIds": [
@@ -232,7 +242,7 @@ const KNOWN_LESSONS: { id: number; title: string; practiceCategory: string; prac
       ]
     },
     {
-      "id": 26,
+      "slug": "major-and-minor-sixth-chords",
       "title": "Major and Minor Sixth Chords",
       "practiceCategory": "chord",
       "practiceExerciseIds": [
@@ -242,7 +252,7 @@ const KNOWN_LESSONS: { id: number; title: string; practiceCategory: string; prac
       ]
     },
     {
-      "id": 28,
+      "slug": "ninths-elevenths-thirteenths",
       "title": "9ths, 11ths, and 13ths",
       "practiceCategory": "chord",
       "practiceExerciseIds": [
@@ -254,7 +264,7 @@ const KNOWN_LESSONS: { id: number; title: string; practiceCategory: string; prac
       ]
     },
     {
-      "id": 29,
+      "slug": "close-open-and-arpeggiated-voicings",
       "title": "Close, Open, and Arpeggiated Voicings",
       "practiceCategory": "chord",
       "practiceExerciseIds": [
@@ -263,7 +273,7 @@ const KNOWN_LESSONS: { id: number; title: string; practiceCategory: string; prac
       ]
     },
     {
-      "id": 31,
+      "slug": "dominants-of-dominants",
       "title": "Dominants of Dominants",
       "practiceCategory": "progression",
       "practiceExerciseIds": [
@@ -271,7 +281,7 @@ const KNOWN_LESSONS: { id: number; title: string; practiceCategory: string; prac
       ]
     },
     {
-      "id": 32,
+      "slug": "altering-the-9th-11th-13th",
       "title": "Altering the 9th, 11th, and 13th",
       "practiceCategory": "chord",
       "practiceExerciseIds": [
@@ -282,7 +292,7 @@ const KNOWN_LESSONS: { id: number; title: string; practiceCategory: string; prac
       ]
     },
     {
-      "id": 17,
+      "slug": "tonic-subdominant-dominant",
       "title": "Tonic, Subdominant, Dominant",
       "practiceCategory": "progression",
       "practiceExerciseIds": [
@@ -290,7 +300,7 @@ const KNOWN_LESSONS: { id: number; title: string; practiceCategory: string; prac
       ]
     },
     {
-      "id": 20,
+      "slug": "the-ii-v-i-progression",
       "title": "The ii-V-I Progression",
       "practiceCategory": "progression",
       "practiceExerciseIds": [
@@ -299,7 +309,7 @@ const KNOWN_LESSONS: { id: number; title: string; practiceCategory: string; prac
       ]
     },
     {
-      "id": 30,
+      "slug": "authentic-plagal-half-and-deceptive-cadences",
       "title": "Authentic, Plagal, Half, and Deceptive Cadences",
       "practiceCategory": "progression",
       "practiceExerciseIds": [
@@ -309,7 +319,7 @@ const KNOWN_LESSONS: { id: number; title: string; practiceCategory: string; prac
       ]
     },
     {
-      "id": 18,
+      "slug": "pop-diatonic-and-blues-progressions",
       "title": "Pop, Diatonic, and Blues Progressions",
       "practiceCategory": "progression",
       "practiceExerciseIds": [
@@ -319,7 +329,7 @@ const KNOWN_LESSONS: { id: number; title: string; practiceCategory: string; prac
       ]
     },
     {
-      "id": 12,
+      "slug": "song-anchors-for-intervals",
       "title": "Song Anchors for Intervals",
       "practiceCategory": "interval",
       "practiceExerciseIds": [
@@ -339,7 +349,7 @@ const KNOWN_LESSONS: { id: number; title: string; practiceCategory: string; prac
       ]
     },
     {
-      "id": 9,
+      "slug": "the-circle-of-fifths",
       "title": "The Circle of Fifths",
       "practiceCategory": "progression",
       "practiceExerciseIds": [
@@ -891,7 +901,6 @@ const KNOWN_EXERCISES: { id: number; category: string; difficulty: string; confi
       "config": "{\"type\":\"locrian\",\"topic\":\"major_modes\"}"
     }
   ];
-
 // Deterministic key independent of JSON key ORDER (the raw config text
 // column is not guaranteed to serialize keys in the same order across
 // insertions, even for semantically identical exercises).
@@ -906,11 +915,15 @@ async function main() {
 
   const devFingerprintById = new Map(KNOWN_EXERCISES.map((e) => [e.id, fingerprint(e.category, e.difficulty, e.config)]));
 
+  const targetLessons = await db.select().from(lessonsTable);
+  const targetLessonBySlug = new Map(targetLessons.map((l) => [l.slug, l]));
+  console.log(`Target database has ${targetLessons.length} lessons total.`);
+
   // Ordered by id so that when duplicate (category, difficulty, config)
   // rows exist (a pre-existing data-hygiene wrinkle, not something this
   // script fixes), the lowest/original id is picked consistently rather
   // than an arbitrary one that could vary between runs.
-  const targetExercises = await db.select().from(exercisesTable).orderBy(asc(exercisesTable.id));
+  const targetExercises = await db.select().from(exercisesTable).orderBy(exercisesTable.id);
   console.log(`Target database has ${targetExercises.length} exercises total.`);
 
   const targetIdsByFingerprint = new Map<string, number[]>();
@@ -924,10 +937,18 @@ async function main() {
   let lessonsResolvable = 0;
   let lessonsPartial = 0;
   let lessonsUnresolvable = 0;
+  let lessonsNotFound = 0;
   let totalRefs = 0;
   let totalResolved = 0;
 
   for (const lesson of KNOWN_LESSONS) {
+    const targetLesson = targetLessonBySlug.get(lesson.slug);
+    if (!targetLesson) {
+      console.log(`Lesson "${lesson.title}" [${lesson.slug}]: NOT FOUND — no lesson with this slug exists in the target database, skipped`);
+      lessonsNotFound++;
+      continue;
+    }
+
     const newIds: number[] = [];
     const unresolvedDevIds: number[] = [];
 
@@ -952,7 +973,7 @@ async function main() {
     else if (status === "partial") lessonsPartial++;
     else lessonsUnresolvable++;
 
-    const label = `Lesson ${lesson.id} "${lesson.title}" [${lesson.practiceCategory}]`;
+    const label = `Lesson "${lesson.title}" [${lesson.slug}] (target id ${targetLesson.id}, category ${lesson.practiceCategory})`;
     if (status === "full") {
       console.log(`${label}: OK — all ${newIds.length} exercises resolved -> [${newIds.join(",")}]`);
     } else if (status === "partial") {
@@ -962,14 +983,14 @@ async function main() {
     }
 
     if (apply && newIds.length > 0) {
-      await db.update(lessonsTable).set({ practiceExerciseIds: JSON.stringify(newIds) }).where(eq(lessonsTable.id, lesson.id));
+      await db.update(lessonsTable).set({ practiceExerciseIds: JSON.stringify(newIds) }).where(eq(lessonsTable.id, targetLesson.id));
     }
   }
 
   console.log("");
-  console.log(`${lessonsResolvable} lessons fully resolved, ${lessonsPartial} partially resolved, ${lessonsUnresolvable} unresolvable, out of ${KNOWN_LESSONS.length} total.`);
+  console.log(`${lessonsResolvable} lessons fully resolved, ${lessonsPartial} partially resolved, ${lessonsUnresolvable} unresolvable, ${lessonsNotFound} not found by slug, out of ${KNOWN_LESSONS.length} total.`);
   console.log(`${totalResolved}/${totalRefs} individual exercise references resolved.`);
-  console.log(apply ? "Applied — lessons.practice_exercise_ids updated in the database." : "Dry run only — nothing written. Re-run with --apply to write these changes.");
+  console.log(apply ? "Applied — lessons.practice_exercise_ids updated in the database, matched by slug." : "Dry run only — nothing written. Re-run with --apply to write these changes.");
 
   await client.end();
 }
