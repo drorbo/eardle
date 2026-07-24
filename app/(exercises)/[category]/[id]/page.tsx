@@ -4,6 +4,7 @@ import { ExercisePlayerWrapper } from "./ExercisePlayerWrapper";
 import { ExerciseErrorBoundary } from "@/components/exercise/ErrorBoundary";
 import { SharePackageButton } from "@/components/exercise/SharePackageButton";
 import { PracticeCompletionTracker } from "@/components/lesson/PracticeCompletionTracker";
+import { getLessonById } from "@/lib/db/lessons";
 import { db } from "@/lib/db";
 import { exercises as exercisesTable } from "@/lib/db/schema";
 import { eq, and, sql, ne, inArray } from "drizzle-orm";
@@ -55,6 +56,16 @@ export default async function ExercisePage({ params, searchParams }: Props) {
   const exclSet = new Set(practiceExclude?.split(",").map(Number).filter(Boolean) ?? []);
   const cycleJustCompleted = idsList.length > 0 && idsList.every((pid) => exclSet.has(pid));
 
+  // Only set when this session was reached via a lesson's "Start Practicing"
+  // link (never via the Custom Package picker, which never sets lessonId) —
+  // re-resolved fresh on every exercise page load so the link stays correct
+  // and present across the whole session without needing extra plumbing,
+  // since lessonId already round-trips through nextHref below.
+  const linkedLesson = lessonId ? await getLessonById(Number(lessonId)) : null;
+  const backToLessonHref = linkedLesson?.published
+    ? `/learn/${linkedLesson.topicSlug}/${linkedLesson.slug}`
+    : null;
+
   let nextHref: string | undefined;
   if (mode === "practice") {
     const excludeParam = practiceExclude ?? id;
@@ -79,6 +90,14 @@ export default async function ExercisePage({ params, searchParams }: Props) {
           <a href={`/${category}`} className="text-text-subtle hover:text-text-secondary text-sm transition">
             ← {CATEGORY_META[category as Category]?.label ?? category}
           </a>
+          {backToLessonHref && (
+            <a
+              href={backToLessonHref}
+              className="text-xs px-2 py-1 rounded-full bg-surface-2 border border-border-subtle text-text-secondary hover:border-border hover:text-text transition"
+            >
+              📖 Back to Lesson
+            </a>
+          )}
           {mode === "practice" && (
             <span className="text-xs px-2 py-1 rounded-full bg-indigo-50 text-indigo-700 dark:bg-indigo-900/60 dark:text-indigo-300">
               Practice Mode
