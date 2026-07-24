@@ -1,11 +1,11 @@
 import { NextRequest, NextResponse } from "next/server";
-import { auth } from "@/lib/auth";
+import { requireAdmin } from "@/lib/authz";
 import { db } from "@/lib/db";
 import { lessons } from "@/lib/db/schema";
 
 export async function POST(req: NextRequest) {
-  const session = await auth();
-  if (!session) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  const { error } = await requireAdmin();
+  if (error) return error;
 
   const body = await req.json();
   const {

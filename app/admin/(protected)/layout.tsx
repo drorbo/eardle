@@ -4,6 +4,8 @@ import { sql } from "drizzle-orm";
 import { db } from "@/lib/db";
 import { exercises as exercisesTable } from "@/lib/db/schema";
 import { AdminSidebar } from "@/components/admin/AdminSidebar";
+import { auth } from "@/lib/auth";
+import { redirect } from "next/navigation";
 
 async function getCounts() {
   const categoryCounts = await db
@@ -27,6 +29,9 @@ async function getCounts() {
 }
 
 export default async function AdminLayout({ children }: { children: React.ReactNode }) {
+  const session = await auth();
+  if (session?.user?.role !== "admin") redirect("/admin/login");
+
   const { categoryCounts, topicCounts } = await getCounts();
 
   return (

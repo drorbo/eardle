@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { auth } from "@/lib/auth";
+import { requireAdmin } from "@/lib/authz";
 import { db } from "@/lib/db";
 import { topics } from "@/lib/db/schema";
 import { asc } from "drizzle-orm";
@@ -10,8 +10,8 @@ export async function GET() {
 }
 
 export async function POST(req: NextRequest) {
-  const session = await auth();
-  if (!session) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  const { error } = await requireAdmin();
+  if (error) return error;
 
   const { slug, title, description, sortOrder } = await req.json();
   if (!slug || !title) return NextResponse.json({ error: "Missing fields" }, { status: 400 });

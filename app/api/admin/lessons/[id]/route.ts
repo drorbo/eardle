@@ -1,12 +1,12 @@
 import { NextRequest, NextResponse } from "next/server";
-import { auth } from "@/lib/auth";
+import { requireAdmin } from "@/lib/authz";
 import { db } from "@/lib/db";
 import { lessons, lessonRevisions } from "@/lib/db/schema";
 import { eq } from "drizzle-orm";
 
 export async function PUT(req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
-  const session = await auth();
-  if (!session) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  const { error } = await requireAdmin();
+  if (error) return error;
 
   const { id } = await params;
   const lessonId = Number(id);
@@ -55,8 +55,8 @@ export async function PUT(req: NextRequest, { params }: { params: Promise<{ id: 
 }
 
 export async function DELETE(_req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
-  const session = await auth();
-  if (!session) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  const { error } = await requireAdmin();
+  if (error) return error;
 
   const { id } = await params;
   await db.delete(lessons).where(eq(lessons.id, Number(id)));
