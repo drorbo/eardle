@@ -212,9 +212,12 @@ async function seed() {
   await db.insert(schema.exercises).values(allExercises);
   console.log(`Inserted ${allExercises.length} exercises.`);
 
-  const adminEmail = process.env.ADMIN_EMAIL ?? "admin@eardle.com";
-  const adminPassword = process.env.ADMIN_PASSWORD ?? "changeme123";
-  const passwordHash = hashSync(adminPassword, 10);
+  const adminEmail = process.env.ADMIN_EMAIL;
+  const adminPassword = process.env.ADMIN_PASSWORD;
+  if (!adminEmail || !adminPassword) {
+    throw new Error("ADMIN_EMAIL and ADMIN_PASSWORD must be set — refusing to seed a default admin account.");
+  }
+  const passwordHash = hashSync(adminPassword, 12);
 
   await db
     .insert(schema.adminUsers)

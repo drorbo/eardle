@@ -32,9 +32,12 @@ async function main() {
     console.log(`[init] ${count} exercises already in DB — skipping seed.`);
   }
 
-  const adminEmail = process.env.ADMIN_EMAIL ?? "admin@eardle.com";
-  const adminPassword = process.env.ADMIN_PASSWORD ?? "changeme123";
-  const passwordHash = hashSync(adminPassword, 10);
+  const adminEmail = process.env.ADMIN_EMAIL;
+  const adminPassword = process.env.ADMIN_PASSWORD;
+  if (!adminEmail || !adminPassword) {
+    throw new Error("ADMIN_EMAIL and ADMIN_PASSWORD must be set — refusing to seed/update the admin account.");
+  }
+  const passwordHash = hashSync(adminPassword, 12);
 
   await db
     .insert(adminUsers)
