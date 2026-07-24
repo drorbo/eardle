@@ -1,6 +1,6 @@
-import { asc, eq } from "drizzle-orm";
+import { and, asc, eq, inArray } from "drizzle-orm";
 import { db } from "@/lib/db";
-import { topics, lessons } from "@/lib/db/schema";
+import { topics, lessons, exercises } from "@/lib/db/schema";
 import type { Category } from "@/types/exercise";
 import type { LessonBlock, LessonDetail, LessonSummary, NavCategoryId, TopicWithLessons } from "@/types/lesson";
 
@@ -90,7 +90,23 @@ export async function getLessonDetail(topicSlug: string, lessonSlug: string): Pr
     ? (await db.select().from(topics).where(eq(topics.id, lesson.prerequisiteTopicId)).limit(1))[0]
     : undefined;
 
-  return toLessonDetail(lesson, topic, prereq);
+  const detail = toLessonDetail(lesson, topic, prereq);
+  if (detail.practiceCategory && detail.practiceExerciseIds?.length) {
+    // Lessons reference exercises by id, authored in whichever database they
+    // were written against — a prod/dev id drift (different seed history)
+    // leaves stale ids that 404 the practice picker into its "build a
+    // custom package" fallback instead of playing. Filtering to only the
+    // ids that actually exist here keeps the CTA (and the click-through)
+    // honest about what this environment can actually play.
+    const validRows = await db
+      .select({ id: exercises.id })
+      .from(exercises)
+      .where(and(eq(exercises.category, detail.practiceCategory), inArray(exercises.id, detail.practiceExerciseIds)));
+    const validIds = new Set(validRows.map((r) => r.id));
+    const filtered = detail.practiceExerciseIds.filter((id) => validIds.has(id));
+    detail.practiceExerciseIds = filtered.length > 0 ? filtered : null;
+  }
+  return detail;
 }
 
 /** Admin edit form lookup — by id rather than slug pair. */
