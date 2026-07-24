@@ -3,8 +3,14 @@ import { hashSync } from "bcryptjs";
 import { db } from "@/lib/db";
 import { users } from "@/lib/db/schema";
 import { eq } from "drizzle-orm";
+import { checkRateLimit } from "@/lib/rateLimit";
 
 export async function POST(req: NextRequest) {
+  const ip = req.headers.get("x-forwarded-for")?.split(",")[0]?.trim() ?? req.headers.get("x-real-ip") ?? "unknown";
+  if (!checkRateLimit(`register:${ip}`, 5, 60 * 60 * 1000)) {
+    return NextResponse.json({ error: "Too many signups from this network. Try again later." }, { status: 429 });
+  }
+
   const body = await req.json();
   const { email, password, nickname } = body ?? {};
 

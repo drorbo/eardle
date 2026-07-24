@@ -2,10 +2,16 @@ import type { DefaultSession } from "next-auth";
 import NextAuth from "next-auth";
 import Credentials from "next-auth/providers/credentials";
 import Google from "next-auth/providers/google";
-import { compareSync } from "bcryptjs";
+import { compareSync, hashSync } from "bcryptjs";
 import { db } from "./db";
 import { adminUsers, users } from "./db/schema";
 import { eq } from "drizzle-orm";
+import { checkRateLimit } from "./rateLimit";
+
+// Compared against when no user/admin row matches the submitted email, so a
+// nonexistent-account attempt takes the same time as a wrong-password one —
+// otherwise bcrypt's absence is a timing oracle for account enumeration.
+const DUMMY_HASH = hashSync("not-a-real-password-used-only-for-timing-parity", 12);
 
 declare module "next-auth" {
   interface User {
@@ -43,6 +49,9 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
       async authorize(credentials) {
         if (!credentials?.email || !credentials?.password) return null;
 
+        const email = (credentials.email as string).toLowerCase();
+        if (!checkRateLimit(`login:${email}`, 5, 15 * 60 * 1000)) return null;
+
         // Check admin users first
         const admin = await db.query.adminUsers.findFirst({
           where: eq(adminUsers.email, credentials.email as string),
@@ -55,8 +64,9 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
         const user = await db.query.users.findFirst({
           where: eq(users.email, credentials.email as string),
         });
-        if (!user?.passwordHash) return null;
-        if (!compareSync(credentials.password as string, user.passwordHash)) return null;
+        const hashToCheck = user?.passwordHash ?? DUMMY_HASH;
+        const passwordOk = compareSync(credentials.password as string, hashToCheck);
+        if (!user?.passwordHash || !passwordOk) return null;
         return {
           id: String(user.id),
           email: user.email,
@@ -141,6 +151,7 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
   },
   pages: {
     signIn: "/signin",
+    error: "/signin",
   },
   session: { strategy: "jwt" },
 });
