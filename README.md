@@ -40,7 +40,7 @@ cd eardle
 cp .env.example .env
 nano .env   # fill in all values (see below)
 
-docker compose up -d --build
+docker compose -f docker-compose.yml up -d --build
 
 # Seed the database (once)
 docker compose exec app npx tsx lib/db/seed.ts
@@ -66,8 +66,10 @@ ADMIN_PASSWORD=           # admin panel password
 ### Updates
 
 ```bash
-git pull && docker compose up -d --build
+git pull && docker compose -f docker-compose.yml up -d --build
 ```
+
+> Always pin `-f docker-compose.yml` for production commands. `docker-compose.override.yml` is committed for local development only (see below) — Compose auto-loads it for any bare `docker compose` invocation, which would publish Postgres's port on the host if it ever ran unpinned here.
 
 Data is stored in the `postgres_data` Docker volume and survives updates.
 

@@ -1,0 +1,12 @@
+# Local development only. Docker Compose auto-loads this file for any bare
+# `docker compose up`/`exec` invocation, which is what makes `localhost:5433`
+# work per the README's "Local development" instructions with no extra flags.
+#
+# Production deploys must NOT pick this up — Postgres has no business being
+# reachable from the host outside the app container there. The README's
+# production commands pin `-f docker-compose.yml` specifically to exclude
+# this file; keep it that way even if this file ever changes.
+services:
+  db:
+    ports:
+      - "127.0.0.1:5433:5432"
