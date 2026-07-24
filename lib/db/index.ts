@@ -11,7 +11,11 @@ import * as schema from "./schema";
 // once per process, so this is a no-op there.
 const globalForDb = globalThis as unknown as { __eardleDbClient?: ReturnType<typeof postgres> };
 
-export const client = globalForDb.__eardleDbClient ?? postgres(process.env.DATABASE_URL!);
+export const client =
+  globalForDb.__eardleDbClient ??
+  postgres(process.env.DATABASE_URL!, {
+    ssl: process.env.DATABASE_SSL === "true" ? "require" : undefined,
+  });
 
 if (process.env.NODE_ENV !== "production") {
   globalForDb.__eardleDbClient = client;
