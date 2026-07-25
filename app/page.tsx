@@ -13,17 +13,24 @@ export default async function HomePage() {
       : "One shared puzzle a day — 5 guesses to solve it.";
 
   return (
-    <div className="max-w-5xl mx-auto px-4 sm:px-6 py-8 sm:py-20">
-      <div className="text-center mb-6 sm:mb-10">
-        <h1 className="text-4xl sm:text-6xl font-bold text-text mb-4 tracking-tight">
+    // Below sm: height is pinned to the viewport minus the sticky navbar
+    // (h-16 + its 1px border) so the 3 cards below can flex-fill exactly the
+    // remaining space and never require scrolling, on any phone height.
+    // overflow-hidden is a safety net for sub-pixel rounding, not a clip —
+    // the flex-fill sizing means there's nothing meaningful past the fold.
+    // At sm+ this reverts to normal document flow — no scroll concern once
+    // cards sit side-by-side instead of stacked.
+    <div className="max-w-5xl mx-auto px-4 sm:px-6 py-3 sm:py-20 h-[calc(100dvh-65px)] sm:h-auto flex flex-col sm:block overflow-hidden sm:overflow-visible">
+      <div className="text-center mb-2 sm:mb-10 flex-shrink-0">
+        <h1 className="text-2xl sm:text-6xl font-bold text-text mb-0.5 sm:mb-4 tracking-tight">
           Train Your Ear
         </h1>
-        <p className="text-lg sm:text-xl text-text-muted max-w-xl mx-auto">
+        <p className="hidden sm:block text-lg sm:text-xl text-text-muted max-w-xl mx-auto">
           Interactive exercises to sharpen your musical hearing — notes, intervals, chords, progressions, and scales.
         </p>
       </div>
 
-      <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 sm:gap-5">
+      <div className="grid grid-cols-1 sm:grid-cols-3 grid-rows-3 sm:grid-rows-none gap-2 sm:gap-5 flex-1 min-h-0 sm:flex-none sm:min-h-0">
         <HomeActionCard
           href="/daily"
           emoji="📅"
@@ -73,7 +80,7 @@ export default async function HomePage() {
         />
       </div>
 
-      <p className="text-center text-text-faint text-sm mt-12">
+      <p className="hidden sm:block text-center text-text-faint text-sm mt-12">
         Press play, listen carefully, then pick your answer.
       </p>
     </div>

@@ -19,29 +19,29 @@ export function HomeActionCard({
   return (
     <div
       className={`
-        group relative rounded-2xl p-5 sm:p-6 flex flex-col
+        group relative rounded-xl sm:rounded-2xl p-2.5 sm:p-6 h-full flex flex-col
         bg-gradient-to-br ${colorClasses}
         border transition-all duration-200 hover:scale-[1.01] active:scale-[0.99]
       `}
     >
       {/* Fills the whole card as the click target; content below is pointer-events-none
           so clicks pass through to this Link. Mirrors DailyHeroCard's pattern. */}
-      <Link href={href} className="absolute inset-0 rounded-2xl" aria-label={title} />
+      <Link href={href} className="absolute inset-0 rounded-xl sm:rounded-2xl" aria-label={title} />
 
       {sticker}
 
-      <div className="relative flex flex-col gap-3 pointer-events-none flex-1">
-        <div>
-          <div className="flex items-center gap-2 mb-1.5">
-            <span className="text-xl">{emoji}</span>
-            <span className={`text-xs font-bold uppercase tracking-widest ${eyebrowClasses}`}>{eyebrow}</span>
+      <div className="relative flex flex-col gap-1 sm:gap-3 pointer-events-none flex-1 min-h-0">
+        <div className="min-h-0">
+          <div className="flex items-center gap-1.5 sm:gap-2 mb-0.5 sm:mb-1.5">
+            <span className="text-sm sm:text-xl">{emoji}</span>
+            <span className={`hidden sm:inline text-xs font-bold uppercase tracking-widest ${eyebrowClasses}`}>{eyebrow}</span>
           </div>
-          <h2 className="text-xl sm:text-2xl font-bold text-text mb-1">{title}</h2>
-          <p className="text-sm text-text-secondary">{description}</p>
+          <h2 className="text-sm sm:text-2xl font-bold text-text mb-0 sm:mb-1 leading-tight">{title}</h2>
+          <p className="text-[10px] sm:text-sm text-text-secondary line-clamp-1 sm:line-clamp-none">{description}</p>
         </div>
         <span
           className={`
-            mt-auto self-start px-5 py-2.5 rounded-xl bg-white font-bold text-sm shadow-sm
+            mt-auto self-start px-2.5 py-1 sm:px-5 sm:py-2.5 rounded-lg sm:rounded-xl bg-white font-bold text-[11px] sm:text-sm shadow-sm
             group-hover:opacity-90 transition ${ctaTextClasses}
           `}
         >
