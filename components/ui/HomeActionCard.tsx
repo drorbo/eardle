@@ -19,7 +19,7 @@ export function HomeActionCard({
   return (
     <div
       className={`
-        group relative overflow-hidden rounded-xl sm:rounded-2xl p-3 sm:p-6 h-full flex flex-col
+        group relative rounded-xl sm:rounded-2xl p-3 sm:p-6 h-full flex flex-col
         bg-gradient-to-br ${colorClasses}
         border transition-all duration-200 hover:scale-[1.01] active:scale-[0.99]
       `}
@@ -28,6 +28,10 @@ export function HomeActionCard({
           so clicks pass through to this Link. Mirrors DailyHeroCard's pattern. */}
       <Link href={href} className="absolute inset-0 rounded-xl sm:rounded-2xl" aria-label={title} />
 
+      {/* Sticker renders outside the overflow-hidden content wrapper below —
+          it's deliberately positioned partially outside the card edge
+          (ad-style corner sticker), so it must not be clipped by the
+          text-overflow safety net that wrapper provides. */}
       {sticker}
 
       {/* Below sm, card height varies by phone (it's 1/3 of whatever viewport
@@ -38,11 +42,13 @@ export function HomeActionCard({
           clamp() text sizing silently generated no CSS at all in this
           Tailwind v4/Turbopack setup — arbitrary clamp() values aren't
           reliable here, so don't reintroduce that pattern.) overflow-hidden
-          above is a safety net against any edge-case overflow, not the
-          sizing strategy. Content is centered as a block on mobile (rather
-          than top-anchored with the CTA pushed to the bottom) so extra room
-          on taller phones doesn't just become an awkward empty gap. */}
-      <div className="relative flex flex-col justify-center sm:justify-start gap-1.5 sm:gap-3 pointer-events-none flex-1 min-h-0">
+          here is a safety net against any edge-case text overflow, not the
+          sizing strategy — scoped to this inner wrapper (not the outer card)
+          so it doesn't clip the sticker above. Content is centered as a
+          block on mobile (rather than top-anchored with the CTA pushed to
+          the bottom) so extra room on taller phones doesn't just become an
+          awkward empty gap. */}
+      <div className="relative overflow-hidden flex flex-col justify-center sm:justify-start gap-1.5 sm:gap-3 pointer-events-none flex-1 min-h-0">
         <div className="min-h-0">
           <div className="flex items-center gap-1.5 sm:gap-2 mb-1 sm:mb-1.5">
             <span className="text-lg sm:text-xl">{emoji}</span>
