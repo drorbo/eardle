@@ -282,15 +282,6 @@ export function Navbar() {
 
   return (
     <nav className="sticky top-0 z-50 bg-bg/90 backdrop-blur border-b border-border-subtle">
-      <div className="bg-accent-banner-bg border-b border-accent-banner-border text-center py-1.5 px-4">
-        <p className="text-xs text-accent-banner-text">
-          We&apos;re in beta — please{" "}
-          <Link href="/feedback" className="underline underline-offset-2 hover:opacity-70 transition-opacity">
-            share your feedback
-          </Link>
-          {" "}and help us improve!
-        </p>
-      </div>
       <div className="max-w-6xl mx-auto px-6 flex items-center justify-between h-16">
 
         {/* Left: logo + category icons */}
