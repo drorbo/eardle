@@ -19,7 +19,7 @@ export function HomeActionCard({
   return (
     <div
       className={`
-        group relative rounded-xl sm:rounded-2xl p-2.5 sm:p-6 h-full flex flex-col
+        group relative overflow-hidden rounded-xl sm:rounded-2xl p-3 sm:p-6 h-full flex flex-col
         bg-gradient-to-br ${colorClasses}
         border transition-all duration-200 hover:scale-[1.01] active:scale-[0.99]
       `}
@@ -30,18 +30,31 @@ export function HomeActionCard({
 
       {sticker}
 
-      <div className="relative flex flex-col gap-1 sm:gap-3 pointer-events-none flex-1 min-h-0">
+      {/* Below sm, card height varies by phone (it's 1/3 of whatever viewport
+          height is left after the navbar/header — see app/page.tsx), but the
+          card's own height is what actually flexes to fill that space — text
+          stays one fixed, comfortably-legible size rather than trying to
+          scale continuously with it. (An earlier attempt at vh-based
+          clamp() text sizing silently generated no CSS at all in this
+          Tailwind v4/Turbopack setup — arbitrary clamp() values aren't
+          reliable here, so don't reintroduce that pattern.) overflow-hidden
+          above is a safety net against any edge-case overflow, not the
+          sizing strategy. Content is centered as a block on mobile (rather
+          than top-anchored with the CTA pushed to the bottom) so extra room
+          on taller phones doesn't just become an awkward empty gap. */}
+      <div className="relative flex flex-col justify-center sm:justify-start gap-1.5 sm:gap-3 pointer-events-none flex-1 min-h-0">
         <div className="min-h-0">
-          <div className="flex items-center gap-1.5 sm:gap-2 mb-0.5 sm:mb-1.5">
-            <span className="text-sm sm:text-xl">{emoji}</span>
-            <span className={`hidden sm:inline text-xs font-bold uppercase tracking-widest ${eyebrowClasses}`}>{eyebrow}</span>
+          <div className="flex items-center gap-1.5 sm:gap-2 mb-1 sm:mb-1.5">
+            <span className="text-lg sm:text-xl">{emoji}</span>
+            <span className={`text-xs font-bold uppercase tracking-widest ${eyebrowClasses}`}>{eyebrow}</span>
           </div>
-          <h2 className="text-sm sm:text-2xl font-bold text-text mb-0 sm:mb-1 leading-tight">{title}</h2>
-          <p className="text-[10px] sm:text-sm text-text-secondary line-clamp-1 sm:line-clamp-none">{description}</p>
+          <h2 className="text-lg sm:text-2xl font-bold text-text mb-1 leading-tight">{title}</h2>
+          <p className="text-xs sm:text-sm text-text-secondary line-clamp-2 sm:line-clamp-none">{description}</p>
         </div>
         <span
           className={`
-            mt-auto self-start px-2.5 py-1 sm:px-5 sm:py-2.5 rounded-lg sm:rounded-xl bg-white font-bold text-[11px] sm:text-sm shadow-sm
+            self-start sm:mt-auto px-3 py-1.5 sm:px-5 sm:py-2.5
+            rounded-lg sm:rounded-xl bg-white font-bold text-xs sm:text-sm shadow-sm
             group-hover:opacity-90 transition ${ctaTextClasses}
           `}
         >
