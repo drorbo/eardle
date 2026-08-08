@@ -18,12 +18,14 @@ export function useAudio() {
   const [isPlaying, setIsPlaying] = useState(false);
   const [isLoadingSamples, setIsLoadingSamples] = useState(false);
   const [playedNotes, setPlayedNotes] = useState<string[] | null>(null);
+  const [playingChordIndex, setPlayingChordIndex] = useState<number | null>(null);
   const [lastPlayedMode, setLastPlayedMode] = useState<"harmonic" | "melodic-up" | "melodic-down">("harmonic");
   const [instrument, setInstrumentState] = useState<InstrumentId>(() => {
     if (typeof window === "undefined") return "piano";
     return localStorage.getItem(INSTRUMENT_KEY) === "synth" ? "synth" : "piano";
   });
   const timeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const chordTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const playingRef = useRef(false);
   const exerciseIdRef = useRef<number | null>(null);
   const randomizedRef = useRef<{
@@ -168,5 +170,31 @@ export function useAudio() {
     playingRef.current = false;
   }, []);
 
-  return { play, stop, isPlaying, isLoadingSamples, playedNotes, lastPlayedMode, instrument, setInstrument };
+  // Plays a single chord out of a progression's `chords` array in isolation
+  // (e.g. tapping "chord 2" of a 4-chord progression). Reuses the same cached
+  // transposition delta as the full progression playthrough so the isolated
+  // chord matches the pitch the user actually hears when playing the whole
+  // progression, rather than sounding in a freshly re-randomized key.
+  const playChord = useCallback(async (exercise: Exercise, index: number) => {
+    if (!audioEngine) return;
+    const config = exercise.config as ProgressionConfig;
+
+    audioEngine.stop();
+    if (timeoutRef.current) clearTimeout(timeoutRef.current);
+    if (chordTimeoutRef.current) clearTimeout(chordTimeoutRef.current);
+    playingRef.current = false;
+    setIsPlaying(false);
+
+    if (exerciseIdRef.current !== exercise.id || !randomizedRef.current) {
+      exerciseIdRef.current = exercise.id;
+      randomizedRef.current = generatePerformanceParams("progression", config);
+    }
+    const notes = config.chords[index].map(n => addSemitones(n, randomizedRef.current!.delta!));
+
+    setPlayingChordIndex(index);
+    await audioEngine.playNotes(notes);
+    chordTimeoutRef.current = setTimeout(() => setPlayingChordIndex(null), 1800);
+  }, []);
+
+  return { play, stop, playChord, isPlaying, isLoadingSamples, playedNotes, playingChordIndex, lastPlayedMode, instrument, setInstrument };
 }

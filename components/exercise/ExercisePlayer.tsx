@@ -3,7 +3,7 @@
 import { useEffect, useCallback, useRef, useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { Exercise, IntervalConfig, UiPlayMode, ChordPlayMode } from "@/types/exercise";
+import { Exercise, IntervalConfig, ProgressionConfig, UiPlayMode, ChordPlayMode } from "@/types/exercise";
 import { useAudio } from "@/hooks/useAudio";
 import { useExercise } from "@/hooks/useExercise";
 import { PlayButton } from "./PlayButton";
@@ -20,6 +20,7 @@ interface ExercisePlayerProps {
   sessionToken: string;
   onAnswered?: (correct: boolean) => void;
   initialStreak?: number;
+  isPracticeMode?: boolean;
 }
 
 const PLAY_MODES: Array<{ id: UiPlayMode; label: string; icon: string }> = [
@@ -37,8 +38,8 @@ const SPEED_LEVELS: Array<{ level: number; label: string; icon: string }> = [
   { level: 5, label: "Very Fast", icon: "5" },
 ];
 
-export function ExercisePlayer({ exercise, nextHref, sessionToken, onAnswered, initialStreak = 0 }: ExercisePlayerProps) {
-  const { play, stop, isPlaying, isLoadingSamples, playedNotes, lastPlayedMode, instrument, setInstrument } = useAudio();
+export function ExercisePlayer({ exercise, nextHref, sessionToken, onAnswered, initialStreak = 0, isPracticeMode }: ExercisePlayerProps) {
+  const { play, stop, playChord, isPlaying, isLoadingSamples, playedNotes, playingChordIndex, lastPlayedMode, instrument, setInstrument } = useAudio();
   const { state, onPlay, onAudioDone, onSelect, onReset } = useExercise(exercise);
   const prevIdRef = useRef(exercise.id);
   const router = useRouter();
@@ -284,6 +285,28 @@ export function ExercisePlayer({ exercise, nextHref, sessionToken, onAnswered, i
             </button>
           )}
         </div>
+
+        {exercise.category === "progression" && isPracticeMode && (
+          <div className="flex flex-col items-center gap-1.5">
+            <p className="text-xs text-text-subtle uppercase tracking-wide">Tap a chord to hear it alone</p>
+            <div className="flex gap-1.5 flex-wrap justify-center">
+              {(exercise.config as ProgressionConfig).chords.map((_, i) => (
+                <button
+                  key={i}
+                  onClick={() => playChord(exercise, i)}
+                  title={`Play chord ${i + 1}`}
+                  className={`w-10 h-10 rounded-lg text-sm font-bold transition active:scale-95 ${
+                    playingChordIndex === i
+                      ? "bg-violet-600 text-white"
+                      : "text-text-muted bg-surface/80 border border-border-subtle hover:text-text hover:bg-surface-2"
+                  }`}
+                >
+                  {i + 1}
+                </button>
+              ))}
+            </div>
+          </div>
+        )}
 
         <div className="flex gap-1 bg-surface/80 border border-border-subtle rounded-xl p-1" role="group" aria-label="Sound">
           <button

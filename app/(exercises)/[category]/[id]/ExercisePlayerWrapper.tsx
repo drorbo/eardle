@@ -8,6 +8,7 @@ import { audioEngine } from "@/lib/audio/engine";
 interface Props {
   exercise: Exercise;
   nextHref?: string;
+  isPracticeMode?: boolean;
 }
 
 function getOrCreateSessionToken(): string {
@@ -39,7 +40,7 @@ function resolveChoices(exercise: Exercise): string[] {
   return shuffle(exercise.choices);
 }
 
-export function ExercisePlayerWrapper({ exercise, nextHref }: Props) {
+export function ExercisePlayerWrapper({ exercise, nextHref, isPracticeMode }: Props) {
   const [sessionToken, setSessionToken] = useState("");
   const [resolvedExercise, setResolvedExercise] = useState<Exercise>(exercise);
   const [initialStreak, setInitialStreak] = useState(0);
@@ -90,6 +91,7 @@ export function ExercisePlayerWrapper({ exercise, nextHref }: Props) {
       sessionToken={sessionToken}
       onAnswered={handleAnswered}
       initialStreak={initialStreak}
+      isPracticeMode={isPracticeMode}
     />
   );
 }

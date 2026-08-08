@@ -109,7 +109,7 @@ export default async function ExercisePage({ params, searchParams }: Props) {
         {lessonId && cycleJustCompleted && <PracticeCompletionTracker lessonId={Number(lessonId)} />}
 
         <ExerciseErrorBoundary>
-          <ExercisePlayerWrapper exercise={exercise} nextHref={nextHref} />
+          <ExercisePlayerWrapper exercise={exercise} nextHref={nextHref} isPracticeMode={mode === "practice"} />
         </ExerciseErrorBoundary>
       </div>
     </div>
