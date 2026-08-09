@@ -71,30 +71,41 @@ export function LearnOverviewClient({ topics }: { topics: TopicWithLessons[] }) 
       {loaded && nothingViewedYet && allLessons[0] && (
         <Link
           href={`/learn/${allLessons[0].topicSlug}/${allLessons[0].slug}`}
-          className="block mb-3 sm:mb-6 p-3 sm:p-5 rounded-xl sm:rounded-2xl bg-accent-banner-bg border border-accent-banner-border transition hover:opacity-90"
+          className="block mb-1.5 sm:mb-6 rounded-lg sm:rounded-2xl bg-accent-banner-bg border border-accent-banner-border transition hover:opacity-90"
         >
-          <p className="text-[10px] sm:text-xs font-semibold uppercase tracking-wide text-accent-banner-text mb-0.5 sm:mb-1">
-            👋 New here?
+          {/* Mobile: one compact line. Desktop: full eyebrow + title block. */}
+          <p className="sm:hidden px-3 py-1.5 text-xs font-semibold text-accent-banner-text truncate">
+            👋 New here? Start with {allLessons[0].title} →
           </p>
-          <p className="text-text font-bold text-sm sm:text-lg">Start with the fundamentals →</p>
-          <p className="text-text-muted text-xs sm:text-sm mt-0.5 hidden sm:block">{allLessons[0].title}</p>
+          <div className="hidden sm:block p-5">
+            <p className="text-xs font-semibold uppercase tracking-wide text-accent-banner-text mb-1">
+              👋 New here?
+            </p>
+            <p className="text-text font-bold text-lg">Start with the fundamentals →</p>
+            <p className="text-text-muted text-sm mt-0.5">{allLessons[0].title}</p>
+          </div>
         </Link>
       )}
 
       {loaded && !nothingViewedYet && continueLesson && (
         <Link
           href={`/learn/${continueLesson.topicSlug}/${continueLesson.slug}`}
-          className="block mb-3 sm:mb-6 p-3 sm:p-5 rounded-xl sm:rounded-2xl bg-accent-banner-bg border border-accent-banner-border transition hover:opacity-90"
+          className="block mb-1.5 sm:mb-6 rounded-lg sm:rounded-2xl bg-accent-banner-bg border border-accent-banner-border transition hover:opacity-90"
         >
-          <p className="text-[10px] sm:text-xs font-semibold uppercase tracking-wide text-accent-banner-text mb-0.5 sm:mb-1">
-            Continue where you left off
+          <p className="sm:hidden px-3 py-1.5 text-xs font-semibold text-accent-banner-text truncate">
+            ▶ Continue: {continueLesson.title} →
           </p>
-          <p className="text-text font-bold text-sm sm:text-lg">{continueLesson.title} →</p>
+          <div className="hidden sm:block p-5">
+            <p className="text-xs font-semibold uppercase tracking-wide text-accent-banner-text mb-1">
+              Continue where you left off
+            </p>
+            <p className="text-text font-bold text-lg">{continueLesson.title} →</p>
+          </div>
         </Link>
       )}
 
       {loaded && !continueLesson && allLessons.length > 0 && (
-        <p className="mb-3 sm:mb-6 text-xs sm:text-sm text-text-faint italic">
+        <p className="mb-1.5 sm:mb-6 text-xs sm:text-sm text-text-faint italic">
           You&apos;ve explored every lesson — jump back into any topic below anytime.
         </p>
       )}

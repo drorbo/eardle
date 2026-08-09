@@ -13,9 +13,9 @@ export default async function LearnOverviewPage() {
 
   return (
     <div className="max-w-3xl">
-      <div className="mb-3 sm:mb-6">
-        <h1 className="text-lg sm:text-3xl font-bold text-text mb-0.5 sm:mb-2">Learn</h1>
-        <p className="text-text-muted text-xs sm:text-sm">
+      <div className="mb-1.5 sm:mb-6">
+        <h1 className="text-base sm:text-3xl font-bold text-text sm:mb-2">Learn</h1>
+        <p className="text-text-muted text-[11px] sm:text-sm hidden sm:block">
           Pick a subject below, or pick up where you left off.
         </p>
       </div>
