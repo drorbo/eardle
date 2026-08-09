@@ -17,7 +17,7 @@ export function CategoryChip({ meta, active, onSelect }: Props) {
       onClick={onSelect}
       aria-pressed={active}
       className={`
-        flex-shrink-0 flex items-center gap-1.5 px-3 py-1.5 rounded-full text-sm font-semibold
+        flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-semibold
         border transition-all whitespace-nowrap
         ${active
           ? `bg-gradient-to-br ${meta.colorClasses} text-text ring-2 ring-offset-1 ring-offset-bg ring-text/70`
