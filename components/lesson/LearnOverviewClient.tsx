@@ -21,12 +21,13 @@ export function LearnOverviewClient({ topics }: { topics: TopicWithLessons[] }) 
   const continueLesson = loaded ? allLessons.find((l) => !progress[l.id]?.viewed) : undefined;
   const nothingViewedYet = loaded && allLessons.length > 0 && allLessons.every((l) => !progress[l.id]?.viewed);
 
-  // Each category's lessons flattened (topic grouping dropped from this view
-  // — nearly every topic has exactly one lesson, so a topic-by-topic
-  // breakdown mostly just repeated the lesson title under a near-duplicate
-  // heading. Order is preserved: topics arrive pre-sorted by sortOrder, and
-  // lessons pre-sorted within each topic, so flatMap keeps the suggested
-  // reading order intact.
+  // Each category's lessons flattened (topic grouping headers dropped from
+  // this view — nearly every topic has exactly one lesson, so a topic-by-
+  // topic breakdown mostly just repeated the lesson title under a near-
+  // duplicate heading). Each lesson still carries its topic's one-line
+  // description along for the card to show. Order is preserved: topics
+  // arrive pre-sorted by sortOrder, and lessons pre-sorted within each
+  // topic, so flatMap keeps the suggested reading order intact.
   const grouped = useMemo(() => {
     const map = new Map<NavCategoryId, TopicWithLessons[]>();
     for (const t of topics) {
@@ -36,7 +37,9 @@ export function LearnOverviewClient({ topics }: { topics: TopicWithLessons[] }) 
     }
     return LEARN_CATEGORY_ORDER.map((c) => ({
       ...c,
-      lessons: (map.get(c.id) ?? []).flatMap((t) => t.lessons),
+      lessons: (map.get(c.id) ?? []).flatMap((t) =>
+        t.lessons.map((l) => ({ ...l, description: t.description }))
+      ),
     })).filter((c) => c.lessons.length > 0);
   }, [topics]);
 
@@ -116,7 +119,12 @@ export function LearnOverviewClient({ topics }: { topics: TopicWithLessons[] }) 
           </h2>
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
             {activePanel.lessons.map((lesson) => (
-              <TopicLessonCard key={lesson.id} lesson={lesson} status={progress[lesson.id]} />
+              <TopicLessonCard
+                key={lesson.id}
+                lesson={lesson}
+                status={progress[lesson.id]}
+                description={lesson.description}
+              />
             ))}
           </div>
         </div>
