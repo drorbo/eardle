@@ -4,6 +4,7 @@ import Link from "next/link";
 import { useEffect, useMemo, useState } from "react";
 import { useLessonProgress } from "@/hooks/useLessonProgress";
 import { CategoryTile } from "@/components/lesson/CategoryTile";
+import { CategoryChip } from "@/components/lesson/CategoryChip";
 import { TopicLessonCard } from "@/components/lesson/TopicLessonCard";
 import { LEARN_CATEGORY_ORDER } from "@/lib/learn/categoryMeta";
 import type { NavCategoryId, TopicWithLessons } from "@/types/lesson";
@@ -98,7 +99,22 @@ export function LearnOverviewClient({ topics }: { topics: TopicWithLessons[] }) 
         </p>
       )}
 
-      <div className="grid grid-cols-2 sm:grid-cols-3 gap-3 mb-4">
+      {/* Mobile: a small scrollable chip row instead of the full tile grid,
+          so the picker stays out of the way and lessons show as high up
+          the screen as possible. Desktop/tablet keeps the full tile grid
+          below, hidden here to avoid rendering both at once. */}
+      <div className="flex sm:hidden gap-2 overflow-x-auto pb-1 mb-4">
+        {grouped.map((cat) => (
+          <CategoryChip
+            key={cat.id}
+            meta={cat}
+            active={activeCategory === cat.id}
+            onSelect={() => selectCategory(cat.id)}
+          />
+        ))}
+      </div>
+
+      <div className="hidden sm:grid sm:grid-cols-3 gap-3 mb-4">
         {grouped.map((cat) => (
           <CategoryTile
             key={cat.id}
