@@ -12,7 +12,7 @@ export function TopicLessonCard({ lesson, status }: Props) {
   return (
     <Link
       href={`/learn/${lesson.topicSlug}/${lesson.slug}`}
-      className="flex items-center justify-between gap-3 px-4 py-3 rounded-xl bg-surface border border-border-subtle hover:border-border transition"
+      className="flex items-center justify-between gap-3 px-4 py-3 rounded-xl bg-surface border border-border-subtle hover:border-border transition hover:scale-[1.01] active:scale-[0.99]"
     >
       <span className="flex items-center gap-2.5 min-w-0">
         <StatusDot status={status} />

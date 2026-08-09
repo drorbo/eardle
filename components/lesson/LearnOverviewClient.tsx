@@ -19,10 +19,14 @@ export function LearnOverviewClient({ topics }: { topics: TopicWithLessons[] }) 
   // practiced, so keying on it here would leave this stuck pointing at
   // lesson 1 for anyone who reads ahead without practicing every lesson.
   const continueLesson = loaded ? allLessons.find((l) => !progress[l.id]?.viewed) : undefined;
-  // True only once progress has loaded and confirmed nothing was viewed —
-  // undefined progress (not yet loaded) must not be mistaken for "new user".
   const nothingViewedYet = loaded && allLessons.length > 0 && allLessons.every((l) => !progress[l.id]?.viewed);
 
+  // Each category's lessons flattened (topic grouping dropped from this view
+  // — nearly every topic has exactly one lesson, so a topic-by-topic
+  // breakdown mostly just repeated the lesson title under a near-duplicate
+  // heading. Order is preserved: topics arrive pre-sorted by sortOrder, and
+  // lessons pre-sorted within each topic, so flatMap keeps the suggested
+  // reading order intact.
   const grouped = useMemo(() => {
     const map = new Map<NavCategoryId, TopicWithLessons[]>();
     for (const t of topics) {
@@ -30,29 +34,33 @@ export function LearnOverviewClient({ topics }: { topics: TopicWithLessons[] }) 
       list.push(t);
       map.set(t.category, list);
     }
-    return LEARN_CATEGORY_ORDER.map((c) => ({ ...c, topics: map.get(c.id) ?? [] })).filter((c) => c.topics.length > 0);
+    return LEARN_CATEGORY_ORDER.map((c) => ({
+      ...c,
+      lessons: (map.get(c.id) ?? []).flatMap((t) => t.lessons),
+    })).filter((c) => c.lessons.length > 0);
   }, [topics]);
 
-  const [expanded, setExpanded] = useState<Set<NavCategoryId>>(new Set());
+  // Exactly one category "tab" is open at a time — never stacks. Starts on
+  // the first category so there's always something to look at immediately,
+  // then (once progress has loaded) jumps to whichever category holds the
+  // "continue" lesson — unless the user has already picked one themselves,
+  // in which case their choice is never overridden.
+  const [activeCategory, setActiveCategory] = useState<NavCategoryId | null>(() => grouped[0]?.id ?? null);
+  const [userPicked, setUserPicked] = useState(false);
 
-  // Auto-expand (without collapsing anything the user already opened) the
-  // category containing the "continue" lesson, so a returning user lands on
-  // an already-open section instead of having to find and tap it themselves.
   useEffect(() => {
-    if (!continueLesson) return;
+    if (userPicked || !continueLesson) return;
     const topic = topics.find((t) => t.id === continueLesson.topicId);
     if (!topic) return;
-    setExpanded((prev) => (prev.has(topic.category) ? prev : new Set(prev).add(topic.category)));
-  }, [continueLesson, topics]);
+    setActiveCategory(topic.category);
+  }, [continueLesson, topics, userPicked]);
 
-  function toggle(id: NavCategoryId) {
-    setExpanded((prev) => {
-      const next = new Set(prev);
-      if (next.has(id)) next.delete(id);
-      else next.add(id);
-      return next;
-    });
+  function selectCategory(id: NavCategoryId) {
+    setUserPicked(true);
+    setActiveCategory(id);
   }
+
+  const activePanel = grouped.find((c) => c.id === activeCategory) ?? grouped[0];
 
   return (
     <>
@@ -87,56 +95,32 @@ export function LearnOverviewClient({ topics }: { topics: TopicWithLessons[] }) 
         </p>
       )}
 
-      <div className="grid grid-cols-2 sm:grid-cols-3 gap-3 mb-6">
-        {grouped.map((cat) => {
-          const total = cat.topics.reduce((sum, t) => sum + t.lessons.length, 0);
-          const completed = cat.topics.reduce(
-            (sum, t) => sum + t.lessons.filter((l) => progress[l.id]?.completed).length,
-            0
-          );
-          return (
-            <CategoryTile
-              key={cat.id}
-              meta={cat}
-              completed={completed}
-              total={total}
-              expanded={expanded.has(cat.id)}
-              onToggle={() => toggle(cat.id)}
-            />
-          );
-        })}
+      <div className="grid grid-cols-2 sm:grid-cols-3 gap-3 mb-4">
+        {grouped.map((cat) => (
+          <CategoryTile
+            key={cat.id}
+            meta={cat}
+            completed={cat.lessons.filter((l) => progress[l.id]?.completed).length}
+            total={cat.lessons.length}
+            active={activeCategory === cat.id}
+            onSelect={() => selectCategory(cat.id)}
+          />
+        ))}
       </div>
 
-      <div className="space-y-8">
-        {grouped
-          .filter((cat) => expanded.has(cat.id))
-          .map((cat) => (
-            <section key={cat.id}>
-              <h2 className="text-lg font-bold text-text mb-3 flex items-center gap-2">
-                <span>{cat.emoji}</span>
-                <span>{cat.label}</span>
-              </h2>
-              <div className="space-y-6">
-                {cat.topics.map((topic) => (
-                  <div key={topic.id}>
-                    <p className="text-xs font-semibold uppercase tracking-wide text-text-faint mb-2">
-                      {topic.title}
-                    </p>
-                    {topic.description && <p className="text-text-muted text-sm mb-2">{topic.description}</p>}
-                    <div className="space-y-2">
-                      {topic.lessons.map((lesson) => (
-                        <TopicLessonCard key={lesson.id} lesson={lesson} status={progress[lesson.id]} />
-                      ))}
-                      {topic.lessons.length === 0 && (
-                        <p className="text-text-faint text-xs italic">No lessons in this topic yet.</p>
-                      )}
-                    </div>
-                  </div>
-                ))}
-              </div>
-            </section>
-          ))}
-      </div>
+      {activePanel && (
+        <div className="rounded-2xl border border-border-subtle p-4 sm:p-5">
+          <h2 className="flex items-center gap-2 text-lg font-bold text-text mb-3">
+            <span>{activePanel.emoji}</span>
+            <span>{activePanel.label}</span>
+          </h2>
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+            {activePanel.lessons.map((lesson) => (
+              <TopicLessonCard key={lesson.id} lesson={lesson} status={progress[lesson.id]} />
+            ))}
+          </div>
+        </div>
+      )}
     </>
   );
 }
