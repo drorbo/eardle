@@ -3,19 +3,10 @@
 import { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { CATEGORY_META } from "@/types/exercise";
 import type { NavCategoryId, TopicWithLessons } from "@/types/lesson";
 import { useLessonProgress } from "@/hooks/useLessonProgress";
 import { StatusDot } from "@/components/lesson/StatusDot";
-
-const CATEGORY_ORDER: { id: NavCategoryId; label: string; emoji: string }[] = [
-  { id: "fundamentals", label: "Fundamentals", emoji: "🧱" },
-  { id: "note", label: CATEGORY_META.note.label, emoji: CATEGORY_META.note.emoji },
-  { id: "interval", label: CATEGORY_META.interval.label, emoji: CATEGORY_META.interval.emoji },
-  { id: "chord", label: CATEGORY_META.chord.label, emoji: CATEGORY_META.chord.emoji },
-  { id: "progression", label: CATEGORY_META.progression.label, emoji: CATEGORY_META.progression.emoji },
-  { id: "scale", label: CATEGORY_META.scale.label, emoji: CATEGORY_META.scale.emoji },
-];
+import { LEARN_CATEGORY_ORDER } from "@/lib/learn/categoryMeta";
 
 export function LearnSidebar({ topics }: { topics: TopicWithLessons[] }) {
   const pathname = usePathname();
@@ -28,7 +19,7 @@ export function LearnSidebar({ topics }: { topics: TopicWithLessons[] }) {
       list.push(t);
       map.set(t.category, list);
     }
-    return CATEGORY_ORDER.map((c) => ({ ...c, topics: map.get(c.id) ?? [] })).filter((c) => c.topics.length > 0);
+    return LEARN_CATEGORY_ORDER.map((c) => ({ ...c, topics: map.get(c.id) ?? [] })).filter((c) => c.topics.length > 0);
   }, [topics]);
 
   // /learn/[topicSlug]/[lessonSlug] while on a lesson page, else null
@@ -70,7 +61,7 @@ export function LearnSidebar({ topics }: { topics: TopicWithLessons[] }) {
         📖 Learn overview
       </Link>
       <p className="px-2 mb-3 text-[11px] leading-snug text-text-faint">
-        Grouped by category below — for the suggested reading order, start at the overview above.
+        Jump to any lesson directly, or use the overview above for the suggested order.
       </p>
 
       <div className="space-y-0.5">

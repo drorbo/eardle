@@ -13,11 +13,10 @@ export default async function LearnOverviewPage() {
 
   return (
     <div className="max-w-3xl">
-      <div className="mb-8">
+      <div className="mb-6">
         <h1 className="text-2xl sm:text-3xl font-bold text-text mb-2">Learn</h1>
         <p className="text-text-muted text-sm">
-          A suggested path through the ideas behind Eardle&apos;s exercises — read at your own pace,
-          jump to any topic any time.
+          Pick a subject below, or pick up where you left off.
         </p>
       </div>
 
