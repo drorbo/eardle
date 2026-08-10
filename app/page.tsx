@@ -1,5 +1,6 @@
 export const dynamic = "force-dynamic";
 
+import Link from "next/link";
 import { HomeActionCard } from "@/components/ui/HomeActionCard";
 import { Category, CATEGORY_META } from "@/types/exercise";
 import { getOrCreateDailyPuzzle } from "@/lib/daily/generate";
@@ -13,13 +14,14 @@ export default async function HomePage() {
       : "One shared puzzle a day — 5 guesses to solve it.";
 
   return (
-    // Below sm: height is pinned to the viewport minus the sticky navbar
-    // (h-16 + its 1px border) so the 3 cards below can flex-fill exactly the
-    // remaining space and never require scrolling, on any phone height.
-    // overflow-hidden is a safety net for sub-pixel rounding, not a clip —
-    // the flex-fill sizing means there's nothing meaningful past the fold.
-    // At sm+ this reverts to normal document flow — no scroll concern once
-    // cards sit side-by-side instead of stacked.
+    <>
+    {/* Below sm: height is pinned to the viewport minus the sticky navbar
+        (h-16 + its 1px border) so the 3 cards below can flex-fill exactly the
+        remaining space and never require scrolling, on any phone height.
+        overflow-hidden is a safety net for sub-pixel rounding, not a clip —
+        the flex-fill sizing means there's nothing meaningful past the fold.
+        At sm+ this reverts to normal document flow — no scroll concern once
+        cards sit side-by-side instead of stacked. */}
     <div className="max-w-5xl mx-auto px-4 sm:px-6 py-3 sm:py-20 h-[calc(100dvh-65px)] sm:h-auto flex flex-col sm:block overflow-hidden sm:overflow-visible">
       <div className="text-center mb-2 sm:mb-10 flex-shrink-0">
         <h1 className="text-2xl sm:text-6xl font-bold text-text mb-0.5 sm:mb-4 tracking-tight">
@@ -83,6 +85,20 @@ export default async function HomePage() {
       <p className="hidden sm:block text-center text-text-faint text-sm mt-12">
         Press play, listen carefully, then pick your answer.
       </p>
+      <p className="hidden sm:block text-center text-text-faint text-sm mt-3">
+        🎹 Just want to noodle around?{" "}
+        <Link href="/piano" className="underline underline-offset-2 hover:text-text-muted transition">
+          Try the Keyboard Playground →
+        </Link>
+      </p>
     </div>
+
+    <p className="sm:hidden text-center text-text-faint text-xs px-4 py-4">
+      🎹 Just want to noodle around?{" "}
+      <Link href="/piano" className="underline underline-offset-2 hover:text-text-muted transition">
+        Try the Keyboard Playground →
+      </Link>
+    </p>
+    </>
   );
 }
