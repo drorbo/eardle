@@ -44,6 +44,17 @@ export interface PianoKeyboardProps {
   lowNote?: string;
   highNote?: string;
   className?: string;
+  /** Multiplies the base key width/height. Default 1 matches today's fixed
+   *  size exactly — existing callers are unaffected. */
+  keyScale?: number;
+  /** Whether to render the note-letter label on each key. Default true
+   *  matches today's behavior. */
+  showLabels?: boolean;
+  /** Optional external ref onto the same scrollable container the
+   *  component already tracks internally, so a parent can read
+   *  scrollWidth/clientWidth/scrollLeft and call scrollTo() itself
+   *  (e.g. to drive a pan slider). */
+  scrollRef?: React.RefObject<HTMLDivElement | null>;
 }
 
 export function PianoKeyboard({
@@ -53,12 +64,20 @@ export function PianoKeyboard({
   lowNote = "C2",
   highNote = "C7",
   className = "",
+  keyScale = 1,
+  showLabels = true,
+  scrollRef,
 }: PianoKeyboardProps) {
   const { theme } = useTheme();
   const isDark = theme === "dark";
   const containerRef = useRef<HTMLDivElement>(null);
   const draggingRef = useRef(false);
   const lastDragNoteRef = useRef<string | null>(null);
+
+  const whiteKeyW = WHITE_KEY_W * keyScale;
+  const blackKeyW = BLACK_KEY_W * keyScale;
+  const whiteKeyH = WHITE_KEY_H * keyScale;
+  const blackKeyH = BLACK_KEY_H * keyScale;
 
   const lowMidi = parseNote(lowNote).midi;
   const highMidi = parseNote(highNote).midi;
@@ -142,12 +161,15 @@ export function PianoKeyboard({
 
   return (
     <div
-      ref={containerRef}
+      ref={(el) => {
+        containerRef.current = el;
+        if (scrollRef) scrollRef.current = el;
+      }}
       role="group"
       aria-label="Piano keyboard"
       className={`w-full overflow-x-auto no-scrollbar rounded-xl ${className}`}
     >
-      <div className="relative" style={{ height: WHITE_KEY_H, width: whiteKeys.length * WHITE_KEY_W }}>
+      <div className="relative" style={{ height: whiteKeyH, width: whiteKeys.length * whiteKeyW }}>
         {keys.map((k) => {
           if (k.isBlack) return null;
           whiteIndex++;
@@ -164,9 +186,9 @@ export function PianoKeyboard({
               aria-pressed={!!active}
               onPointerDown={() => handlePointerDown(k.defaultNote)}
               style={{
-                left: whiteIndex * WHITE_KEY_W,
-                width: WHITE_KEY_W,
-                height: WHITE_KEY_H,
+                left: whiteIndex * whiteKeyW,
+                width: whiteKeyW,
+                height: whiteKeyH,
                 backgroundColor: color?.bg,
                 touchAction: "none",
               }}
@@ -174,12 +196,14 @@ export function PianoKeyboard({
                 transition-transform duration-150
                 ${active ? "motion-safe:scale-[0.98] border-transparent" : "bg-white dark:bg-slate-200 border-border-subtle hover:bg-surface-2"}`}
             >
-              <span
-                className="text-[9px] leading-none font-medium"
-                style={{ color: color?.text ?? undefined }}
-              >
-                {label}
-              </span>
+              {showLabels && (
+                <span
+                  className="text-[9px] leading-none font-medium"
+                  style={{ color: color?.text ?? undefined }}
+                >
+                  {label}
+                </span>
+              )}
             </button>
           );
         })}
@@ -204,9 +228,9 @@ export function PianoKeyboard({
                 aria-pressed={!!active}
                 onPointerDown={() => handlePointerDown(k.defaultNote)}
                 style={{
-                  left: (precedingWhiteIndex + 1) * WHITE_KEY_W - BLACK_KEY_W / 2,
-                  width: BLACK_KEY_W,
-                  height: BLACK_KEY_H,
+                  left: (precedingWhiteIndex + 1) * whiteKeyW - blackKeyW / 2,
+                  width: blackKeyW,
+                  height: blackKeyH,
                   backgroundColor: color?.bg ?? undefined,
                   touchAction: "none",
                   zIndex: 2,
@@ -215,12 +239,14 @@ export function PianoKeyboard({
                   transition-transform duration-150
                   ${active ? "motion-safe:scale-[0.96]" : "bg-slate-900 dark:bg-slate-950 hover:bg-slate-800"}`}
               >
-                <span
-                  className="text-[7px] leading-none font-medium"
-                  style={{ color: color?.text ?? "#e2e8f0" }}
-                >
-                  {label}
-                </span>
+                {showLabels && (
+                  <span
+                    className="text-[7px] leading-none font-medium"
+                    style={{ color: color?.text ?? "#e2e8f0" }}
+                  >
+                    {label}
+                  </span>
+                )}
               </button>
             );
           });
