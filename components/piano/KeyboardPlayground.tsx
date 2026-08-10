@@ -12,9 +12,16 @@ const FLASH_MS = 300;
 // manual drag afterward.
 const CENTER_NOTE = ["C4"];
 
+// Thumb never shrinks below this, even at max zoom, so it stays comfortably
+// grabbable instead of becoming a sliver.
+const MIN_THUMB_PERCENT = 10;
+
 export function KeyboardPlayground() {
   const [zoom, setZoom] = useState(1);
   const [pan, setPan] = useState(50); // 0-100, percent of scrollable width
+  // What fraction of the full keyboard width is visible right now — drives
+  // the pan thumb's width. 1 = the whole keyboard fits, no scrolling needed.
+  const [visibleFraction, setVisibleFraction] = useState(1);
   const [showLabels, setShowLabels] = useState(true);
   const [wide, setWide] = useState(false);
   const [activeNotes, setActiveNotes] = useState<Map<string, Degree>>(new Map());
@@ -45,8 +52,15 @@ export function KeyboardPlayground() {
     requestAnimationFrame(() => { syncingRef.current = false; });
   }
 
+  const updateVisibleFraction = useCallback(() => {
+    const el = scrollRef.current;
+    if (!el || el.scrollWidth === 0) return;
+    setVisibleFraction(el.clientWidth / el.scrollWidth);
+  }, []);
+
   // Manually dragging the keyboard itself (native drag-to-scroll) keeps the
-  // pan slider in sync, so the two controls never disagree about position.
+  // pan indicator in sync, so it and the keyboard never disagree about
+  // position.
   useEffect(() => {
     const el = scrollRef.current;
     if (!el) return;
@@ -59,6 +73,15 @@ export function KeyboardPlayground() {
     return () => el.removeEventListener("scroll", onScroll);
   }, []);
 
+  // The visible fraction only changes when the viewport is resized (window
+  // resize) or the keyboard's own rendered width changes (zoom) — not on
+  // every scroll — so it's tracked separately from `pan`.
+  useEffect(() => {
+    updateVisibleFraction();
+    window.addEventListener("resize", updateVisibleFraction);
+    return () => window.removeEventListener("resize", updateVisibleFraction);
+  }, [updateVisibleFraction]);
+
   // Re-apply the current pan percentage after a zoom change (once the DOM
   // has the new key sizes), so zooming doesn't jump the visible window to
   // an unrelated part of the keyboard.
@@ -69,8 +92,36 @@ export function KeyboardPlayground() {
     syncingRef.current = true;
     el.scrollTo({ left: (pan / 100) * max, behavior: "auto" });
     requestAnimationFrame(() => { syncingRef.current = false; });
+    updateVisibleFraction();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [zoom]);
+
+  // Dragging anywhere on the pan track (or its thumb) moves the thumb's
+  // *center* to the pointer in real time — scrollTo({behavior:"auto"}) with
+  // no CSS transition on the thumb keeps it tracking the finger 1:1, with no
+  // added lag.
+  function panFromPointer(e: React.PointerEvent<HTMLDivElement>, thumbWidthPercent: number) {
+    const rect = e.currentTarget.getBoundingClientRect();
+    if (rect.width === 0) return;
+    const clickPercent = ((e.clientX - rect.left) / rect.width) * 100;
+    const travel = 100 - thumbWidthPercent;
+    const value = travel > 0 ? ((clickPercent - thumbWidthPercent / 2) / travel) * 100 : 0;
+    applyPan(Math.min(100, Math.max(0, Math.round(value))));
+  }
+
+  function handleTrackPointerDown(e: React.PointerEvent<HTMLDivElement>, thumbWidthPercent: number) {
+    e.currentTarget.setPointerCapture(e.pointerId);
+    panFromPointer(e, thumbWidthPercent);
+  }
+
+  function handleTrackPointerMove(e: React.PointerEvent<HTMLDivElement>, thumbWidthPercent: number) {
+    if (e.buttons !== 1) return;
+    panFromPointer(e, thumbWidthPercent);
+  }
+
+  function nudgePan(delta: number) {
+    applyPan(Math.min(100, Math.max(0, pan + delta)));
+  }
 
   useEffect(() => {
     return () => {
@@ -78,6 +129,9 @@ export function KeyboardPlayground() {
       audioEngine?.stop();
     };
   }, []);
+
+  const thumbWidthPercent = Math.min(100, Math.max(MIN_THUMB_PERCENT, visibleFraction * 100));
+  const thumbLeftPercent = (pan / 100) * (100 - thumbWidthPercent);
 
   const keyboard = (
     <PianoKeyboard
@@ -128,14 +182,30 @@ export function KeyboardPlayground() {
       <div className="mt-6 space-y-4">
         <div>
           <label className="block text-xs text-text-subtle mb-1">Move left / right</label>
-          <input
-            type="range"
-            min={0}
-            max={100}
-            value={pan}
-            onChange={(e) => applyPan(Number(e.target.value))}
-            className="w-full"
-          />
+          {/* Custom track instead of a native range input — the thumb's
+              width represents how much of the keyboard is currently
+              visible (shrinks as you zoom in, grows as you zoom out), which
+              a native range input's fixed-size thumb can't show. */}
+          <div
+            role="slider"
+            tabIndex={0}
+            aria-label="Move left or right along the keyboard"
+            aria-valuemin={0}
+            aria-valuemax={100}
+            aria-valuenow={pan}
+            onPointerDown={(e) => handleTrackPointerDown(e, thumbWidthPercent)}
+            onPointerMove={(e) => handleTrackPointerMove(e, thumbWidthPercent)}
+            onKeyDown={(e) => {
+              if (e.key === "ArrowLeft") nudgePan(-5);
+              else if (e.key === "ArrowRight") nudgePan(5);
+            }}
+            className="relative h-4 rounded-full bg-surface-2 border border-border-subtle cursor-pointer touch-none"
+          >
+            <div
+              className="absolute top-0.5 bottom-0.5 rounded-full bg-indigo-600"
+              style={{ left: `${thumbLeftPercent}%`, width: `${thumbWidthPercent}%` }}
+            />
+          </div>
         </div>
 
         <div>
