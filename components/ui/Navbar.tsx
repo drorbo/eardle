@@ -39,6 +39,15 @@ function LearnIcon({ className }: { className?: string }) {
   );
 }
 
+function PianoIcon({ className }: { className?: string }) {
+  return (
+    <svg className={className} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+      <rect x="3" y="5" width="18" height="14" rx="1" />
+      <path d="M8 5v8M12 5v8M16 5v8" />
+    </svg>
+  );
+}
+
 function FeedbackIcon({ className }: { className?: string }) {
   return (
     <svg className={className} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
@@ -260,6 +269,12 @@ export function Navbar() {
               active={pathname === "/practice" || Object.keys(CATEGORY_META).some((key) => pathname.startsWith(`/${key}`))}
               icon={<PracticeIcon className="w-5 h-5" />}
             />
+            <NavIcon
+              href="/piano"
+              label="Keyboard Playground"
+              active={pathname === "/piano"}
+              icon={<PianoIcon className="w-5 h-5" />}
+            />
           </div>
         </div>
 
@@ -376,6 +391,13 @@ export function Navbar() {
           >
             <span className="text-lg">🎯</span>
             Practice
+          </Link>
+          <Link
+            href="/piano"
+            className="flex items-center gap-3 px-3 py-3 rounded-xl text-text-secondary hover:text-text hover:bg-surface-2 transition text-sm"
+          >
+            <span className="text-lg">🎹</span>
+            Keyboard Playground
           </Link>
 
           <div className="border-t border-border-subtle mt-2 pt-2 space-y-1">
