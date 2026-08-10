@@ -45,7 +45,7 @@ export default async function LessonPage({ params }: Props) {
   const prereqHref = prereqLesson ? `/learn/${prereqLesson.topicSlug}/${prereqLesson.slug}` : "/learn";
 
   return (
-    <div className="max-w-2xl">
+    <div className="max-w-2xl pb-20">
       <div className="mb-6 flex items-center gap-3 flex-wrap text-sm">
         <Link href="/learn" className="text-text-subtle hover:text-text-secondary transition">
           ← Learn
