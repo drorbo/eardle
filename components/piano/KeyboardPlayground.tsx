@@ -158,13 +158,13 @@ export function KeyboardPlayground() {
             role="switch"
             aria-checked={showLabels}
             onClick={() => setShowLabels((v) => !v)}
-            className={`w-10 h-6 rounded-full transition-colors relative ${
+            className={`w-10 h-6 rounded-full transition-colors relative shrink-0 ${
               showLabels ? "bg-indigo-600" : "bg-surface-2 border border-border-subtle"
             }`}
           >
             <span
-              className={`absolute top-0.5 w-5 h-5 rounded-full bg-white shadow transition-transform ${
-                showLabels ? "translate-x-[18px]" : "translate-x-0.5"
+              className={`absolute top-0.5 w-5 h-5 rounded-full bg-white shadow transition-[left] ${
+                showLabels ? "left-[18px]" : "left-0.5"
               }`}
             />
           </button>
