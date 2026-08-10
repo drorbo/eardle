@@ -27,19 +27,49 @@ export function KeyboardPlayground() {
   const [activeNotes, setActiveNotes] = useState<Map<string, Degree>>(new Map());
 
   const scrollRef = useRef<HTMLDivElement | null>(null);
-  const flashTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  // Keyed by note, not a single shared timeout — a fixed single timer meant
+  // that playing a second note while the first was still lit would cancel
+  // the first note's clear timer and only ever schedule the newest one,
+  // leaving other simultaneously-played keys stuck lit or clobbered.
+  const flashTimeoutsRef = useRef<Map<string, ReturnType<typeof setTimeout>>>(new Map());
   // Guards the scroll listener from re-reading a scroll position that this
   // component itself just set programmatically (pan slider or post-zoom
   // re-centering), so a programmatic move never gets misread as a manual
   // drag and bounced back into `pan` a second time.
   const syncingRef = useRef(false);
 
+  // Start fetching the piano samples as soon as this page renders, well
+  // before the user taps a key — same warm-up pattern every lesson/exercise
+  // page uses (see components/lesson/LessonBlocks.tsx). Without this, the
+  // very first tap has to wait for the sample fetch+decode to finish.
+  useEffect(() => {
+    audioEngine?.warm();
+  }, []);
+
   const handleKeyPlay = useCallback((note: string) => {
     if (!audioEngine) return;
-    if (flashTimeoutRef.current) clearTimeout(flashTimeoutRef.current);
     audioEngine.playNote(note);
-    setActiveNotes(new Map([[note, "neutral"]]));
-    flashTimeoutRef.current = setTimeout(() => setActiveNotes(new Map()), FLASH_MS);
+
+    // Each note gets its own independent highlight + clear timer, so
+    // playing several notes at once (chords, two-finger touches) lets every
+    // one of them light up and clear on its own schedule instead of the
+    // newest key press wiping out every other currently-lit key.
+    const existing = flashTimeoutsRef.current.get(note);
+    if (existing) clearTimeout(existing);
+    setActiveNotes((prev) => {
+      const next = new Map(prev);
+      next.set(note, "neutral");
+      return next;
+    });
+    const timeout = setTimeout(() => {
+      flashTimeoutsRef.current.delete(note);
+      setActiveNotes((prev) => {
+        const next = new Map(prev);
+        next.delete(note);
+        return next;
+      });
+    }, FLASH_MS);
+    flashTimeoutsRef.current.set(note, timeout);
   }, []);
 
   function applyPan(value: number) {
@@ -125,7 +155,7 @@ export function KeyboardPlayground() {
 
   useEffect(() => {
     return () => {
-      if (flashTimeoutRef.current) clearTimeout(flashTimeoutRef.current);
+      flashTimeoutsRef.current.forEach(clearTimeout);
       audioEngine?.stop();
     };
   }, []);

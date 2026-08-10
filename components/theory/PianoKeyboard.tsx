@@ -71,8 +71,12 @@ export function PianoKeyboard({
   const { theme } = useTheme();
   const isDark = theme === "dark";
   const containerRef = useRef<HTMLDivElement>(null);
-  const draggingRef = useRef(false);
-  const lastDragNoteRef = useRef<string | null>(null);
+  // Keyed by pointerId, not a single shared ref — with two fingers down
+  // (chords, multi-touch), a single shared "last note" would let the second
+  // finger's touch overwrite the first finger's tracking, and either finger
+  // lifting would reset dragging state for both. Each pointer gets its own
+  // independent "am I dragging, and which note did I last land on" entry.
+  const dragNoteByPointerRef = useRef<Map<number, string>>(new Map());
 
   const whiteKeyW = WHITE_KEY_W * keyScale;
   const blackKeyW = BLACK_KEY_W * keyScale;
@@ -123,29 +127,27 @@ export function PianoKeyboard({
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [visibleNotes?.join(",")]);
 
-  const playFromPoint = useCallback((x: number, y: number) => {
+  const playFromPoint = useCallback((pointerId: number, x: number, y: number) => {
     const el = document.elementFromPoint(x, y) as HTMLElement | null;
     const note = el?.closest<HTMLElement>("[data-note]")?.dataset.note;
-    if (note && note !== lastDragNoteRef.current) {
-      lastDragNoteRef.current = note;
+    if (note && note !== dragNoteByPointerRef.current.get(pointerId)) {
+      dragNoteByPointerRef.current.set(pointerId, note);
       onKeyPlay(note);
     }
   }, [onKeyPlay]);
 
-  function handlePointerDown(note: string) {
-    draggingRef.current = true;
-    lastDragNoteRef.current = note;
+  function handlePointerDown(pointerId: number, note: string) {
+    dragNoteByPointerRef.current.set(pointerId, note);
     onKeyPlay(note);
   }
 
   useEffect(() => {
     function onMove(e: PointerEvent) {
-      if (!draggingRef.current) return;
-      playFromPoint(e.clientX, e.clientY);
+      if (!dragNoteByPointerRef.current.has(e.pointerId)) return;
+      playFromPoint(e.pointerId, e.clientX, e.clientY);
     }
-    function onUp() {
-      draggingRef.current = false;
-      lastDragNoteRef.current = null;
+    function onUp(e: PointerEvent) {
+      dragNoteByPointerRef.current.delete(e.pointerId);
     }
     window.addEventListener("pointermove", onMove);
     window.addEventListener("pointerup", onUp);
@@ -184,7 +186,7 @@ export function PianoKeyboard({
               data-midi={k.midi}
               aria-label={`Play ${k.defaultNote}`}
               aria-pressed={!!active}
-              onPointerDown={() => handlePointerDown(k.defaultNote)}
+              onPointerDown={(e) => handlePointerDown(e.pointerId, k.defaultNote)}
               style={{
                 left: whiteIndex * whiteKeyW,
                 width: whiteKeyW,
@@ -226,7 +228,7 @@ export function PianoKeyboard({
                 data-midi={k.midi}
                 aria-label={`Play ${k.defaultNote}`}
                 aria-pressed={!!active}
-                onPointerDown={() => handlePointerDown(k.defaultNote)}
+                onPointerDown={(e) => handlePointerDown(e.pointerId, k.defaultNote)}
                 style={{
                   left: (precedingWhiteIndex + 1) * whiteKeyW - blackKeyW / 2,
                   width: blackKeyW,
