@@ -246,7 +246,7 @@ export function Navbar() {
         {/* Left: logo + category icons */}
         <div className="flex items-center gap-4">
           <Link href="/" className="text-xl font-bold text-text tracking-tight flex-shrink-0">
-            🎧 Eardle
+            🎧 Eardle<sup className="text-[10px] font-normal text-text-faint ml-0.5">™</sup>
           </Link>
 
           <div className="hidden sm:flex items-center gap-1">
