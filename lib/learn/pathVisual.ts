@@ -2,6 +2,8 @@
 // (components/lesson/LearningTrail.tsx). Kept separate from that component
 // so the wave math and palette can be unit-reasoned-about without JSX.
 
+import { HUES, type Hue } from "@/lib/design/palette";
+
 export interface TrailPoint {
   /** 0-100, treated as a percentage of the trail's rendered width. */
   x: number;
@@ -66,63 +68,17 @@ export interface TierColor {
   nodeTint: string;
 }
 
+function tierColor(hue: Hue): TierColor {
+  const h = HUES[hue];
+  return { banner: h.banner, bannerText: h.bannerText, nodeFill: h.fill, nodeRing: h.ring, nodeRingText: h.ringText, nodeTint: h.tint };
+}
+
 // One color per curriculum tier (see lib/learn/pathSections.ts) — a
-// deliberately different hue set from CATEGORY_META/REAL_CATEGORY_COLORS,
-// since tiers are a different grouping than exercise categories and
-// reusing the same hues would wrongly imply they're the same thing.
-export const TIER_PALETTE: TierColor[] = [
-  {
-    banner:
-      "from-slate-300 to-slate-200 border-slate-400 dark:from-slate-700/70 dark:to-slate-600/40 dark:border-slate-500",
-    bannerText: "text-slate-800 dark:text-slate-100",
-    nodeFill: "bg-slate-500",
-    nodeRing: "border-slate-400 dark:border-slate-500",
-    nodeRingText: "text-slate-500 dark:text-slate-400",
-    nodeTint: "bg-slate-100 dark:bg-slate-800/60",
-  },
-  {
-    banner:
-      "from-cyan-300 to-cyan-200 border-cyan-400 dark:from-cyan-800/70 dark:to-cyan-700/40 dark:border-cyan-600",
-    bannerText: "text-cyan-900 dark:text-cyan-100",
-    nodeFill: "bg-cyan-500",
-    nodeRing: "border-cyan-400 dark:border-cyan-500",
-    nodeRingText: "text-cyan-600 dark:text-cyan-400",
-    nodeTint: "bg-cyan-100 dark:bg-cyan-900/50",
-  },
-  {
-    banner:
-      "from-teal-300 to-teal-200 border-teal-400 dark:from-teal-800/70 dark:to-teal-700/40 dark:border-teal-600",
-    bannerText: "text-teal-900 dark:text-teal-100",
-    nodeFill: "bg-teal-500",
-    nodeRing: "border-teal-400 dark:border-teal-500",
-    nodeRingText: "text-teal-600 dark:text-teal-400",
-    nodeTint: "bg-teal-100 dark:bg-teal-900/50",
-  },
-  {
-    banner:
-      "from-amber-300 to-amber-200 border-amber-400 dark:from-amber-800/70 dark:to-amber-700/40 dark:border-amber-600",
-    bannerText: "text-amber-900 dark:text-amber-100",
-    nodeFill: "bg-amber-500",
-    nodeRing: "border-amber-400 dark:border-amber-500",
-    nodeRingText: "text-amber-600 dark:text-amber-400",
-    nodeTint: "bg-amber-100 dark:bg-amber-900/50",
-  },
-  {
-    banner:
-      "from-rose-300 to-rose-200 border-rose-400 dark:from-rose-800/70 dark:to-rose-700/40 dark:border-rose-600",
-    bannerText: "text-rose-900 dark:text-rose-100",
-    nodeFill: "bg-rose-500",
-    nodeRing: "border-rose-400 dark:border-rose-500",
-    nodeRingText: "text-rose-600 dark:text-rose-400",
-    nodeTint: "bg-rose-100 dark:bg-rose-900/50",
-  },
-  {
-    banner:
-      "from-fuchsia-300 to-fuchsia-200 border-fuchsia-400 dark:from-fuchsia-800/70 dark:to-fuchsia-700/40 dark:border-fuchsia-600",
-    bannerText: "text-fuchsia-900 dark:text-fuchsia-100",
-    nodeFill: "bg-fuchsia-500",
-    nodeRing: "border-fuchsia-400 dark:border-fuchsia-500",
-    nodeRingText: "text-fuchsia-600 dark:text-fuchsia-400",
-    nodeTint: "bg-fuchsia-100 dark:bg-fuchsia-900/50",
-  },
-];
+// deliberately different hue set from the one lib/learn/categoryMeta.ts
+// picks for exercise categories, since tiers are a different grouping and
+// reusing the same hues would wrongly imply they're the same thing. Both
+// draw from the same lib/design/palette.ts source, though, so a hue's
+// actual class strings only ever exist in one place.
+export const TIER_PALETTE: TierColor[] = (
+  ["slate", "cyan", "teal", "amber", "rose", "fuchsia"] satisfies Hue[]
+).map(tierColor);
