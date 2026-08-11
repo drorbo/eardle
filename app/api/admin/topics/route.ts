@@ -5,6 +5,13 @@ import { topics } from "@/lib/db/schema";
 import { asc } from "drizzle-orm";
 
 export async function GET() {
+  // Also covered by middleware.ts's /api/admin/:path* matcher, but every
+  // other handler in this admin route family calls requireAdmin() directly
+  // too — this one didn't, losing the two-layer defense-in-depth pattern
+  // used everywhere else (see the 2026-08-11 audit).
+  const { error } = await requireAdmin();
+  if (error) return error;
+
   const rows = await db.select().from(topics).orderBy(asc(topics.sortOrder));
   return NextResponse.json(rows);
 }

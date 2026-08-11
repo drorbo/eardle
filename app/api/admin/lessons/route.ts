@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { requireAdmin } from "@/lib/authz";
 import { db } from "@/lib/db";
 import { lessons } from "@/lib/db/schema";
+import { isValidPracticePackages } from "@/types/lesson";
 
 export async function POST(req: NextRequest) {
   const { error } = await requireAdmin();
@@ -21,6 +22,9 @@ export async function POST(req: NextRequest) {
 
   if (!topicId || !slug || !title) {
     return NextResponse.json({ error: "Missing fields" }, { status: 400 });
+  }
+  if (practicePackages && practicePackages.length && !isValidPracticePackages(practicePackages)) {
+    return NextResponse.json({ error: "Invalid practice package" }, { status: 400 });
   }
 
   const now = Math.floor(Date.now() / 1000);

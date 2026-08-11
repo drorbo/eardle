@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { getGuestToken } from "@/hooks/useLessonProgress";
+import { getOrCreateGuestToken } from "@/lib/guestSession";
 
 /** Lets a user flag the lesson they're practicing for as finished, right
  *  from the exercise page — for lessons with no practice cycle to auto-
@@ -14,8 +14,8 @@ export function MarkLessonFinishedButton({ lessonId }: { lessonId: number }) {
   async function markFinished() {
     setState("busy");
     try {
-      const token = getGuestToken();
-      await Promise.all(
+      const token = getOrCreateGuestToken();
+      const responses = await Promise.all(
         (["viewed", "practiced"] as const).map((kind) =>
           fetch("/api/lessons/progress", {
             method: "POST",
@@ -24,6 +24,7 @@ export function MarkLessonFinishedButton({ lessonId }: { lessonId: number }) {
           })
         )
       );
+      if (!responses.every((r) => r.ok)) throw new Error("Failed to save progress");
       setState("done");
     } catch {
       setState("idle");

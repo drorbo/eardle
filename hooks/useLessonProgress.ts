@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { getGuestToken } from "@/lib/guestSession";
 
 export interface LessonStatus {
   viewed: boolean;
@@ -10,13 +11,10 @@ export interface LessonStatus {
 
 export type LessonProgressMap = Record<number, LessonStatus>;
 
-export function getGuestToken(): string | null {
-  try {
-    return localStorage.getItem("eardle_session");
-  } catch {
-    return null;
-  }
-}
+// Re-exported for existing call sites that import getGuestToken from here —
+// the real implementation now lives in lib/guestSession.ts alongside the
+// mint-and-persist variant, so both variants can't drift apart again.
+export { getGuestToken };
 
 export function useLessonProgress() {
   const [progress, setProgress] = useState<LessonProgressMap>({});

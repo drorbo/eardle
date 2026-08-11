@@ -50,12 +50,22 @@ async function main() {
 
   const now = Math.floor(Date.now() / 1000);
 
-  for (const name of PRE_EXISTING) {
-    await client`
-      INSERT INTO "_eardle_migrations" ("name", "applied_at")
-      VALUES (${name}, ${now})
-      ON CONFLICT ("name") DO NOTHING
-    `;
+  // Was previously an unconditional assertion ("these are already applied,
+  // trust me") rather than a check — correct in every environment actually
+  // bootstrapped via db/init.sql, but if Postgres were ever provisioned any
+  // other way (a managed instance, a different compose file, a restored
+  // empty volume), this would wrongly claim 0000-0003 applied while none of
+  // their tables exist, and 0004's own ALTER TABLE would fail confusingly
+  // far from the real cause. Verified via the same tableExists() check 0004
+  // already used below, instead of assuming (see the 2026-08-11 audit).
+  if (await tableExists("exercises")) {
+    for (const name of PRE_EXISTING) {
+      await client`
+        INSERT INTO "_eardle_migrations" ("name", "applied_at")
+        VALUES (${name}, ${now})
+        ON CONFLICT ("name") DO NOTHING
+      `;
+    }
   }
 
   // 0004 may or may not already be live depending on the environment (some

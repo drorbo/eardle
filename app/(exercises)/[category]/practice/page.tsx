@@ -132,9 +132,17 @@ export default async function PracticePage({ params, searchParams }: Props) {
 
   const newExcludeIds = excludeIds.includes(next.id) ? [next.id] : [...excludeIds, next.id];
   const excludeParam = newExcludeIds.join(",");
-  const topicParam = topic ? `&topic=${topic}` : "";
+  // encodeURIComponent (rather than raw concatenation) so a query param
+  // containing e.g. a CRLF sequence can't reach redirect()'s Location header
+  // as anything but inert encoded text — previously the runtime's own header
+  // validation rejected such input, but as an *unhandled* exception (an
+  // unauthenticated single-request 500 rather than a clean 400 — see the
+  // 2026-08-11 audit). lessonId is additionally validated as a real integer
+  // since that's its actual expected shape.
+  const topicParam = topic ? `&topic=${encodeURIComponent(topic)}` : "";
   const idsParam = idsList.length ? `&ids=${idsList.join(",")}` : "";
-  const lessonIdParam = lessonId ? `&lessonId=${lessonId}` : "";
+  const lessonIdNum = lessonId ? Number(lessonId) : NaN;
+  const lessonIdParam = Number.isInteger(lessonIdNum) && lessonIdNum > 0 ? `&lessonId=${lessonIdNum}` : "";
 
   redirect(`/${cat}/${next.id}?mode=practice&difficulty=${difficulty ?? "all"}&practiceExclude=${excludeParam}${topicParam}${idsParam}${lessonIdParam}`);
 }

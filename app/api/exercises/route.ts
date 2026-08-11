@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { db } from "@/lib/db";
 import { exercises } from "@/lib/db/schema";
 import { requireAdmin } from "@/lib/authz";
+import { isValidCategory } from "@/types/exercise";
 import { and, eq, sql } from "drizzle-orm";
 
 export async function GET(req: NextRequest) {
@@ -43,6 +44,9 @@ export async function POST(req: NextRequest) {
 
   if (!category || !title || !prompt || !difficulty || !config || !choices || !answer) {
     return NextResponse.json({ error: "Missing fields" }, { status: 400 });
+  }
+  if (!isValidCategory(category)) {
+    return NextResponse.json({ error: "Invalid category" }, { status: 400 });
   }
 
   const [created] = await db

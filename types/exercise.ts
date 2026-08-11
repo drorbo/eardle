@@ -2,6 +2,17 @@ import type { ChordType, ScaleType } from "@/lib/audio/theory";
 
 export type { ChordType, ScaleType };
 export type Category = "note" | "interval" | "chord" | "progression" | "scale";
+export const CATEGORIES: Category[] = ["note", "interval", "chord", "progression", "scale"];
+// The one runtime check for the Category enum — Drizzle's `text(..., {enum:
+// [...]})` on exercises.category is TypeScript-only and adds no Postgres
+// CHECK constraint, so this is the actual boundary. Used anywhere a category
+// string arrives from a request body before it's trusted (stored, or
+// interpolated into a URL) — see app/api/exercises/route.ts,
+// app/api/admin/lessons/route.ts, etc.
+export function isValidCategory(value: unknown): value is Category {
+  return typeof value === "string" && (CATEGORIES as string[]).includes(value);
+}
+
 export type Difficulty = "easy" | "medium" | "hard" | "jazz";
 export type ChordFamily = "major" | "minor" | "dominant" | "altered" | "suspended" | "diminished";
 

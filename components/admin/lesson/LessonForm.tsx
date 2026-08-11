@@ -3,7 +3,7 @@
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { CATEGORY_META, Category, Exercise } from "@/types/exercise";
-import type { LessonBlock, LessonDetail } from "@/types/lesson";
+import { MAX_PRACTICE_PACKAGE_LABEL_LENGTH, type LessonBlock, type LessonDetail } from "@/types/lesson";
 import { ExercisePicker } from "@/components/exercise/ExercisePicker";
 import { BlockEditor } from "@/components/admin/lesson/BlockEditor";
 
@@ -71,6 +71,7 @@ function PracticePackageRow({
           value={row.label}
           onChange={(e) => onChange({ ...row, label: e.target.value })}
           placeholder='Label (e.g. "Thirds") — leave blank if this is the only package'
+          maxLength={MAX_PRACTICE_PACKAGE_LABEL_LENGTH}
           className="field-input flex-1 min-w-[160px]"
         />
         <select

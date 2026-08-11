@@ -2,7 +2,8 @@
 
 import Link from "next/link";
 import { useEffect, useState } from "react";
-import { getGuestToken, useLessonProgress } from "@/hooks/useLessonProgress";
+import { useLessonProgress } from "@/hooks/useLessonProgress";
+import { getOrCreateGuestToken } from "@/lib/guestSession";
 import { StatusDot } from "@/components/lesson/StatusDot";
 import type { LessonSummary } from "@/types/lesson";
 
@@ -23,7 +24,7 @@ export function LessonProgressPanel({ lessonId, topicId, prev, next }: Props) {
     fetch("/api/lessons/progress", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ lessonId, sessionToken: getGuestToken(), kind: "viewed" }),
+      body: JSON.stringify({ lessonId, sessionToken: getOrCreateGuestToken(), kind: "viewed" }),
     }).catch(() => {});
   }, [lessonId]);
 
@@ -34,7 +35,7 @@ export function LessonProgressPanel({ lessonId, topicId, prev, next }: Props) {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(
-          scope === "lesson" ? { lessonId, sessionToken: getGuestToken() } : { topicId, sessionToken: getGuestToken() }
+          scope === "lesson" ? { lessonId, sessionToken: getOrCreateGuestToken() } : { topicId, sessionToken: getOrCreateGuestToken() }
         ),
       });
       location.reload();
@@ -54,7 +55,7 @@ export function LessonProgressPanel({ lessonId, topicId, prev, next }: Props) {
       await fetch("/api/lessons/progress", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ lessonId, sessionToken: getGuestToken(), kind: "practiced" }),
+        body: JSON.stringify({ lessonId, sessionToken: getOrCreateGuestToken(), kind: "practiced" }),
       });
       location.reload();
     } catch {
@@ -70,7 +71,7 @@ export function LessonProgressPanel({ lessonId, topicId, prev, next }: Props) {
       await fetch("/api/lessons/progress/reset", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ lessonId, sessionToken: getGuestToken(), field: "practiced" }),
+        body: JSON.stringify({ lessonId, sessionToken: getOrCreateGuestToken(), field: "practiced" }),
       });
       location.reload();
     } catch {

@@ -4,24 +4,12 @@ import { useEffect, useRef, useState } from "react";
 import { Exercise } from "@/types/exercise";
 import { ExercisePlayer } from "@/components/exercise/ExercisePlayer";
 import { audioEngine } from "@/lib/audio/engine";
+import { getOrCreateGuestToken as getOrCreateSessionToken } from "@/lib/guestSession";
 
 interface Props {
   exercise: Exercise;
   nextHref?: string;
   isPracticeMode?: boolean;
-}
-
-function getOrCreateSessionToken(): string {
-  const key = "eardle_session";
-  try {
-    const existing = localStorage.getItem(key);
-    if (existing) return existing;
-    const fresh = crypto.randomUUID();
-    try { localStorage.setItem(key, fresh); } catch { /* quota exceeded */ }
-    return fresh;
-  } catch {
-    return crypto.randomUUID();
-  }
 }
 
 function shuffle<T>(arr: T[]): T[] {

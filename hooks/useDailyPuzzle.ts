@@ -3,6 +3,7 @@
 import { useCallback, useEffect, useReducer, useRef } from "react";
 import { Category, Difficulty } from "@/types/exercise";
 import { PerformanceParams } from "@/lib/audio/randomize";
+import { getOrCreateGuestToken as getOrCreateSessionToken } from "@/lib/guestSession";
 
 export type DailyStatus = "not_started" | "in_progress" | "won" | "lost";
 
@@ -84,23 +85,6 @@ function reducer(state: DailyState, action: DailyAction): DailyState {
       return state.phase === "ready" ? { ...state, submitting: false } : state;
     default:
       return state;
-  }
-}
-
-function getOrCreateSessionToken(): string {
-  const key = "eardle_session";
-  try {
-    const existing = localStorage.getItem(key);
-    if (existing) return existing;
-    const fresh = crypto.randomUUID();
-    try {
-      localStorage.setItem(key, fresh);
-    } catch {
-      // quota exceeded
-    }
-    return fresh;
-  } catch {
-    return crypto.randomUUID();
   }
 }
 

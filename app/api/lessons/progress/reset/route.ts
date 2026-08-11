@@ -24,7 +24,10 @@ export async function POST(req: NextRequest) {
     field === "viewed" ? { viewedAt: null } : field === "practiced" ? { practicedAt: null } : { viewedAt: null, practicedAt: null };
 
   const session = await auth();
-  const userId = session?.user?.id ? parseInt(session.user.id) : null;
+  // Same admin-id-isn't-a-users.id distinction as app/api/lessons/progress/route.ts —
+  // kept consistent even though this route only UPDATEs (an admin "userId" here would
+  // just match zero rows, not throw), so the two routes share one identity model.
+  const userId = session?.user?.id && session.user.role !== "admin" ? parseInt(session.user.id) : null;
   const token = sessionToken ?? null;
   if (!userId && !token) {
     return NextResponse.json({ error: "No identity" }, { status: 400 });

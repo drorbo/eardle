@@ -1,4 +1,4 @@
-import type { Category, ChordType, ScaleType } from "@/types/exercise";
+import { isValidCategory, type Category, type ChordType, type ScaleType } from "@/types/exercise";
 import type { VoicingId } from "@/lib/audio/theory";
 
 // Closed set of content block types — the admin editor only ever produces
@@ -96,6 +96,31 @@ export interface PracticePackage {
   label: string;
   category: Category;
   exerciseIds: number[];
+}
+
+// Caps how long a package's label can be — an unbounded label rendered as a
+// single CTA button forces horizontal page-wide scroll on the public lesson
+// page (found in the 2026-08-11 audit).
+export const MAX_PRACTICE_PACKAGE_LABEL_LENGTH = 60;
+
+// The runtime boundary for practicePackages request bodies — `category` is
+// typed as the Category enum but that's compile-time only; a malformed or
+// malicious value here previously survived all the way to a public render
+// (an open redirect via category, or a crash via a missing one — see the
+// 2026-08-11 audit). Used by the admin lessons write routes before storage.
+export function isValidPracticePackages(input: unknown): input is PracticePackage[] {
+  if (!Array.isArray(input)) return false;
+  return input.every((p) => {
+    if (!p || typeof p !== "object") return false;
+    const pkg = p as Record<string, unknown>;
+    return (
+      typeof pkg.label === "string" &&
+      pkg.label.length <= MAX_PRACTICE_PACKAGE_LABEL_LENGTH &&
+      isValidCategory(pkg.category) &&
+      Array.isArray(pkg.exerciseIds) &&
+      pkg.exerciseIds.every((id) => typeof id === "number" && Number.isInteger(id))
+    );
+  });
 }
 
 export interface LessonDetail {

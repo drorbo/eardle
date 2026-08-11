@@ -53,3 +53,21 @@ next-env.d.ts
 *.db
 *.db-shm
 *.db-wal
+
+# Claude Code local project config — settings.local.json and launch.json are
+# machine-specific (settings.local.json has held a literal local-dev DB
+# password in a permission-allowlist entry before — see the 2026-08-11
+# audit); worktrees/ is local scratch. settings.json (if it ever exists) is
+# the one file meant to be shared/tracked, so it's explicitly un-ignored.
+.claude/*
+!.claude/settings.json
+
+# Internal security/bug audit reports — real infra details and (patched but
+# still illustrative) exploit chains; must never reach the public repo.
+security-audit*.md
+
+# Ad hoc auth-flow testing artifacts (curl/response dumps) — these have
+# transiently held live, unexpired session-token cookies during testing
+# before; never let them accumulate in the working tree unprotected.
+*cookies.txt
+*_resp.txt

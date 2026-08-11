@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { db } from "@/lib/db";
 import { exercises } from "@/lib/db/schema";
 import { requireAdmin } from "@/lib/authz";
+import { isValidCategory } from "@/types/exercise";
 import { eq } from "drizzle-orm";
 
 export async function GET(_req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
@@ -18,6 +19,10 @@ export async function PUT(req: NextRequest, { params }: { params: Promise<{ id: 
   const { id } = await params;
   const body = await req.json();
   const { category, title, prompt, difficulty, config, choices, answer, explanation } = body;
+
+  if (category !== undefined && !isValidCategory(category)) {
+    return NextResponse.json({ error: "Invalid category" }, { status: 400 });
+  }
 
   const [updated] = await db
     .update(exercises)

@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect } from "react";
-import { getGuestToken } from "@/hooks/useLessonProgress";
+import { getOrCreateGuestToken } from "@/lib/guestSession";
 
 // Rendered (server-side gated) only on the exact exercise page load that
 // completes one full cycle through a lesson's linked practice package — see
@@ -11,7 +11,7 @@ export function PracticeCompletionTracker({ lessonId }: { lessonId: number }) {
     fetch("/api/lessons/progress", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ lessonId, sessionToken: getGuestToken(), kind: "practiced" }),
+      body: JSON.stringify({ lessonId, sessionToken: getOrCreateGuestToken(), kind: "practiced" }),
     }).catch(() => {});
   }, [lessonId]);
 

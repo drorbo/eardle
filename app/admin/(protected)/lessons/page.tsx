@@ -4,6 +4,7 @@ import Link from "next/link";
 import { getTopicsWithLessons } from "@/lib/db/lessons";
 import { NewTopicForm } from "@/components/admin/lesson/TopicManager";
 import { DeleteButton } from "@/components/admin/lesson/DeleteButton";
+import { getSectionForTopic, isTopicCategorized } from "@/lib/learn/pathSections";
 
 export default async function AdminLessonsPage() {
   const topics = await getTopicsWithLessons({ includeUnpublished: true });
@@ -22,7 +23,17 @@ export default async function AdminLessonsPage() {
             <section key={topic.id} className="p-4 rounded-xl bg-surface border border-border-subtle">
               <div className="flex items-start justify-between mb-3 gap-3">
                 <div>
-                  <h2 className="text-lg font-bold text-text">{topic.title}</h2>
+                  <h2 className="text-lg font-bold text-text flex items-center gap-2">
+                    {topic.title}
+                    {!isTopicCategorized(topic.slug) && (
+                      <span
+                        title={`Not in any curriculum tier — lands under "${getSectionForTopic(topic.slug)}" on the public Learning Path by default. Add its slug to lib/learn/pathSections.ts to place it deliberately.`}
+                        className="text-[10px] px-1.5 py-0.5 rounded-full bg-amber-100 text-amber-700 dark:bg-amber-950/50 dark:text-amber-300 font-normal cursor-help"
+                      >
+                        ⚠ uncategorized
+                      </span>
+                    )}
+                  </h2>
                   {topic.description && <p className="text-text-muted text-sm">{topic.description}</p>}
                 </div>
                 <div className="flex items-center gap-3 flex-shrink-0">

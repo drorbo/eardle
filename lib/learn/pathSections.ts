@@ -61,3 +61,11 @@ const SECTION_BY_TOPIC_SLUG = new Map<string, string>(
 export function getSectionForTopic(topicSlug: string): string {
   return SECTION_BY_TOPIC_SLUG.get(topicSlug) ?? PATH_SECTIONS[PATH_SECTIONS.length - 1].label;
 }
+
+// True only for topics this hardcoded map actually knows about — used to
+// warn admins that a newly-created topic is landing in the fallback tier
+// silently rather than where they might expect (see the 2026-08-11 audit;
+// the underlying fallback behavior in getSectionForTopic is unchanged).
+export function isTopicCategorized(topicSlug: string): boolean {
+  return SECTION_BY_TOPIC_SLUG.has(topicSlug);
+}
