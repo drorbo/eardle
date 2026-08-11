@@ -64,6 +64,11 @@ export interface LessonSummary {
   topicSlug: string;
   topicTitle: string;
   published: boolean;
+  // Which topic this lesson assumes you've already covered — undefined only
+  // for detail views that don't need it; used by the Learning Path view to
+  // flag cross-topic jumps that aren't simply "the lesson right before this
+  // one" (see components/lesson/LearningPathView.tsx).
+  prerequisiteTopicId: number | null;
 }
 
 // A topic's nav category is derived from its lessons' practiceCategory (the
@@ -82,6 +87,17 @@ export interface TopicWithLessons {
   lessons: LessonSummary[];
 }
 
+// A lesson's linked "Practice what you've learned" package. A lesson can
+// have several (e.g. "Thirds", "Fourths & Fifths", "All Naturals" as three
+// separate packages) — `label` is shown as that package's button/card text;
+// an empty label means "the lesson's only package," rendered as a single
+// generic "Start Practicing" CTA rather than a named one.
+export interface PracticePackage {
+  label: string;
+  category: Category;
+  exerciseIds: number[];
+}
+
 export interface LessonDetail {
   id: number;
   slug: string;
@@ -93,8 +109,7 @@ export interface LessonDetail {
   prerequisiteTopicId: number | null;
   prerequisiteTopicSlug: string | null;
   prerequisiteTopicTitle: string | null;
-  practiceCategory: Category | null;
-  practiceExerciseIds: number[] | null;
+  practicePackages: PracticePackage[];
   body: LessonBlock[];
   published: boolean;
 }

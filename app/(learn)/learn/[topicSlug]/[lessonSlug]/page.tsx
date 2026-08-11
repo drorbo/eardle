@@ -6,6 +6,14 @@ import type { Metadata } from "next";
 import { getLessonDetail, getOrderedLessonSequence } from "@/lib/db/lessons";
 import { LessonBlocks } from "@/components/lesson/LessonBlocks";
 import { LessonProgressPanel } from "@/components/lesson/LessonProgressPanel";
+import { LessonPathStrip } from "@/components/lesson/LessonPathStrip";
+import { getSectionForTopic } from "@/lib/learn/pathSections";
+import { CATEGORY_META } from "@/types/exercise";
+import type { PracticePackage } from "@/types/lesson";
+
+function practiceHref(lessonId: number, pkg: PracticePackage): string {
+  return `/${pkg.category}/practice?ids=${pkg.exerciseIds.join(",")}&lessonId=${lessonId}`;
+}
 
 interface Props {
   params: Promise<{ topicSlug: string; lessonSlug: string }>;
@@ -31,11 +39,6 @@ export default async function LessonPage({ params }: Props) {
   const prev = idx > 0 ? sequence[idx - 1] : null;
   const next = idx >= 0 && idx < sequence.length - 1 ? sequence[idx + 1] : null;
 
-  const practiceHref =
-    lesson.practiceCategory && lesson.practiceExerciseIds && lesson.practiceExerciseIds.length > 0
-      ? `/${lesson.practiceCategory}/practice?ids=${lesson.practiceExerciseIds.join(",")}&lessonId=${lesson.id}`
-      : null;
-
   // sequence is already fetched above for prev/next — reuse it to find the
   // prerequisite topic's own first lesson, instead of just linking to the
   // generic overview and making the reader hunt for it themselves.
@@ -46,13 +49,17 @@ export default async function LessonPage({ params }: Props) {
 
   return (
     <div className="max-w-2xl pb-20">
-      <div className="mb-6 flex items-center gap-3 flex-wrap text-sm">
+      <div className="mb-4 flex items-center gap-3 flex-wrap text-sm">
         <Link href="/learn" className="text-text-subtle hover:text-text-secondary transition">
           ← Learn
         </Link>
         <span className="text-text-faint">·</span>
         <span className="text-text-muted">{lesson.topicTitle}</span>
       </div>
+
+      {idx >= 0 && (
+        <LessonPathStrip n={idx + 1} total={sequence.length} section={getSectionForTopic(lesson.topicSlug)} />
+      )}
 
       <h1 className="text-2xl sm:text-3xl font-bold text-text mb-2">{lesson.title}</h1>
 
@@ -67,22 +74,39 @@ export default async function LessonPage({ params }: Props) {
 
       <LessonBlocks blocks={lesson.body} />
 
-      {practiceHref ? (
+      {lesson.practicePackages.length === 0 ? (
+        <p className="mt-8 text-center text-xs text-text-faint italic">
+          This lesson is a concept primer — no dedicated practice exercises yet.
+        </p>
+      ) : lesson.practicePackages.length === 1 && !lesson.practicePackages[0].label ? (
         <div className="mt-8 p-5 rounded-2xl bg-surface border border-border-subtle surface-elevated text-center">
           <p className="text-xs font-semibold uppercase tracking-widest text-text-subtle mb-2">
             Practice what you&apos;ve learned
           </p>
           <Link
-            href={practiceHref}
+            href={practiceHref(lesson.id, lesson.practicePackages[0])}
             className="inline-block px-6 py-3 rounded-xl bg-indigo-600 hover:bg-indigo-500 text-white font-semibold transition"
           >
             Start Practicing →
           </Link>
         </div>
       ) : (
-        <p className="mt-8 text-center text-xs text-text-faint italic">
-          This lesson is a concept primer — no dedicated practice exercises yet.
-        </p>
+        <div className="mt-8 p-5 rounded-2xl bg-surface border border-border-subtle surface-elevated text-center">
+          <p className="text-xs font-semibold uppercase tracking-widest text-text-subtle mb-3">
+            Practice what you&apos;ve learned
+          </p>
+          <div className="flex flex-wrap justify-center gap-2">
+            {lesson.practicePackages.map((pkg, i) => (
+              <Link
+                key={i}
+                href={practiceHref(lesson.id, pkg)}
+                className="inline-block px-5 py-2.5 rounded-xl bg-indigo-600 hover:bg-indigo-500 text-white font-semibold text-sm transition"
+              >
+                {pkg.label || CATEGORY_META[pkg.category].label} →
+              </Link>
+            ))}
+          </div>
+        </div>
       )}
 
       <LessonProgressPanel lessonId={lesson.id} topicId={lesson.topicId} prev={prev} next={next} />

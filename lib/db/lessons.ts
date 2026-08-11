@@ -1,8 +1,11 @@
-import { and, asc, eq, inArray } from "drizzle-orm";
+import { asc, eq, inArray, or, and } from "drizzle-orm";
 import { db } from "@/lib/db";
 import { topics, lessons, exercises } from "@/lib/db/schema";
-import type { Category } from "@/types/exercise";
-import type { LessonBlock, LessonDetail, LessonSummary, NavCategoryId, TopicWithLessons } from "@/types/lesson";
+import type { LessonBlock, LessonDetail, LessonSummary, NavCategoryId, PracticePackage, TopicWithLessons } from "@/types/lesson";
+
+function parsePracticePackages(raw: string | null): PracticePackage[] {
+  return raw ? (JSON.parse(raw) as PracticePackage[]) : [];
+}
 
 /**
  * All topics, each with its lessons, both in suggested-path order.
@@ -32,10 +35,12 @@ export async function getTopicsWithLessons(options?: { includeUnpublished?: bool
       topicSlug: topic.slug,
       topicTitle: topic.title,
       published: l.published,
+      prerequisiteTopicId: l.prerequisiteTopicId,
     });
     byTopic.set(l.topicId, list);
-    if (!categoryByTopic.has(l.topicId) && l.practiceCategory) {
-      categoryByTopic.set(l.topicId, l.practiceCategory as Category);
+    if (!categoryByTopic.has(l.topicId)) {
+      const firstPackage = parsePracticePackages(l.practicePackages)[0];
+      if (firstPackage) categoryByTopic.set(l.topicId, firstPackage.category);
     }
   }
 
@@ -72,8 +77,7 @@ function toLessonDetail(
     prerequisiteTopicId: lesson.prerequisiteTopicId,
     prerequisiteTopicSlug: prereq?.slug ?? null,
     prerequisiteTopicTitle: prereq?.title ?? null,
-    practiceCategory: (lesson.practiceCategory as Category | null) ?? null,
-    practiceExerciseIds: lesson.practiceExerciseIds ? (JSON.parse(lesson.practiceExerciseIds) as number[]) : null,
+    practicePackages: parsePracticePackages(lesson.practicePackages),
     body: JSON.parse(lesson.body) as LessonBlock[],
     published: lesson.published,
   };
@@ -91,20 +95,31 @@ export async function getLessonDetail(topicSlug: string, lessonSlug: string): Pr
     : undefined;
 
   const detail = toLessonDetail(lesson, topic, prereq);
-  if (detail.practiceCategory && detail.practiceExerciseIds?.length) {
+  if (detail.practicePackages.length > 0) {
     // Lessons reference exercises by id, authored in whichever database they
     // were written against — a prod/dev id drift (different seed history)
     // leaves stale ids that 404 the practice picker into its "build a
     // custom package" fallback instead of playing. Filtering to only the
-    // ids that actually exist here keeps the CTA (and the click-through)
-    // honest about what this environment can actually play.
+    // ids that actually exist here (per package's own category) keeps each
+    // CTA honest about what this environment can actually play; a package
+    // left with zero valid ids is dropped entirely.
     const validRows = await db
-      .select({ id: exercises.id })
+      .select({ id: exercises.id, category: exercises.category })
       .from(exercises)
-      .where(and(eq(exercises.category, detail.practiceCategory), inArray(exercises.id, detail.practiceExerciseIds)));
-    const validIds = new Set(validRows.map((r) => r.id));
-    const filtered = detail.practiceExerciseIds.filter((id) => validIds.has(id));
-    detail.practiceExerciseIds = filtered.length > 0 ? filtered : null;
+      .where(
+        or(
+          ...detail.practicePackages.map((p) => and(eq(exercises.category, p.category), inArray(exercises.id, p.exerciseIds)))
+        )
+      );
+    const validIdsByCategory = new Map<string, Set<number>>();
+    for (const row of validRows) {
+      const set = validIdsByCategory.get(row.category) ?? new Set<number>();
+      set.add(row.id);
+      validIdsByCategory.set(row.category, set);
+    }
+    detail.practicePackages = detail.practicePackages
+      .map((p) => ({ ...p, exerciseIds: p.exerciseIds.filter((id) => validIdsByCategory.get(p.category)?.has(id)) }))
+      .filter((p) => p.exerciseIds.length > 0);
   }
   return detail;
 }

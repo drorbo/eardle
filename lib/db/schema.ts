@@ -167,13 +167,13 @@ export const lessons = pgTable("lessons", {
   // Informational only — shown as a link on the lesson page, never enforced
   // (the "free browse, nothing locked" navigation decision).
   prerequisiteTopicId: integer("prerequisite_topic_id").references(() => topics.id, { onDelete: "set null" }),
-  // A lesson's linked "Practice what you've learned" package — fully optional.
-  // Mirrors the existing Custom Package URL shape (category + exercise ids),
-  // just persisted here instead of only living in a URL querystring.
-  practiceCategory: text("practice_category", {
-    enum: ["note", "interval", "chord", "progression", "scale"],
-  }),
-  practiceExerciseIds: text("practice_exercise_ids"), // JSON int[] string, nullable
+  // A lesson's linked "Practice what you've learned" packages — fully optional,
+  // and there can be more than one (e.g. a lesson covering several interval
+  // qualities can link "Thirds", "Fourths & Fifths", and "All Naturals"
+  // separately). Each package mirrors the existing Custom Package URL shape
+  // (category + exercise ids) plus a label. JSON array string, nullable:
+  // { label: string; category: Category; exerciseIds: number[] }[]
+  practicePackages: text("practice_packages"),
   // Ordered array of content blocks: {type: "text"|"audioExample"|"tip"|"commonMistake"|"summary", ...}
   body: text("body").notNull().default("[]"),
   blockSchemaVersion: integer("block_schema_version").notNull().default(1),

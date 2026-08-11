@@ -1,0 +1,3 @@
+UPDATE "lessons" SET "practice_packages" = json_build_array(json_build_object('label', '', 'category', "practice_category", 'exerciseIds', "practice_exercise_ids"::json))::text WHERE "practice_packages" IS NULL AND "practice_category" IS NOT NULL;--> statement-breakpoint
+ALTER TABLE "lessons" DROP COLUMN "practice_category";--> statement-breakpoint
+ALTER TABLE "lessons" DROP COLUMN "practice_exercise_ids";

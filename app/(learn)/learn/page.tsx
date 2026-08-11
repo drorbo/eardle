@@ -1,7 +1,7 @@
 export const dynamic = "force-dynamic";
 
 import { getTopicsWithLessons } from "@/lib/db/lessons";
-import { LearnOverviewClient } from "@/components/lesson/LearnOverviewClient";
+import { LearningPathView } from "@/components/lesson/LearningPathView";
 
 export const metadata = {
   title: "Learn — Eardle",
@@ -16,14 +16,14 @@ export default async function LearnOverviewPage() {
       <div className="mb-1.5 sm:mb-6">
         <h1 className="text-base sm:text-3xl font-bold text-text sm:mb-2">Learn</h1>
         <p className="text-text-muted text-[11px] sm:text-sm hidden sm:block">
-          Pick a subject below, or pick up where you left off.
+          Every lesson, in the order that builds on itself.
         </p>
       </div>
 
       {topics.length === 0 ? (
         <p className="text-text-subtle text-sm">No lessons published yet — check back soon.</p>
       ) : (
-        <LearnOverviewClient topics={topics} />
+        <LearningPathView topics={topics} />
       )}
     </div>
   );

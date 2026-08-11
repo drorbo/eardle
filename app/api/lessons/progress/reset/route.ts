@@ -4,18 +4,24 @@ import { db } from "@/lib/db";
 import { lessonProgress, lessons } from "@/lib/db/schema";
 import { and, eq, inArray, isNull } from "drizzle-orm";
 
-// POST: "Mark as uncompleted" — nulls out viewed/practiced for one lesson, or
-// for every lesson in a topic (bulk), for the current identity only.
+// POST: nulls out viewed/practiced for one lesson, or for every lesson in a
+// topic (bulk), for the current identity only. Pass `field` to null only
+// that one flag instead of both — used by the lesson page's "Mark as in
+// progress" button, which un-does completion (clears practicedAt) without
+// also forgetting the lesson was ever viewed.
 export async function POST(req: NextRequest) {
   const body = await req.json();
-  const { lessonId, topicId, sessionToken } = body as {
+  const { lessonId, topicId, sessionToken, field } = body as {
     lessonId?: number;
     topicId?: number;
     sessionToken?: string | null;
+    field?: "viewed" | "practiced";
   };
   if (!lessonId && !topicId) {
     return NextResponse.json({ error: "Provide lessonId or topicId" }, { status: 400 });
   }
+  const updates =
+    field === "viewed" ? { viewedAt: null } : field === "practiced" ? { practicedAt: null } : { viewedAt: null, practicedAt: null };
 
   const session = await auth();
   const userId = session?.user?.id ? parseInt(session.user.id) : null;
@@ -33,7 +39,7 @@ export async function POST(req: NextRequest) {
   if (lessonId) {
     await db
       .update(lessonProgress)
-      .set({ viewedAt: null, practicedAt: null, updatedAt: now })
+      .set({ ...updates, updatedAt: now })
       .where(and(eq(lessonProgress.lessonId, lessonId), identityCondition));
   } else if (topicId) {
     const topicLessons = await db.select({ id: lessons.id }).from(lessons).where(eq(lessons.topicId, topicId));
@@ -41,7 +47,7 @@ export async function POST(req: NextRequest) {
     if (ids.length > 0) {
       await db
         .update(lessonProgress)
-        .set({ viewedAt: null, practicedAt: null, updatedAt: now })
+        .set({ ...updates, updatedAt: now })
         .where(and(inArray(lessonProgress.lessonId, ids), identityCondition));
     }
   }

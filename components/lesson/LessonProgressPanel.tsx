@@ -15,7 +15,7 @@ interface Props {
 
 export function LessonProgressPanel({ lessonId, topicId, prev, next }: Props) {
   const { progress } = useLessonProgress();
-  const [resetting, setResetting] = useState(false);
+  const [busy, setBusy] = useState(false);
 
   // Mark viewed on every visit — the API only sets the timestamp once, so
   // this is a harmless no-op after the first time.
@@ -28,20 +28,53 @@ export function LessonProgressPanel({ lessonId, topicId, prev, next }: Props) {
   }, [lessonId]);
 
   async function resetProgress(scope: "lesson" | "topic") {
-    setResetting(true);
+    setBusy(true);
     try {
       await fetch("/api/lessons/progress/reset", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(
-          scope === "lesson"
-            ? { lessonId, sessionToken: getGuestToken() }
-            : { topicId, sessionToken: getGuestToken() }
+          scope === "lesson" ? { lessonId, sessionToken: getGuestToken() } : { topicId, sessionToken: getGuestToken() }
         ),
       });
       location.reload();
     } catch {
-      setResetting(false);
+      setBusy(false);
+    }
+  }
+
+  // A lesson is "completed" once it's both viewed and practiced — viewed
+  // fires automatically above, practiced normally fires after a full lap of
+  // the linked practice package (see PracticeCompletionTracker). This button
+  // is the manual override for lessons finished a different way (no linked
+  // practice, or the user just wants to flag it done by hand).
+  async function markFinished() {
+    setBusy(true);
+    try {
+      await fetch("/api/lessons/progress", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ lessonId, sessionToken: getGuestToken(), kind: "practiced" }),
+      });
+      location.reload();
+    } catch {
+      setBusy(false);
+    }
+  }
+
+  // Undoes "completed" back to "in progress" — clears only practicedAt, not
+  // viewedAt, so the lesson doesn't fall all the way back to "not started".
+  async function markInProgress() {
+    setBusy(true);
+    try {
+      await fetch("/api/lessons/progress/reset", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ lessonId, sessionToken: getGuestToken(), field: "practiced" }),
+      });
+      location.reload();
+    } catch {
+      setBusy(false);
     }
   }
 
@@ -55,46 +88,75 @@ export function LessonProgressPanel({ lessonId, topicId, prev, next }: Props) {
           <StatusDot status={current} />
           {current?.completed ? "Completed" : current?.viewed || current?.practiced ? "In progress" : "Not started"}
         </span>
-        {canReset && (
-          <span className="flex items-center gap-3">
+
+        <span className="flex items-center gap-2 flex-wrap">
+          {!current?.completed && (
             <button
-              onClick={() => resetProgress("lesson")}
-              disabled={resetting}
-              className="text-xs text-text-faint hover:text-text-subtle transition underline underline-offset-2 disabled:opacity-50"
+              onClick={markFinished}
+              disabled={busy}
+              className="text-xs font-semibold px-2.5 py-1 rounded-full border border-emerald-400/60 bg-emerald-50 dark:bg-emerald-950/50 text-emerald-700 dark:text-emerald-300 hover:bg-emerald-100 dark:hover:bg-emerald-900/60 transition disabled:opacity-50"
             >
-              Reset progress
+              ✓ Mark as finished
             </button>
+          )}
+          {current?.completed && (
             <button
-              onClick={() => resetProgress("topic")}
-              disabled={resetting}
-              className="text-xs text-text-faint hover:text-text-subtle transition underline underline-offset-2 disabled:opacity-50"
+              onClick={markInProgress}
+              disabled={busy}
+              className="text-xs font-semibold px-2.5 py-1 rounded-full border border-amber-400/60 bg-amber-50 dark:bg-amber-950/50 text-amber-700 dark:text-amber-300 hover:bg-amber-100 dark:hover:bg-amber-900/60 transition disabled:opacity-50"
             >
-              Reset topic progress
+              ↺ Mark as in progress
             </button>
-          </span>
-        )}
+          )}
+          {canReset && (
+            <>
+              <button
+                onClick={() => resetProgress("lesson")}
+                disabled={busy}
+                className="text-xs text-text-faint hover:text-text-subtle transition underline underline-offset-2 disabled:opacity-50"
+              >
+                Reset progress
+              </button>
+              <button
+                onClick={() => resetProgress("topic")}
+                disabled={busy}
+                className="text-xs text-text-faint hover:text-text-subtle transition underline underline-offset-2 disabled:opacity-50"
+              >
+                Reset topic progress
+              </button>
+            </>
+          )}
+        </span>
       </div>
 
-      <div className="flex items-center justify-between gap-3 border-t border-border-subtle pt-6">
+      <div className="flex items-stretch gap-3 border-t border-border-subtle pt-6">
         {prev ? (
           <Link
             href={`/learn/${prev.topicSlug}/${prev.slug}`}
-            className="flex items-center gap-2 text-sm text-text-subtle hover:text-text-secondary transition"
+            className="flex-1 min-w-0 flex items-center gap-2 px-4 py-3 rounded-xl border border-border-subtle bg-surface hover:bg-surface-2 hover:border-border transition"
           >
-            <StatusDot status={progress[prev.id]} /> ← {prev.title}
+            <StatusDot status={progress[prev.id]} />
+            <span className="flex flex-col min-w-0 text-left">
+              <span className="text-[10px] uppercase tracking-wide text-text-faint">Previous</span>
+              <span className="text-sm font-semibold text-text truncate">← {prev.title}</span>
+            </span>
           </Link>
         ) : (
-          <span />
+          <div className="flex-1" />
         )}
         {next ? (
           <Link
             href={`/learn/${next.topicSlug}/${next.slug}`}
-            className="flex items-center gap-2 text-sm font-semibold text-text hover:text-indigo-400 transition"
+            className="flex-1 min-w-0 flex items-center justify-end gap-2 px-4 py-3 rounded-xl border border-border-subtle bg-surface hover:bg-surface-2 hover:border-border transition"
           >
-            <StatusDot status={progress[next.id]} /> {next.title} →
+            <span className="flex flex-col min-w-0 text-right">
+              <span className="text-[10px] uppercase tracking-wide text-text-faint">Next</span>
+              <span className="text-sm font-semibold text-text truncate">{next.title} →</span>
+            </span>
+            <StatusDot status={progress[next.id]} />
           </Link>
         ) : (
-          <span />
+          <div className="flex-1" />
         )}
       </div>
     </div>

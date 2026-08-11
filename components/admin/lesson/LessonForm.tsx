@@ -28,6 +28,83 @@ function slugify(s: string): string {
     .replace(/^-+|-+$/g, "");
 }
 
+let packageKeySeq = 0;
+function nextPackageKey(): string {
+  packageKeySeq += 1;
+  return `pkg-${packageKeySeq}`;
+}
+
+interface PackageRow {
+  key: string;
+  label: string;
+  category: Category | "";
+  selectedIds: Set<number>;
+}
+
+function PracticePackageRow({
+  row,
+  onChange,
+  onRemove,
+}: {
+  row: PackageRow;
+  onChange: (row: PackageRow) => void;
+  onRemove: () => void;
+}) {
+  const [exercises, setExercises] = useState<Exercise[]>([]);
+
+  useEffect(() => {
+    if (!row.category) {
+      setExercises([]);
+      return;
+    }
+    fetch(`/api/exercises?category=${row.category}`)
+      .then((r) => r.json())
+      .then(setExercises)
+      .catch(() => setExercises([]));
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [row.category]);
+
+  return (
+    <div className="p-3 rounded-lg bg-surface-2 border border-border-subtle space-y-3">
+      <div className="flex flex-wrap items-center gap-2">
+        <input
+          value={row.label}
+          onChange={(e) => onChange({ ...row, label: e.target.value })}
+          placeholder='Label (e.g. "Thirds") — leave blank if this is the only package'
+          className="field-input flex-1 min-w-[160px]"
+        />
+        <select
+          value={row.category}
+          onChange={(e) => onChange({ ...row, category: e.target.value as Category | "", selectedIds: new Set() })}
+          className="field-input w-auto"
+        >
+          <option value="">Category…</option>
+          {CATEGORIES.map((c) => (
+            <option key={c} value={c}>
+              {CATEGORY_META[c].label}
+            </option>
+          ))}
+        </select>
+        <button
+          type="button"
+          onClick={onRemove}
+          className="text-red-600 dark:text-red-400 hover:text-red-500 text-sm px-2"
+        >
+          Remove
+        </button>
+      </div>
+
+      {row.category && exercises.length > 0 && (
+        <ExercisePicker
+          exercises={exercises}
+          selected={row.selectedIds}
+          onChange={(next) => onChange({ ...row, selectedIds: next })}
+        />
+      )}
+    </div>
+  );
+}
+
 export function LessonForm({ topics, initial, defaultTopicId }: Props) {
   const router = useRouter();
   const [topicId, setTopicId] = useState(initial?.topicId ?? defaultTopicId ?? topics[0]?.id ?? 0);
@@ -41,25 +118,30 @@ export function LessonForm({ topics, initial, defaultTopicId }: Props) {
   const [published, setPublished] = useState(initial?.published ?? false);
   const [blocks, setBlocks] = useState<LessonBlock[]>(initial?.body ?? []);
 
-  const [practiceCategory, setPracticeCategory] = useState<Category | "">(initial?.practiceCategory ?? "");
-  const [practiceExercises, setPracticeExercises] = useState<Exercise[]>([]);
-  const [selectedExerciseIds, setSelectedExerciseIds] = useState<Set<number>>(
-    new Set(initial?.practiceExerciseIds ?? [])
+  const [packages, setPackages] = useState<PackageRow[]>(
+    () =>
+      initial?.practicePackages.map((p) => ({
+        key: nextPackageKey(),
+        label: p.label,
+        category: p.category,
+        selectedIds: new Set(p.exerciseIds),
+      })) ?? []
   );
 
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState("");
 
-  useEffect(() => {
-    if (!practiceCategory) {
-      setPracticeExercises([]);
-      return;
-    }
-    fetch(`/api/exercises?category=${practiceCategory}`)
-      .then((r) => r.json())
-      .then(setPracticeExercises)
-      .catch(() => setPracticeExercises([]));
-  }, [practiceCategory]);
+  function addPackage() {
+    setPackages((prev) => [...prev, { key: nextPackageKey(), label: "", category: "", selectedIds: new Set() }]);
+  }
+
+  function updatePackage(next: PackageRow) {
+    setPackages((prev) => prev.map((r) => (r.key === next.key ? next : r)));
+  }
+
+  function removePackage(key: string) {
+    setPackages((prev) => prev.filter((r) => r.key !== key));
+  }
 
   function handleTitleChange(value: string) {
     setTitle(value);
@@ -71,14 +153,17 @@ export function LessonForm({ topics, initial, defaultTopicId }: Props) {
     setError("");
     setSaving(true);
 
+    const practicePackages = packages
+      .filter((p): p is PackageRow & { category: Category } => !!p.category && p.selectedIds.size > 0)
+      .map((p) => ({ label: p.label.trim(), category: p.category, exerciseIds: [...p.selectedIds] }));
+
     const payload = {
       topicId,
       slug,
       title,
       sortOrder,
       prerequisiteTopicId,
-      practiceCategory: practiceCategory || null,
-      practiceExerciseIds: [...selectedExerciseIds],
+      practicePackages,
       body: blocks,
       published,
     };
@@ -182,33 +267,33 @@ export function LessonForm({ topics, initial, defaultTopicId }: Props) {
       </div>
 
       <div className="p-4 rounded-xl bg-surface border border-border-subtle">
-        <p className="text-xs font-semibold uppercase tracking-widest text-text-subtle mb-3">
-          Practice link (optional)
-        </p>
-        <label className="field-label">Category</label>
-        <select
-          value={practiceCategory}
-          onChange={(e) => {
-            setPracticeCategory(e.target.value as Category | "");
-            setSelectedExerciseIds(new Set());
-          }}
-          className="field-input mb-4"
-        >
-          <option value="">No linked practice</option>
-          {CATEGORIES.map((c) => (
-            <option key={c} value={c}>
-              {CATEGORY_META[c].label}
-            </option>
-          ))}
-        </select>
+        <div className="flex items-center justify-between mb-3">
+          <p className="text-xs font-semibold uppercase tracking-widest text-text-subtle">
+            Practice links (optional, can add several)
+          </p>
+          <button
+            type="button"
+            onClick={addPackage}
+            className="text-xs font-semibold text-indigo-500 hover:text-indigo-400 transition"
+          >
+            + Add package
+          </button>
+        </div>
 
-        {practiceCategory && practiceExercises.length > 0 && (
-          <ExercisePicker
-            exercises={practiceExercises}
-            selected={selectedExerciseIds}
-            onChange={setSelectedExerciseIds}
-          />
+        {packages.length === 0 && (
+          <p className="text-xs text-text-faint italic">No practice packages linked yet.</p>
         )}
+
+        <div className="space-y-3">
+          {packages.map((row) => (
+            <PracticePackageRow
+              key={row.key}
+              row={row}
+              onChange={updatePackage}
+              onRemove={() => removePackage(row.key)}
+            />
+          ))}
+        </div>
       </div>
 
       <label className="flex items-center gap-2 text-sm text-text-secondary">

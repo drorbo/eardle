@@ -27,7 +27,10 @@ export const LEARN_CATEGORY_ORDER: LearnCategoryMeta[] = [
     emoji: "🧱",
     colorClasses: "from-slate-300 to-slate-200 border-slate-400 hover:border-slate-500 dark:from-slate-700/70 dark:to-slate-600/40 dark:border-slate-500 dark:hover:border-slate-400",
   },
-  { id: "note", label: CATEGORY_META.note.label, emoji: CATEGORY_META.note.emoji, colorClasses: REAL_CATEGORY_COLORS.note },
+  // Relabeled from CATEGORY_META.note.label ("Note ID") for this context —
+  // that's exercise-picker language; here it's a subject-area tab, and
+  // "Notes & Pitch" reads better as a lessons grouping.
+  { id: "note", label: "Notes & Pitch", emoji: CATEGORY_META.note.emoji, colorClasses: REAL_CATEGORY_COLORS.note },
   { id: "interval", label: CATEGORY_META.interval.label, emoji: CATEGORY_META.interval.emoji, colorClasses: REAL_CATEGORY_COLORS.interval },
   { id: "chord", label: CATEGORY_META.chord.label, emoji: CATEGORY_META.chord.emoji, colorClasses: REAL_CATEGORY_COLORS.chord },
   { id: "progression", label: CATEGORY_META.progression.label, emoji: CATEGORY_META.progression.emoji, colorClasses: REAL_CATEGORY_COLORS.progression },

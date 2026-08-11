@@ -4,6 +4,7 @@ import { ExercisePlayerWrapper } from "./ExercisePlayerWrapper";
 import { ExerciseErrorBoundary } from "@/components/exercise/ErrorBoundary";
 import { SharePackageButton } from "@/components/exercise/SharePackageButton";
 import { PracticeCompletionTracker } from "@/components/lesson/PracticeCompletionTracker";
+import { LessonPracticeBanner } from "@/components/lesson/LessonPracticeBanner";
 import { getLessonById } from "@/lib/db/lessons";
 import { db } from "@/lib/db";
 import { exercises as exercisesTable } from "@/lib/db/schema";
@@ -86,18 +87,10 @@ export default async function ExercisePage({ params, searchParams }: Props) {
   return (
     <div className="min-h-screen bg-bg text-text">
       <div className="max-w-2xl mx-auto px-4 py-6 sm:py-16">
-        <div className="mb-8 flex items-center gap-3 flex-wrap">
+        <div className="mb-4 flex items-center gap-3 flex-wrap">
           <a href={`/${category}`} className="text-text-subtle hover:text-text-secondary text-sm transition">
             ← {CATEGORY_META[category as Category]?.label ?? category}
           </a>
-          {backToLessonHref && (
-            <a
-              href={backToLessonHref}
-              className="text-xs px-2 py-1 rounded-full bg-surface-2 border border-border-subtle text-text-secondary hover:border-border hover:text-text transition"
-            >
-              📖 Back to Lesson
-            </a>
-          )}
           {mode === "practice" && (
             <span className="text-xs px-2 py-1 rounded-full bg-indigo-50 text-indigo-700 dark:bg-indigo-900/60 dark:text-indigo-300">
               Practice Mode
@@ -105,6 +98,22 @@ export default async function ExercisePage({ params, searchParams }: Props) {
           )}
           {ids && <SharePackageButton category={category} ids={ids} />}
         </div>
+
+        {/* Only shown when this session was actually reached via a lesson's
+            "Start Practicing" link — linkedLesson is null for a bare
+            /[category]/practice session or a Custom Package session, and
+            backToLessonHref is additionally null if that lesson turned out
+            to be unpublished (so the link couldn't 404). Starts collapsed
+            to a single compact row so the exercise itself stays above the
+            fold on mobile. */}
+        {linkedLesson && backToLessonHref && (
+          <LessonPracticeBanner
+            href={backToLessonHref}
+            topicTitle={linkedLesson.topicTitle}
+            lessonTitle={linkedLesson.title}
+            lessonId={linkedLesson.id}
+          />
+        )}
 
         {lessonId && cycleJustCompleted && <PracticeCompletionTracker lessonId={Number(lessonId)} />}
 
