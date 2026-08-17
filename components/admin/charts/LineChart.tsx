@@ -16,6 +16,11 @@ interface LineChartProps {
   formatX?: (x: number) => string;
   /** Format a y value for the tooltip. */
   formatY?: (y: number) => string;
+  /** Set when this chart is rendered alongside a ChartCard `tableView` twin —
+   *  hides the SVG from assistive tech so screen readers land on the
+   *  accessible table instead of this redundant visual layer. Not wired up
+   *  by any caller yet; later tab-implementation tasks will pass it. */
+  hasTableTwin?: boolean;
 }
 
 const PADDING = { top: 12, right: 12, bottom: 24, left: 12 };
@@ -24,7 +29,7 @@ function defaultFormatX(x: number) {
   return new Date(x * 1000).toLocaleDateString(undefined, { month: "short", day: "numeric" });
 }
 
-export function LineChart({ series, height = 200, formatX = defaultFormatX, formatY = String }: LineChartProps) {
+export function LineChart({ series, height = 200, formatX = defaultFormatX, formatY = String, hasTableTwin = false }: LineChartProps) {
   const [hoverIndex, setHoverIndex] = useState<number | null>(null);
   const width = 600; // viewBox units; the svg scales to its container via CSS width:100%
 
@@ -64,6 +69,24 @@ export function LineChart({ series, height = 200, formatX = defaultFormatX, form
     setHoverIndex(nearest);
   }
 
+  function handleFocus() {
+    setHoverIndex(0);
+  }
+
+  function handleBlur() {
+    setHoverIndex(null);
+  }
+
+  function handleKeyDown(e: React.KeyboardEvent<SVGRectElement>) {
+    if (e.key !== "ArrowLeft" && e.key !== "ArrowRight") return;
+    e.preventDefault();
+    setHoverIndex((current) => {
+      const base = current ?? 0;
+      const next = e.key === "ArrowLeft" ? base - 1 : base + 1;
+      return Math.min(Math.max(next, 0), xTicks.length - 1);
+    });
+  }
+
   const hoverX = hoverIndex !== null ? xTicks[hoverIndex] : null;
 
   // Gridlines: 4 horizontal hairlines, evenly spaced, per the skill's
@@ -72,7 +95,7 @@ export function LineChart({ series, height = 200, formatX = defaultFormatX, form
 
   return (
     <div className="relative">
-      <svg viewBox={`0 0 ${width} ${height}`} className="w-full" style={{ height }}>
+      <svg viewBox={`0 0 ${width} ${height}`} className="w-full" style={{ height }} aria-hidden={hasTableTwin ? "true" : undefined}>
         {gridLines.map((y, i) => (
           <line key={i} x1={PADDING.left} x2={width - PADDING.right} y1={y} y2={y} stroke="var(--border-subtle)" strokeWidth={1} />
         ))}
@@ -93,8 +116,17 @@ export function LineChart({ series, height = 200, formatX = defaultFormatX, form
           width={plotW}
           height={plotH}
           fill="transparent"
+          tabIndex={0}
+          role="slider"
+          aria-label="Chart data — use arrow keys to explore"
+          aria-valuemin={0}
+          aria-valuemax={xTicks.length - 1}
+          aria-valuenow={hoverIndex ?? 0}
           onPointerMove={handleMove}
           onPointerLeave={() => setHoverIndex(null)}
+          onFocus={handleFocus}
+          onBlur={handleBlur}
+          onKeyDown={handleKeyDown}
         />
       </svg>
 

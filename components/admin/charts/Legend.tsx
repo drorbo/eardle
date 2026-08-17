@@ -1,6 +1,6 @@
 interface LegendItem {
   label: string;
-  color: string; // literal hex, e.g. "var(--chart-cat-note)" or a resolved hex
+  color: string; // a CSS color value — either a literal hex or a var(--...) reference
 }
 
 export function Legend({ items }: { items: LegendItem[] }) {

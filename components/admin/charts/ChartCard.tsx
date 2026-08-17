@@ -29,6 +29,7 @@ export function ChartCard({ title, description, tableView, children }: ChartCard
           <button
             type="button"
             onClick={() => setShowTable((v) => !v)}
+            aria-pressed={showTable}
             className={clsx(
               "flex-shrink-0 text-xs px-2 py-1 rounded-lg border transition",
               showTable
