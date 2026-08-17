@@ -2,7 +2,7 @@
 
 ## Server
 
-- **Host**: `158.69.1.14` — production, serving `https://eardle.com` (Cloudflare → nginx → Docker on this host).
+- **Host**: `57.129.12.248` — production, serving `https://eardle.com` (Cloudflare → nginx → Docker on this host).
 - **SSH user**: `ubuntu`
 - **SSH access**: key-based only. No password auth is ever used against this server — see "SSH access" below.
 - **Repo location on server**: `~/drorbo/eardle` (i.e. `/home/ubuntu/drorbo/eardle`), tracking the `main` branch.
@@ -31,7 +31,7 @@ whichever machine is doing the deploying, with a matching entry in
 
 ```
 Host eardle-prod
-    HostName 158.69.1.14
+    HostName 57.129.12.248
     User ubuntu
     IdentityFile ~/.ssh/eardle_deploy
     IdentitiesOnly yes

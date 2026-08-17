@@ -1,3 +1,4 @@
+import { cache } from "react";
 import { asc, eq, inArray, or, and } from "drizzle-orm";
 import { db } from "@/lib/db";
 import { topics, lessons, exercises } from "@/lib/db/schema";
@@ -37,8 +38,14 @@ function parsePracticePackages(raw: string | null): PracticePackage[] {
  * All topics, each with its lessons, both in suggested-path order.
  * Public callers only ever see published lessons; the admin lesson list
  * passes `includeUnpublished` to also see drafts.
+ *
+ * Wrapped in React's cache() so the (learn) layout's own call and
+ * getOrderedLessonSequence()'s internal call dedupe to one query pair per
+ * request instead of two (see the 2026-08-11 latency investigation).
  */
-export async function getTopicsWithLessons(options?: { includeUnpublished?: boolean }): Promise<TopicWithLessons[]> {
+export const getTopicsWithLessons = cache(async function getTopicsWithLessons(
+  options?: { includeUnpublished?: boolean }
+): Promise<TopicWithLessons[]> {
   const [topicRows, lessonRows] = await Promise.all([
     db.select().from(topics).orderBy(asc(topics.sortOrder)),
     options?.includeUnpublished
@@ -79,13 +86,13 @@ export async function getTopicsWithLessons(options?: { includeUnpublished?: bool
     category: categoryByTopic.get(t.id) ?? "fundamentals",
     lessons: byTopic.get(t.id) ?? [],
   }));
-}
+});
 
 /** The flattened "suggested path" — every published lesson, topic order then lesson order. */
-export async function getOrderedLessonSequence(): Promise<LessonSummary[]> {
+export const getOrderedLessonSequence = cache(async function getOrderedLessonSequence(): Promise<LessonSummary[]> {
   const topicsWithLessons = await getTopicsWithLessons();
   return topicsWithLessons.flatMap((t) => t.lessons);
-}
+});
 
 function toLessonDetail(
   lesson: typeof lessons.$inferSelect,
@@ -134,35 +141,57 @@ async function filterToValidExerciseIds(packages: PracticePackage[]): Promise<Pr
     .filter((p) => p.exerciseIds.length > 0);
 }
 
-export async function getLessonDetail(topicSlug: string, lessonSlug: string): Promise<LessonDetail | null> {
-  const [topic] = await db.select().from(topics).where(eq(topics.slug, topicSlug)).limit(1);
-  if (!topic) return null;
-
-  const [lesson] = await db.select().from(lessons).where(eq(lessons.slug, lessonSlug)).limit(1);
-  if (!lesson || lesson.topicId !== topic.id) return null;
-
-  const prereq = lesson.prerequisiteTopicId
-    ? (await db.select().from(topics).where(eq(topics.id, lesson.prerequisiteTopicId)).limit(1))[0]
-    : undefined;
-
-  const detail = toLessonDetail(lesson, topic, prereq);
-  detail.practicePackages = await filterToValidExerciseIds(detail.practicePackages);
-  return detail;
+// Prereq lookup and the exercise-validity filter both depend only on `lesson`
+// (not on each other), so they run in parallel rather than sequentially.
+async function resolvePrereqAndPackages(
+  lesson: typeof lessons.$inferSelect
+): Promise<[typeof topics.$inferSelect | undefined, PracticePackage[]]> {
+  return Promise.all([
+    lesson.prerequisiteTopicId
+      ? db
+          .select()
+          .from(topics)
+          .where(eq(topics.id, lesson.prerequisiteTopicId))
+          .limit(1)
+          .then((rows) => rows[0])
+      : Promise.resolve(undefined),
+    filterToValidExerciseIds(parsePracticePackages(lesson.practicePackages)),
+  ]);
 }
 
+// Wrapped in cache() so generateMetadata() and the page component's separate
+// calls (identical args, same request) share one query chain instead of
+// running it twice (see the 2026-08-11 latency investigation). Topic and
+// lesson lookups are independent (different tables, no shared dependency) and
+// run in parallel.
+export const getLessonDetail = cache(async function getLessonDetail(
+  topicSlug: string,
+  lessonSlug: string
+): Promise<LessonDetail | null> {
+  const [[topic], [lesson]] = await Promise.all([
+    db.select().from(topics).where(eq(topics.slug, topicSlug)).limit(1),
+    db.select().from(lessons).where(eq(lessons.slug, lessonSlug)).limit(1),
+  ]);
+  if (!topic || !lesson || lesson.topicId !== topic.id) return null;
+
+  const [prereq, practicePackages] = await resolvePrereqAndPackages(lesson);
+  const detail = toLessonDetail(lesson, topic, prereq);
+  detail.practicePackages = practicePackages;
+  return detail;
+});
+
 /** Admin edit form lookup — by id rather than slug pair. */
-export async function getLessonById(id: number): Promise<LessonDetail | null> {
+export const getLessonById = cache(async function getLessonById(id: number): Promise<LessonDetail | null> {
   const [lesson] = await db.select().from(lessons).where(eq(lessons.id, id)).limit(1);
   if (!lesson) return null;
 
-  const [topic] = await db.select().from(topics).where(eq(topics.id, lesson.topicId)).limit(1);
+  const [[topic], [prereq, practicePackages]] = await Promise.all([
+    db.select().from(topics).where(eq(topics.id, lesson.topicId)).limit(1),
+    resolvePrereqAndPackages(lesson),
+  ]);
   if (!topic) return null;
 
-  const prereq = lesson.prerequisiteTopicId
-    ? (await db.select().from(topics).where(eq(topics.id, lesson.prerequisiteTopicId)).limit(1))[0]
-    : undefined;
-
   const detail = toLessonDetail(lesson, topic, prereq);
-  detail.practicePackages = await filterToValidExerciseIds(detail.practicePackages);
+  detail.practicePackages = practicePackages;
   return detail;
-}
+});
