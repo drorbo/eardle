@@ -40,6 +40,36 @@
   --accent-hover-bg: rgb(124 58 237 / 0.6);
 }
 
+:root {
+  --chart-cat-scale: #10b981;
+  --chart-cat-chord: #f59e0b;
+  --chart-cat-interval: #14b8a6;
+  --chart-cat-progression: #f43f5e;
+  --chart-cat-note: #0ea5e9;
+  --chart-diff-easy: #10b981;
+  --chart-diff-medium: #f59e0b;
+  --chart-diff-hard: #f43f5e;
+  --chart-diff-jazz: #d946ef;
+  --chart-accent: #4f46e5;
+  --chart-good: #16a34a;
+  --chart-bad: #dc2626;
+}
+
+.dark {
+  --chart-cat-scale: #059669;
+  --chart-cat-chord: #d97706;
+  --chart-cat-interval: #0d9488;
+  --chart-cat-progression: #e11d48;
+  --chart-cat-note: #0284c7;
+  --chart-diff-easy: #059669;
+  --chart-diff-medium: #d97706;
+  --chart-diff-hard: #e11d48;
+  --chart-diff-jazz: #c026d3;
+  --chart-accent: #818cf8;
+  --chart-good: #4ade80;
+  --chart-bad: #f87171;
+}
+
 @theme inline {
   --color-bg: var(--bg);
   --color-surface: var(--surface);
@@ -55,6 +85,18 @@
   --color-accent-banner-border: var(--accent-banner-border);
   --color-accent-banner-text: var(--accent-banner-text);
   --color-accent-hover-bg: var(--accent-hover-bg);
+  --color-chart-cat-scale: var(--chart-cat-scale);
+  --color-chart-cat-chord: var(--chart-cat-chord);
+  --color-chart-cat-interval: var(--chart-cat-interval);
+  --color-chart-cat-progression: var(--chart-cat-progression);
+  --color-chart-cat-note: var(--chart-cat-note);
+  --color-chart-diff-easy: var(--chart-diff-easy);
+  --color-chart-diff-medium: var(--chart-diff-medium);
+  --color-chart-diff-hard: var(--chart-diff-hard);
+  --color-chart-diff-jazz: var(--chart-diff-jazz);
+  --color-chart-accent: var(--chart-accent);
+  --color-chart-good: var(--chart-good);
+  --color-chart-bad: var(--chart-bad);
 }
 
 body {
