@@ -33,9 +33,9 @@ export function IntervalConfig({ value, onChange }: Props) {
   return (
     <div className="space-y-4">
       <div>
-        <label className="label">Interval</label>
+        <label className="field-label">Interval</label>
         <select
-          className="input"
+          className="field-input"
           value={value.semitones}
           onChange={(e) => onChange({ ...value, semitones: Number(e.target.value) })}
         >
@@ -45,16 +45,16 @@ export function IntervalConfig({ value, onChange }: Props) {
         </select>
       </div>
       <div>
-        <label className="label">Play Mode</label>
-        <select className="input" value={value.playMode} onChange={(e) => onChange({ ...value, playMode: e.target.value as any })}>
+        <label className="field-label">Play Mode</label>
+        <select className="field-input" value={value.playMode} onChange={(e) => onChange({ ...value, playMode: e.target.value as any })}>
           <option value="harmonic">Harmonic (together)</option>
           <option value="melodic">Melodic (sequential)</option>
         </select>
       </div>
       <div>
-        <label className="label">Topic</label>
+        <label className="field-label">Topic</label>
         <select
-          className="input"
+          className="field-input"
           value={value.topic ?? ""}
           onChange={(e) => {
             const t = e.target.value;

@@ -23,8 +23,8 @@ export default async function EditExercise({ params }: Props) {
   return (
     <div className="overflow-y-auto flex-1">
       <div className="max-w-3xl mx-auto px-6 py-8">
-        <h1 className="text-2xl font-bold text-white mb-2">Edit Exercise</h1>
-        <p className="text-gray-400 text-sm mb-8">{exercise.title}</p>
+        <h1 className="text-2xl font-bold text-text mb-2">Edit Exercise</h1>
+        <p className="text-text-muted text-sm mb-8">{exercise.title}</p>
         <ExerciseForm initial={exercise} />
       </div>
     </div>

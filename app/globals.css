@@ -72,18 +72,8 @@ body {
   display: none;
 }
 
-/* Admin form utility classes — shared with admin panel, do not theme */
-.label {
-  @apply block text-sm font-medium text-gray-400 mb-1.5;
-}
-
-.input {
-  @apply w-full px-3 py-2.5 rounded-xl bg-gray-800 border border-gray-700 text-white
-         placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-indigo-500
-         text-sm;
-}
-
-/* Public form utility classes — theme-aware equivalents of .label/.input */
+/* Form utility classes, theme-aware — used by every form across the app,
+   admin panel included since the 2026-08-17 admin/public CSS token merge. */
 .field-label {
   @apply block text-sm font-medium text-text-muted mb-1.5;
 }

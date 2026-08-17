@@ -17,9 +17,9 @@ export function NoteConfig({ value, onChange }: Props) {
   return (
     <div className="space-y-4">
       <div>
-        <label className="label">Note</label>
+        <label className="field-label">Note</label>
         <select
-          className="input"
+          className="field-input"
           value={value.note ?? "C"}
           onChange={(e) => onChange({ ...value, note: e.target.value })}
         >
@@ -27,9 +27,9 @@ export function NoteConfig({ value, onChange }: Props) {
         </select>
       </div>
       <div>
-        <label className="label">Topic</label>
+        <label className="field-label">Topic</label>
         <select
-          className="input"
+          className="field-input"
           value={value.topic ?? ""}
           onChange={(e) => {
             const t = e.target.value;

@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import clsx from "clsx";
 import type { TheoryPlayback } from "@/hooks/useTheoryPlayback";
 import { PianoKeyboard } from "@/components/theory/PianoKeyboard";
 import { Staff } from "@/components/theory/Staff";
@@ -45,7 +46,7 @@ export function LessonPlaybackPanel({ playback }: { playback: TheoryPlayback }) 
               (⌃, "tap to open upward") and rotates to point down when
               expanded (inviting you to close it back down) — opposite of
               the old top panel's down-by-default chevron. */}
-          <span className={`inline-block transition-transform duration-200 ${expanded ? "rotate-180" : ""}`}>⌃</span>
+          <span className={clsx("inline-block transition-transform duration-200", expanded && "rotate-180")}>⌃</span>
         </button>
       </div>
 
@@ -56,7 +57,7 @@ export function LessonPlaybackPanel({ playback }: { playback: TheoryPlayback }) 
           transition has something to animate to/from — this is what
           makes the grid-rows technique work without measuring pixel
           heights in JS. */}
-      <div className={`grid transition-[grid-template-rows] duration-300 ease-out ${expanded ? "grid-rows-[1fr]" : "grid-rows-[0fr]"}`}>
+      <div className={clsx("grid transition-[grid-template-rows] duration-300 ease-out", expanded ? "grid-rows-[1fr]" : "grid-rows-[0fr]")}>
         <div className="overflow-hidden">
           <div className="px-3 pb-1 space-y-0.5 border-t border-border-subtle pt-0.5">
             {resolvedEvents.length > 0 ? (

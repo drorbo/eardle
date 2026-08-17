@@ -1,6 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useMemo, useRef } from "react";
+import clsx from "clsx";
 import { parseNote } from "@/lib/audio/theory";
 import { getDegreeColor } from "./palette";
 import type { Degree } from "@/lib/audio/lessonPlayback";
@@ -194,9 +195,11 @@ export function PianoKeyboard({
                 backgroundColor: color?.bg,
                 touchAction: "none",
               }}
-              className={`absolute top-0 flex items-end justify-center pb-1 rounded-b-lg border select-none
-                transition-transform duration-150
-                ${active ? "motion-safe:scale-[0.98] border-transparent" : "bg-white dark:bg-slate-200 border-border-subtle hover:bg-surface-2"}`}
+              className={clsx(
+                "absolute top-0 flex items-end justify-center pb-1 rounded-b-lg border select-none",
+                "transition-transform duration-150",
+                active ? "motion-safe:scale-[0.98] border-transparent" : "bg-white dark:bg-slate-200 border-border-subtle hover:bg-surface-2"
+              )}
             >
               {showLabels && (
                 <span
@@ -237,9 +240,11 @@ export function PianoKeyboard({
                   touchAction: "none",
                   zIndex: 2,
                 }}
-                className={`absolute top-0 flex items-end justify-center pb-1 rounded-b-md select-none
-                  transition-transform duration-150
-                  ${active ? "motion-safe:scale-[0.96]" : "bg-slate-900 dark:bg-slate-950 hover:bg-slate-800"}`}
+                className={clsx(
+                  "absolute top-0 flex items-end justify-center pb-1 rounded-b-md select-none",
+                  "transition-transform duration-150",
+                  active ? "motion-safe:scale-[0.96]" : "bg-slate-900 dark:bg-slate-950 hover:bg-slate-800"
+                )}
               >
                 {showLabels && (
                   <span

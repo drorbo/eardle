@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect } from "react";
+import clsx from "clsx";
 
 interface ModalProps {
   open: boolean;
@@ -51,7 +52,7 @@ export function Modal({ open, onClose, title, icon, topLeft, children }: ModalPr
           ✕
         </button>
         {(icon || title) && (
-          <div className={`flex flex-col items-center text-center gap-2 mb-4 ${topLeft ? "pt-20" : ""}`}>
+          <div className={clsx("flex flex-col items-center text-center gap-2 mb-4", topLeft && "pt-20")}>
             {icon}
             {title && <h2 className="text-lg font-bold text-text">{title}</h2>}
           </div>

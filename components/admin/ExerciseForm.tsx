@@ -2,7 +2,9 @@
 
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
-import { Category, Difficulty, Exercise } from "@/types/exercise";
+import clsx from "clsx";
+import { Category, Difficulty, Exercise, DIFFICULTY_HUE } from "@/types/exercise";
+import { HUES } from "@/lib/design/palette";
 import { INTERVAL_NAMES, NOTE_NAMES } from "@/lib/audio/theory";
 import { NoteConfig } from "./ConfigFields/NoteConfig";
 import { IntervalConfig } from "./ConfigFields/IntervalConfig";
@@ -102,8 +104,8 @@ export function ExerciseForm({ initial }: Props) {
     <form onSubmit={handleSubmit} className="space-y-6 max-w-2xl">
       {/* Category */}
       <div>
-        <label className="label">Category</label>
-        <select className="input" value={category} onChange={(e) => setCategory(e.target.value as Category)} disabled={!!initial}>
+        <label className="field-label">Category</label>
+        <select className="field-input" value={category} onChange={(e) => setCategory(e.target.value as Category)} disabled={!!initial}>
           <option value="note">Note Identification</option>
           <option value="interval">Intervals</option>
           <option value="chord">Chords</option>
@@ -114,26 +116,27 @@ export function ExerciseForm({ initial }: Props) {
 
       {/* Title */}
       <div>
-        <label className="label">Title</label>
-        <input className="input" value={title} onChange={(e) => setTitle(e.target.value)} required placeholder="e.g. Perfect 5th — C to G" />
+        <label className="field-label">Title</label>
+        <input className="field-input" value={title} onChange={(e) => setTitle(e.target.value)} required placeholder="e.g. Perfect 5th — C to G" />
       </div>
 
       {/* Prompt */}
       <div>
-        <label className="label">Prompt (question shown to user)</label>
-        <input className="input" value={prompt} onChange={(e) => setPrompt(e.target.value)} required />
+        <label className="field-label">Prompt (question shown to user)</label>
+        <input className="field-input" value={prompt} onChange={(e) => setPrompt(e.target.value)} required />
       </div>
 
       {/* Difficulty */}
       <div>
-        <label className="label">Difficulty</label>
+        <label className="field-label">Difficulty</label>
         <div className="flex gap-3">
           {(["easy", "medium", "hard", "jazz"] as Difficulty[]).map((d) => (
-            <label key={d} className={`flex-1 flex items-center justify-center py-3 rounded-xl border cursor-pointer capitalize font-medium text-sm transition ${
+            <label key={d} className={clsx(
+              "flex-1 flex items-center justify-center py-3 rounded-xl border cursor-pointer capitalize font-medium text-sm transition",
               difficulty === d
-                ? d === "jazz" ? "bg-amber-700 border-amber-500 text-white" : "bg-indigo-700 border-indigo-500 text-white"
-                : "bg-gray-800 border-gray-700 text-gray-400 hover:border-gray-600"
-            }`}>
+                ? clsx(HUES[DIFFICULTY_HUE[d]].fill, "border-transparent text-white")
+                : "bg-surface-2 border-border-subtle text-text-muted hover:border-border"
+            )}>
               <input type="radio" name="difficulty" value={d} checked={difficulty === d} onChange={() => setDifficulty(d)} className="sr-only" />
               {d}
             </label>
@@ -142,9 +145,9 @@ export function ExerciseForm({ initial }: Props) {
       </div>
 
       {/* Config fields */}
-      <div className="bg-gray-900 border border-gray-800 rounded-2xl p-5">
+      <div className="bg-surface border border-border-subtle rounded-2xl p-5">
         <div className="flex items-center justify-between mb-4">
-          <h3 className="text-sm font-semibold text-gray-300 uppercase tracking-wider">Audio Configuration</h3>
+          <h3 className="text-sm font-semibold text-text-secondary uppercase tracking-wider">Audio Configuration</h3>
           <button type="button" onClick={handlePreview} className="text-sm px-3 py-1.5 rounded-lg bg-indigo-900/60 hover:bg-indigo-800 text-indigo-300 transition">
             ▶ Preview
           </button>
@@ -158,39 +161,39 @@ export function ExerciseForm({ initial }: Props) {
 
       {/* Answer */}
       <div>
-        <label className="label">Correct Answer</label>
-        <input className="input" value={answer} onChange={(e) => setAnswer(e.target.value)} required placeholder="Must exactly match one of the choices" />
+        <label className="field-label">Correct Answer</label>
+        <input className="field-input" value={answer} onChange={(e) => setAnswer(e.target.value)} required placeholder="Must exactly match one of the choices" />
       </div>
 
       {/* Choices */}
       <div>
-        <label className="label">Answer Choices (one per line)</label>
+        <label className="field-label">Answer Choices (one per line)</label>
         <textarea
-          className="input font-mono h-36"
+          className="field-input font-mono h-36"
           value={choices.join("\n")}
           onChange={(e) => setChoices(e.target.value.split("\n").map((s) => s.trim()).filter(Boolean))}
         />
-        <p className="text-xs text-gray-500 mt-1">{choices.length} choices</p>
+        <p className="text-xs text-text-subtle mt-1">{choices.length} choices</p>
       </div>
 
       {/* Explanation */}
       <div>
-        <label className="label">Explanation (optional, shown after solving)</label>
+        <label className="field-label">Explanation (optional, shown after solving)</label>
         <textarea
-          className="input h-24"
+          className="field-input h-24"
           value={explanation}
           onChange={(e) => setExplanation(e.target.value)}
           placeholder="2-3 sentences, e.g. what the mode/chord/scale is and where it's used"
         />
       </div>
 
-      {error && <p className="text-red-400 text-sm">{error}</p>}
+      {error && <p className="text-red-600 dark:text-red-400 text-sm">{error}</p>}
 
       <div className="flex gap-3">
         <button type="submit" disabled={saving} className="px-6 py-3 rounded-xl bg-indigo-600 hover:bg-indigo-500 text-white font-semibold transition disabled:opacity-50">
           {saving ? "Saving…" : initial ? "Save Changes" : "Create Exercise"}
         </button>
-        <button type="button" onClick={() => router.back()} className="px-6 py-3 rounded-xl bg-gray-800 hover:bg-gray-700 text-white font-semibold transition">
+        <button type="button" onClick={() => router.back()} className="px-6 py-3 rounded-xl bg-surface-2 hover:bg-surface text-text font-semibold transition">
           Cancel
         </button>
       </div>

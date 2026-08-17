@@ -46,15 +46,15 @@ export function ScaleConfig({ value, onChange }: Props) {
   return (
     <div className="space-y-4">
       <div>
-        <label className="label">Scale Type</label>
-        <select className="input" value={value.type} onChange={(e) => onChange({ ...value, type: e.target.value })}>
+        <label className="field-label">Scale Type</label>
+        <select className="field-input" value={value.type} onChange={(e) => onChange({ ...value, type: e.target.value })}>
           {SCALE_OPTIONS.map((o) => <option key={o.value} value={o.value}>{o.label}</option>)}
         </select>
       </div>
       <div>
-        <label className="label">Topic</label>
+        <label className="field-label">Topic</label>
         <select
-          className="input"
+          className="field-input"
           value={value.topic ?? ""}
           onChange={(e) => {
             const t = e.target.value;

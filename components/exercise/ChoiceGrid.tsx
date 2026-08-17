@@ -1,5 +1,7 @@
 "use client";
 
+import clsx from "clsx";
+
 const FLAT_EQUIVALENT: Record<string, string> = {
   "C#": "C# / D♭",
   "D#": "D# / E♭",
@@ -50,14 +52,11 @@ export function ChoiceGrid({ choices, selected, answer, triedWrong, disabled, on
   }
 
   // 4-col grids drop to 3 cols on mobile for better tap targets
-  const gridClass =
-    cols === 4 ? "grid-cols-3 sm:grid-cols-4" :
-    cols === 3 ? "grid-cols-3" :
-                 "grid-cols-2";
+  const gridClass = cols === 4 ? "grid-cols-3 sm:grid-cols-4" : cols === 3 ? "grid-cols-3" : "grid-cols-2";
   const textAlign = cols >= 3 ? "text-center" : "text-left";
 
   return (
-    <div className={`grid ${gridClass} gap-2 w-full max-w-lg`}>
+    <div className={clsx("grid gap-2 w-full max-w-lg", gridClass)}>
       {choices.map((choice, i) => {
         const isTriedWrong = !answer && !!triedWrong?.includes(choice);
         return (
@@ -66,13 +65,14 @@ export function ChoiceGrid({ choices, selected, answer, triedWrong, disabled, on
           onClick={() => !disabled && !isTriedWrong && onSelect(choice)}
           disabled={disabled || isTriedWrong}
           aria-label={`Choice ${i + 1}: ${displayLabel(choice)}`}
-          className={`
-            relative px-3 py-3 sm:py-2 rounded-lg border text-sm font-medium
-            transition-all duration-150 active:scale-[0.97]
-            disabled:cursor-not-allowed focus:outline-none focus:ring-2 focus:ring-indigo-400
-            min-h-[44px]
-            ${textAlign} ${getStyle(choice)}
-          `}
+          className={clsx(
+            "relative px-3 py-3 sm:py-2 rounded-lg border text-sm font-medium",
+            "transition-all duration-150 active:scale-[0.97]",
+            "disabled:cursor-not-allowed focus:outline-none focus:ring-2 focus:ring-indigo-400",
+            "min-h-[44px]",
+            textAlign,
+            getStyle(choice)
+          )}
         >
           {i < 9 && (
             <span className="hidden sm:inline text-xs font-bold opacity-40 mr-1">{i + 1}</span>

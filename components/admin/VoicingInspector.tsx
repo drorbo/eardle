@@ -52,7 +52,7 @@ function VoicingStaff({ notes, label }: { notes: string[]; label: string }) {
         voice.draw(ctx, stave);
       } catch {
         if (ref.current)
-          ref.current.innerHTML = `<span class="text-gray-400 text-xs p-2 block">—</span>`;
+          ref.current.innerHTML = `<span class="text-text-muted text-xs p-2 block">—</span>`;
       }
     })();
 
@@ -62,8 +62,8 @@ function VoicingStaff({ notes, label }: { notes: string[]; label: string }) {
   return (
     <div className="flex flex-col items-center gap-1">
       <div ref={ref} className="w-full" />
-      <span className="text-xs font-medium text-gray-600">{label}</span>
-      <span className="text-xs text-gray-400 font-mono">
+      <span className="text-xs font-medium text-text-faint">{label}</span>
+      <span className="text-xs text-text-muted font-mono">
         {notes.map(noteLabel).join(" · ")}
       </span>
     </div>

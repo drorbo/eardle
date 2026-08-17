@@ -1,3 +1,5 @@
+import clsx from "clsx";
+
 interface Row {
   label: string;
   value: number;
@@ -18,9 +20,10 @@ export function GuessDistributionChart({ rows, showAsPercent }: Props) {
           <span className="w-6 text-text-muted shrink-0 font-mono">{r.label}</span>
           <div className="flex-1 bg-surface-2 rounded h-5 overflow-hidden">
             <div
-              className={`h-full rounded flex items-center justify-end px-1.5 text-[11px] font-semibold text-white transition-all duration-500 ${
+              className={clsx(
+                "h-full rounded flex items-center justify-end px-1.5 text-[11px] font-semibold text-white transition-all duration-500",
                 r.highlight ? "bg-indigo-500" : "bg-gray-500"
-              }`}
+              )}
               style={{ width: `${r.value > 0 ? Math.max(6, Math.round((r.value / max) * 100)) : 0}%` }}
             >
               {r.value > 0 && (showAsPercent ? `${r.value}%` : r.value)}

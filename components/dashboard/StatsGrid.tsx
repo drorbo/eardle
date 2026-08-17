@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import clsx from "clsx";
 import { CATEGORY_META, Category } from "@/types/exercise";
 
 interface CategoryStat {
@@ -132,11 +133,12 @@ export function StatsGrid({ byCategory, recentAttempts, streaks }: Props) {
                   <div className="flex items-center gap-3">
                     <span className="text-xs text-text-faint">{formatDate(a.createdAt)}</span>
                     <span
-                      className={`text-xs px-2 py-0.5 rounded-full font-medium ${
+                      className={clsx(
+                        "text-xs px-2 py-0.5 rounded-full font-medium",
                         a.correct
                           ? "bg-green-100 text-green-700 dark:bg-green-900/50 dark:text-green-400"
                           : "bg-red-100 text-red-700 dark:bg-red-900/50 dark:text-red-400"
-                      }`}
+                      )}
                     >
                       {a.correct ? "✓" : "✗"}
                     </span>

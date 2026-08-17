@@ -1,6 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useRef, useState } from "react";
+import clsx from "clsx";
 import { PianoKeyboard } from "@/components/theory/PianoKeyboard";
 import { audioEngine } from "@/lib/audio/engine";
 import type { Degree } from "@/lib/audio/lessonPlayback";
@@ -258,14 +259,16 @@ export function KeyboardPlayground() {
             role="switch"
             aria-checked={showLabels}
             onClick={() => setShowLabels((v) => !v)}
-            className={`w-10 h-6 rounded-full transition-colors relative shrink-0 ${
+            className={clsx(
+              "w-10 h-6 rounded-full transition-colors relative shrink-0",
               showLabels ? "bg-indigo-600" : "bg-surface-2 border border-border-subtle"
-            }`}
+            )}
           >
             <span
-              className={`absolute top-0.5 w-5 h-5 rounded-full bg-white shadow transition-[left] ${
+              className={clsx(
+                "absolute top-0.5 w-5 h-5 rounded-full bg-white shadow transition-[left]",
                 showLabels ? "left-[18px]" : "left-0.5"
-              }`}
+              )}
             />
           </button>
         </label>

@@ -1,4 +1,5 @@
 import { notFound } from "next/navigation";
+import clsx from "clsx";
 import { CATEGORY_META, CATEGORY_TOPICS, Category, Difficulty } from "@/types/exercise";
 import { db } from "@/lib/db";
 import { exercises as exercisesTable } from "@/lib/db/schema";
@@ -107,7 +108,7 @@ export default async function CategoryPage({ params }: Props) {
         </div>
       </div>
 
-      <div className={`grid gap-8 ${topics.length > 0 ? "lg:grid-cols-2" : "max-w-sm"}`}>
+      <div className={clsx("grid gap-8", topics.length > 0 ? "lg:grid-cols-2" : "max-w-sm")}>
 
         {/* ── By Difficulty ── */}
         <section>
@@ -119,9 +120,9 @@ export default async function CategoryPage({ params }: Props) {
               <a
                 key={d.id}
                 href={`/${cat}/practice?difficulty=${d.id}`}
-                className={`flex items-start gap-3 px-4 py-3 rounded-xl bg-surface border border-border-subtle ${d.hover} transition group`}
+                className={clsx("flex items-start gap-3 px-4 py-3 rounded-xl bg-surface border border-border-subtle transition group", d.hover)}
               >
-                <span className={`mt-[5px] flex-shrink-0 w-2 h-2 rounded-full ${d.dot}`} />
+                <span className={clsx("mt-[5px] flex-shrink-0 w-2 h-2 rounded-full", d.dot)} />
                 <div>
                   <span className="font-semibold text-text text-sm">{d.label}</span>
                   <p className="text-xs text-text-muted mt-0.5 leading-relaxed">
@@ -163,12 +164,12 @@ export default async function CategoryPage({ params }: Props) {
             <p className="text-xs font-semibold text-text-subtle uppercase tracking-widest mb-3">
               By Topic
             </p>
-            <div className={`grid ${topicCols} gap-2`}>
+            <div className={clsx("grid gap-2", topicCols)}>
               {topics.map((t) => (
                 <a
                   key={t.id}
                   href={`/${cat}/practice?topic=${t.id}`}
-                  className={`px-3 py-2.5 rounded-xl ${t.color} border border-white/10 transition`}
+                  className={clsx("px-3 py-2.5 rounded-xl border border-white/10 transition", t.color)}
                 >
                   <span className="font-semibold text-white text-sm block">{t.label}</span>
                   <span className="text-xs text-white/60 mt-0.5 block leading-relaxed">

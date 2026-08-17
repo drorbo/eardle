@@ -124,7 +124,7 @@ export function StaffNotation({ exercise }: { exercise: Exercise }) {
         }
       } catch {
         if (ref.current)
-          ref.current.innerHTML = `<span class="text-gray-400 text-sm p-3 block">Notation unavailable</span>`;
+          ref.current.innerHTML = `<span class="text-text-muted text-sm p-3 block">Notation unavailable</span>`;
       }
     })();
 

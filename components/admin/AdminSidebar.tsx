@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import clsx from "clsx";
 import { Suspense } from "react";
 import { usePathname, useSearchParams } from "next/navigation";
 import { CATEGORY_META, CATEGORY_TOPICS, Category } from "@/types/exercise";
@@ -32,10 +33,10 @@ function SidebarInner({ categoryCounts, topicCounts }: Props) {
   const total = categoryCounts.reduce((s, r) => s + r.count, 0);
 
   return (
-    <aside className="w-52 flex-shrink-0 bg-gray-900 border-r border-gray-800 flex flex-col h-full">
+    <aside className="w-52 flex-shrink-0 bg-surface border-r border-border-subtle flex flex-col h-full">
       {/* Brand */}
-      <div className="px-4 py-4 border-b border-gray-800">
-        <Link href="/" className="text-xs font-bold tracking-widest uppercase text-indigo-400">
+      <div className="px-4 py-4 border-b border-border-subtle">
+        <Link href="/" className="text-xs font-bold tracking-widest uppercase text-indigo-600 dark:text-indigo-400">
           🎧 Eardle Admin
         </Link>
       </div>
@@ -45,29 +46,27 @@ function SidebarInner({ categoryCounts, topicCounts }: Props) {
         {/* All */}
         <Link
           href="/admin/exercises"
-          className={`flex items-center justify-between px-3 py-2 rounded-lg text-xs transition ${
-            onExercises && !selCat
-              ? "bg-indigo-600 text-white"
-              : "text-gray-400 hover:text-white hover:bg-gray-800"
-          }`}
+          className={clsx(
+            "flex items-center justify-between px-3 py-2 rounded-lg text-xs transition",
+            onExercises && !selCat ? "bg-indigo-600 text-white" : "text-text-muted hover:text-text hover:bg-surface-2"
+          )}
         >
           <span>All Exercises</span>
-          <span className="opacity-50">{total}</span>
+          <span className="opacity-80">{total}</span>
         </Link>
 
         <Link
           href="/admin/lessons"
-          className={`flex items-center justify-between px-3 py-2 rounded-lg text-xs transition ${
-            pathname.startsWith("/admin/lessons")
-              ? "bg-indigo-600 text-white"
-              : "text-gray-400 hover:text-white hover:bg-gray-800"
-          }`}
+          className={clsx(
+            "flex items-center justify-between px-3 py-2 rounded-lg text-xs transition",
+            pathname.startsWith("/admin/lessons") ? "bg-indigo-600 text-white" : "text-text-muted hover:text-text hover:bg-surface-2"
+          )}
         >
           <span>🎓 Lessons</span>
         </Link>
 
         <div className="pt-3 pb-1 px-1">
-          <p className="text-[10px] font-semibold text-gray-600 uppercase tracking-widest">Categories</p>
+          <p className="text-[10px] font-semibold text-text-faint uppercase tracking-widest">Categories</p>
         </div>
 
         {CATEGORIES.map(cat => {
@@ -81,17 +80,16 @@ function SidebarInner({ categoryCounts, topicCounts }: Props) {
             <div key={cat}>
               <Link
                 href={catHref}
-                className={`flex items-center justify-between px-3 py-1.5 rounded-lg text-xs transition ${
-                  isCat && !selTopic
-                    ? "bg-gray-700 text-white"
-                    : "text-gray-300 hover:text-white hover:bg-gray-800"
-                }`}
+                className={clsx(
+                  "flex items-center justify-between px-3 py-1.5 rounded-lg text-xs transition",
+                  isCat && !selTopic ? "bg-surface-2 text-text" : "text-text-secondary hover:text-text hover:bg-surface-2"
+                )}
               >
                 <span className="flex items-center gap-1.5">
                   <span>{meta.emoji}</span>
                   <span>{meta.label}</span>
                 </span>
-                <span className="text-gray-600 text-[11px]">{count}</span>
+                <span className="text-text-faint text-[11px]">{count}</span>
               </Link>
 
               <div className="ml-5 mt-0.5 space-y-0.5">
@@ -104,14 +102,13 @@ function SidebarInner({ categoryCounts, topicCounts }: Props) {
                     <Link
                       key={t.id}
                       href={tHref}
-                      className={`flex items-center justify-between px-3 py-1 rounded-lg text-[11px] transition ${
-                        active
-                          ? "bg-indigo-600/50 text-indigo-200"
-                          : "text-gray-500 hover:text-gray-200 hover:bg-gray-800/60"
-                      }`}
+                      className={clsx(
+                        "flex items-center justify-between px-3 py-1 rounded-lg text-[11px] transition",
+                        active ? "bg-indigo-600/50 text-indigo-200" : "text-text-subtle hover:text-text-secondary hover:bg-surface-2/60"
+                      )}
                     >
                       <span className="capitalize">{t.label}</span>
-                      <span className="opacity-50">{tc}</span>
+                      <span className="opacity-80">{tc}</span>
                     </Link>
                   );
                 })}
@@ -122,37 +119,35 @@ function SidebarInner({ categoryCounts, topicCounts }: Props) {
       </nav>
 
       {/* Bottom */}
-      <div className="border-t border-gray-800 p-2 space-y-0.5">
+      <div className="border-t border-border-subtle p-2 space-y-0.5">
         <Link
           href="/admin/stats"
-          className={`flex items-center justify-between px-3 py-2 rounded-lg text-xs transition ${
-            pathname === "/admin/stats"
-              ? "bg-gray-700 text-white"
-              : "text-gray-400 hover:text-white hover:bg-gray-800"
-          }`}
+          className={clsx(
+            "flex items-center justify-between px-3 py-2 rounded-lg text-xs transition",
+            pathname === "/admin/stats" ? "bg-surface-2 text-text" : "text-text-muted hover:text-text hover:bg-surface-2"
+          )}
         >
           📊 Stats
         </Link>
         <Link
           href="/admin/feedback"
-          className={`flex items-center justify-between px-3 py-2 rounded-lg text-xs transition ${
-            pathname === "/admin/feedback"
-              ? "bg-gray-700 text-white"
-              : "text-gray-400 hover:text-white hover:bg-gray-800"
-          }`}
+          className={clsx(
+            "flex items-center justify-between px-3 py-2 rounded-lg text-xs transition",
+            pathname === "/admin/feedback" ? "bg-surface-2 text-text" : "text-text-muted hover:text-text hover:bg-surface-2"
+          )}
         >
           💬 Feedback
         </Link>
         <Link
           href="/admin/exercises/new"
-          className="flex items-center gap-1.5 px-3 py-2 rounded-lg text-xs text-indigo-400 hover:text-indigo-300 hover:bg-gray-800 transition"
+          className="flex items-center gap-1.5 px-3 py-2 rounded-lg text-xs text-indigo-500 hover:text-indigo-400 hover:bg-surface-2 transition"
         >
           + New Exercise
         </Link>
         <form action="/api/auth/signout" method="POST">
           <button
             type="submit"
-            className="w-full flex items-center px-3 py-2 rounded-lg text-xs text-gray-500 hover:text-gray-300 hover:bg-gray-800 transition text-left"
+            className="w-full flex items-center px-3 py-2 rounded-lg text-xs text-text-subtle hover:text-text-secondary hover:bg-surface-2 transition text-left"
           >
             Sign Out
           </button>
@@ -166,7 +161,7 @@ export function AdminSidebar(props: Props) {
   return (
     <Suspense
       fallback={
-        <aside className="w-52 flex-shrink-0 bg-gray-900 border-r border-gray-800" />
+        <aside className="w-52 flex-shrink-0 bg-surface border-r border-border-subtle" />
       }
     >
       <SidebarInner {...props} />

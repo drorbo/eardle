@@ -1,4 +1,5 @@
 import type { ChordType, ScaleType } from "@/lib/audio/theory";
+import type { Hue } from "@/lib/design/palette";
 
 export type { ChordType, ScaleType };
 export type Category = "note" | "interval" | "chord" | "progression" | "scale";
@@ -14,6 +15,15 @@ export function isValidCategory(value: unknown): value is Category {
 }
 
 export type Difficulty = "easy" | "medium" | "hard" | "jazz";
+// Shared with every admin difficulty badge (table/browser/detail/form) so the
+// hue mapping — and any future rebalancing of it — lives in exactly one
+// place, per the project's "grouping colors come from HUES" rule.
+export const DIFFICULTY_HUE: Record<Difficulty, Hue> = {
+  easy: "emerald",
+  medium: "amber",
+  hard: "rose",
+  jazz: "fuchsia",
+};
 export type ChordFamily = "major" | "minor" | "dominant" | "altered" | "suspended" | "diminished";
 
 export interface NoteConfig {

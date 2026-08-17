@@ -68,8 +68,8 @@ export function ChordConfig({ value, onChange }: Props) {
   return (
     <div className="space-y-4">
       <div>
-        <label className="label">Chord Type</label>
-        <select className="input" value={value.type} onChange={(e) => onChange({ ...value, type: e.target.value })}>
+        <label className="field-label">Chord Type</label>
+        <select className="field-input" value={value.type} onChange={(e) => onChange({ ...value, type: e.target.value })}>
           {groups.map((group) => (
             <optgroup key={group} label={group}>
               {CHORD_TYPE_OPTIONS.filter((o) => o.group === group).map((o) => (
@@ -80,9 +80,9 @@ export function ChordConfig({ value, onChange }: Props) {
         </select>
       </div>
       <div>
-        <label className="label">Topic</label>
+        <label className="field-label">Topic</label>
         <select
-          className="input"
+          className="field-input"
           value={value.topic ?? ""}
           onChange={(e) => {
             const t = e.target.value;
@@ -99,9 +99,9 @@ export function ChordConfig({ value, onChange }: Props) {
       </div>
       {value.topic === "inversions" && (
         <div>
-          <label className="label">Inversion</label>
+          <label className="field-label">Inversion</label>
           <select
-            className="input"
+            className="field-input"
             value={value.inversion ?? 0}
             onChange={(e) => onChange({ ...value, inversion: Number(e.target.value) })}
           >

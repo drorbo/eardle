@@ -10,19 +10,19 @@ const CATEGORY_ORDER: Category[] = ["note", "interval", "chord", "progression", 
 
 function StatCard({ label, value, sub }: { label: string; value: string; sub?: string }) {
   return (
-    <div className="bg-gray-800 border border-gray-700/50 rounded-xl p-4">
-      <p className="text-xs text-gray-500 uppercase tracking-wider mb-1">{label}</p>
-      <p className="text-2xl font-bold text-white">{value}</p>
-      {sub && <p className="text-xs text-gray-500 mt-0.5">{sub}</p>}
+    <div className="bg-surface-2 border border-border-subtle rounded-xl p-4">
+      <p className="text-xs text-text-subtle uppercase tracking-wider mb-1">{label}</p>
+      <p className="text-2xl font-bold text-text">{value}</p>
+      {sub && <p className="text-xs text-text-subtle mt-0.5">{sub}</p>}
     </div>
   );
 }
 
 function QuickStat({ label, value }: { label: string; value: string }) {
   return (
-    <div className="flex items-center justify-between py-2 border-b border-gray-700/50 last:border-0">
-      <span className="text-xs text-gray-400">{label}</span>
-      <span className="text-sm font-semibold text-white">{value}</span>
+    <div className="flex items-center justify-between py-2 border-b border-border-subtle last:border-0">
+      <span className="text-xs text-text-muted">{label}</span>
+      <span className="text-sm font-semibold text-text">{value}</span>
     </div>
   );
 }
@@ -88,7 +88,7 @@ export default async function AdminStatsPage() {
 
   return (
     <div className="p-6 max-w-5xl">
-      <h1 className="text-xl font-bold text-white mb-6">Usage Stats</h1>
+      <h1 className="text-xl font-bold text-text mb-6">Usage Stats</h1>
 
       {/* Row 1: key numbers */}
       <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 mb-6">
@@ -100,11 +100,11 @@ export default async function AdminStatsPage() {
 
       {/* Row 2: category table + overview */}
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-6">
-        <div className="bg-gray-800 border border-gray-700/50 rounded-xl p-4">
-          <h2 className="text-xs font-semibold text-gray-400 uppercase tracking-wider mb-3">By Category</h2>
+        <div className="bg-surface-2 border border-border-subtle rounded-xl p-4">
+          <h2 className="text-xs font-semibold text-text-muted uppercase tracking-wider mb-3">By Category</h2>
           <table className="w-full">
             <thead>
-              <tr className="text-[11px] text-gray-500">
+              <tr className="text-[11px] text-text-subtle">
                 <th className="text-left pb-2">Category</th>
                 <th className="text-right pb-2">Plays</th>
                 <th className="text-right pb-2">Accuracy</th>
@@ -118,12 +118,12 @@ export default async function AdminStatsPage() {
                 const acc = plays > 0 ? Math.round((correct / plays) * 100) : 0;
                 const meta = CATEGORY_META[cat];
                 return (
-                  <tr key={cat} className="border-t border-gray-700/40">
-                    <td className="py-2 text-xs text-gray-200">
+                  <tr key={cat} className="border-t border-border-subtle/60">
+                    <td className="py-2 text-xs text-text-secondary">
                       {meta.emoji} {meta.label}
                     </td>
-                    <td className="py-2 text-right text-xs text-gray-400">{plays.toLocaleString()}</td>
-                    <td className="py-2 text-right text-xs text-gray-400">
+                    <td className="py-2 text-right text-xs text-text-muted">{plays.toLocaleString()}</td>
+                    <td className="py-2 text-right text-xs text-text-muted">
                       {plays > 0 ? `${acc}%` : "—"}
                     </td>
                   </tr>
@@ -133,8 +133,8 @@ export default async function AdminStatsPage() {
           </table>
         </div>
 
-        <div className="bg-gray-800 border border-gray-700/50 rounded-xl p-4">
-          <h2 className="text-xs font-semibold text-gray-400 uppercase tracking-wider mb-3">Overview</h2>
+        <div className="bg-surface-2 border border-border-subtle rounded-xl p-4">
+          <h2 className="text-xs font-semibold text-text-muted uppercase tracking-wider mb-3">Overview</h2>
           <div className="mt-2">
             <QuickStat label="Unique Guest Users" value={uniqueGuestUsers.toLocaleString()} />
             <QuickStat
@@ -147,13 +147,13 @@ export default async function AdminStatsPage() {
       </div>
 
       {/* Row 3: top exercises */}
-      <div className="bg-gray-800 border border-gray-700/50 rounded-xl p-4">
-        <h2 className="text-xs font-semibold text-gray-400 uppercase tracking-wider mb-3">
+      <div className="bg-surface-2 border border-border-subtle rounded-xl p-4">
+        <h2 className="text-xs font-semibold text-text-muted uppercase tracking-wider mb-3">
           Top 10 Most Played
         </h2>
         <table className="w-full">
           <thead>
-            <tr className="text-[11px] text-gray-500">
+            <tr className="text-[11px] text-text-subtle">
               <th className="text-left pb-2 w-6">#</th>
               <th className="text-left pb-2">Exercise</th>
               <th className="text-left pb-2 hidden sm:table-cell">Category</th>
@@ -164,7 +164,7 @@ export default async function AdminStatsPage() {
           <tbody>
             {topExercises.length === 0 ? (
               <tr>
-                <td colSpan={5} className="py-6 text-center text-xs text-gray-600">
+                <td colSpan={5} className="py-6 text-center text-xs text-text-faint">
                   No exercise plays recorded yet
                 </td>
               </tr>
@@ -175,14 +175,14 @@ export default async function AdminStatsPage() {
                 const acc = plays > 0 ? Math.round((correct / plays) * 100) : 0;
                 const meta = CATEGORY_META[ex.category as Category];
                 return (
-                  <tr key={ex.id} className="border-t border-gray-700/40">
-                    <td className="py-2 text-xs text-gray-600">{i + 1}</td>
-                    <td className="py-2 text-xs text-gray-200">{ex.title}</td>
-                    <td className="py-2 text-xs text-gray-400 hidden sm:table-cell">
+                  <tr key={ex.id} className="border-t border-border-subtle/60">
+                    <td className="py-2 text-xs text-text-faint">{i + 1}</td>
+                    <td className="py-2 text-xs text-text-secondary">{ex.title}</td>
+                    <td className="py-2 text-xs text-text-muted hidden sm:table-cell">
                       {meta?.emoji} {meta?.label}
                     </td>
-                    <td className="py-2 text-right text-xs text-gray-400">{plays.toLocaleString()}</td>
-                    <td className="py-2 text-right text-xs text-gray-400">
+                    <td className="py-2 text-right text-xs text-text-muted">{plays.toLocaleString()}</td>
+                    <td className="py-2 text-right text-xs text-text-muted">
                       {plays > 0 ? `${acc}%` : "—"}
                     </td>
                   </tr>

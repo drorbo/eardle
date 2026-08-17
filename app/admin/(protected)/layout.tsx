@@ -35,7 +35,7 @@ export default async function AdminLayout({ children }: { children: React.ReactN
   const { categoryCounts, topicCounts } = await getCounts();
 
   return (
-    <div className="flex h-screen bg-gray-950 text-white overflow-hidden">
+    <div className="flex h-screen bg-bg text-text overflow-hidden">
       <AdminSidebar categoryCounts={categoryCounts} topicCounts={topicCounts} />
       <main className="flex-1 overflow-hidden flex flex-col min-w-0">
         {children}
