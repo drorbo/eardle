@@ -18,6 +18,7 @@ function StatCard({ label, value, sub }: { label: string; value: string; sub?: s
 }
 
 export async function OverviewTab() {
+  const nowSec = Math.floor(Date.now() / 1000);
   const [
     [totalRow],
     [todayRow],
@@ -27,19 +28,12 @@ export async function OverviewTab() {
     activeCounts,
   ] = await Promise.all([
     db.execute<{ count: number }>(sql`SELECT count(*)::int AS count FROM sessions`),
-    db.execute<{ count: number }>(sql`SELECT count(*)::int AS count FROM sessions WHERE created_at >= ${Math.floor(Date.now() / 1000) - (Math.floor(Date.now() / 1000) % 86400)}`),
+    db.execute<{ count: number }>(sql`SELECT count(*)::int AS count FROM sessions WHERE created_at >= ${nowSec - 86400}`),
     db.execute<{ count: number }>(sql`SELECT count(*)::int AS count FROM users`),
     db.execute<{ total: number; correct: number }>(sql`SELECT count(*)::int AS total, sum(correct::int)::int AS correct FROM sessions`),
     getDailyActiveActors(90),
     getActiveActorCounts(),
-  ]) as unknown as [
-    { count: number }[],
-    { count: number }[],
-    { count: number }[],
-    { total: number; correct: number }[],
-    Awaited<ReturnType<typeof getDailyActiveActors>>,
-    Awaited<ReturnType<typeof getActiveActorCounts>>,
-  ];
+  ]);
 
   const totalPlays = totalRow?.count ?? 0;
   const todayPlays = todayRow?.count ?? 0;
