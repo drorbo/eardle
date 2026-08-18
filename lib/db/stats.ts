@@ -296,7 +296,11 @@ export async function getTopicEngagement(): Promise<TopicEngagement[]> {
     GROUP BY topics.id, topics.title
     ORDER BY topics.sort_order
   `);
-  return rows as unknown as TopicEngagement[];
+  return (rows as unknown as { topic_title: string; views: number; completions: number }[]).map((r) => ({
+    topicTitle: r.topic_title,
+    views: r.views,
+    completions: r.completions,
+  }));
 }
 
 export interface LessonEngagementRow {
