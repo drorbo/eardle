@@ -36,7 +36,7 @@ function SidebarInner({ categoryCounts, topicCounts }: Props) {
     <aside className="w-52 flex-shrink-0 bg-surface border-r border-border-subtle flex flex-col h-full">
       {/* Brand */}
       <div className="px-4 py-4 border-b border-border-subtle">
-        <Link href="/" className="text-xs font-bold tracking-widest uppercase text-indigo-600 dark:text-indigo-400">
+        <Link href="/" className="text-xs font-bold tracking-widest uppercase text-indigo-600 dark:text-indigo-300">
           🎧 Eardle Admin
         </Link>
       </div>
@@ -140,7 +140,7 @@ function SidebarInner({ categoryCounts, topicCounts }: Props) {
         </Link>
         <Link
           href="/admin/exercises/new"
-          className="flex items-center gap-1.5 px-3 py-2 rounded-lg text-xs text-indigo-500 hover:text-indigo-400 hover:bg-surface-2 transition"
+          className="flex items-center gap-1.5 px-3 py-2 rounded-lg text-xs text-indigo-500 hover:text-indigo-400 dark:text-indigo-300 dark:hover:text-indigo-200 hover:bg-surface-2 transition"
         >
           + New Exercise
         </Link>

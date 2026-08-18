@@ -22,7 +22,7 @@ export function ChartCard({ title, description, tableView, children }: ChartCard
     <div className="bg-surface-2 border border-border-subtle rounded-xl p-4">
       <div className="flex items-start justify-between gap-3 mb-1">
         <div>
-          <h3 className="text-sm font-semibold text-text">{title}</h3>
+          <h2 className="text-sm font-semibold text-text">{title}</h2>
           {description && <p className="text-xs text-text-subtle mt-0.5">{description}</p>}
         </div>
         {tableView && (

@@ -21,7 +21,7 @@ export async function LearningPlatformTab() {
 
   return (
     <div className="space-y-6">
-      <div className="grid grid-cols-3 gap-4">
+      <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
         <StatCard label="Published Lessons" value={funnel.totalLessons.toLocaleString()} />
         <StatCard label="Viewed (not completed)" value={funnel.viewedOnly.toLocaleString()} />
         <StatCard label="Completed" value={funnel.completed.toLocaleString()} />

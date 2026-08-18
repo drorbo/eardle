@@ -40,14 +40,14 @@ export async function GrowthTab() {
 
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
         <div className="bg-surface-2 border border-border-subtle rounded-xl p-4">
-          <h3 className="text-xs font-semibold text-text-muted uppercase tracking-wider mb-3">Activity</h3>
+          <h2 className="text-xs font-semibold text-text-muted uppercase tracking-wider mb-3">Activity</h2>
           <QuickStat label="Daily Active Users" value={activeCounts.dau.toLocaleString()} />
           <QuickStat label="Weekly Active Users" value={activeCounts.wau.toLocaleString()} />
           <QuickStat label="Monthly Active Users" value={activeCounts.mau.toLocaleString()} />
           <QuickStat label="Stickiness (DAU/MAU)" value={`${activeCounts.stickiness}%`} />
         </div>
         <div className="bg-surface-2 border border-border-subtle rounded-xl p-4">
-          <h3 className="text-xs font-semibold text-text-muted uppercase tracking-wider mb-3">Signed-Up vs. Guest</h3>
+          <h2 className="text-xs font-semibold text-text-muted uppercase tracking-wider mb-3">Signed-Up vs. Guest</h2>
           <QuickStat label="Signed-Up Actors (all-time)" value={signedUpVsGuest.signedUp.toLocaleString()} />
           <QuickStat label="Guest Actors (all-time)" value={signedUpVsGuest.guest.toLocaleString()} />
         </div>

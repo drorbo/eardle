@@ -36,7 +36,7 @@ export function StatsTabs({ overview, growth, exercisePractice, dailyEardle, lea
               "px-4 py-2.5 text-sm font-medium whitespace-nowrap border-b-2 -mb-px transition",
               active === tab
                 ? "border-indigo-600 text-text"
-                : "border-transparent text-text-muted hover:text-text"
+                : "border-transparent text-text-secondary hover:text-text"
             )}
           >
             {tab}

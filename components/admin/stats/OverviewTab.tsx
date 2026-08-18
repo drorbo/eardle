@@ -42,7 +42,7 @@ export async function OverviewTab() {
 
   return (
     <div className="space-y-6">
-      <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-4">
+      <div className="grid grid-cols-1 sm:grid-cols-3 lg:grid-cols-6 gap-4">
         <StatCard label="Total Plays" value={totalPlays.toLocaleString()} />
         <StatCard label="Plays Today" value={todayPlays.toLocaleString()} />
         <StatCard label="Signed-Up Users" value={signedUpUsers.toLocaleString()} />

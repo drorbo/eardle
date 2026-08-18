@@ -24,7 +24,7 @@ export async function DailyEardleTab() {
 
   return (
     <div className="space-y-6">
-      <div className="grid grid-cols-2 sm:grid-cols-3 gap-4">
+      <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
         <StatCard label="Overall Win Rate" value={`${winStats.overallWinRate}%`} />
         <StatCard label="Avg. Guesses to Win" value={winStats.avgGuessesToWin.toFixed(1)} />
         <StatCard label="Total Attempts" value={winStats.byCategory.reduce((s, c) => s + c.attempts, 0).toLocaleString()} />

@@ -9,7 +9,7 @@ export const dynamic = "force-dynamic";
 
 export default async function AdminStatsPage() {
   return (
-    <div className="p-6 max-w-6xl">
+    <div className="flex-1 min-h-0 overflow-y-auto p-6 max-w-6xl">
       <h1 className="text-xl font-bold text-text mb-6">Usage Stats</h1>
       <StatsTabs
         overview={<OverviewTab />}
