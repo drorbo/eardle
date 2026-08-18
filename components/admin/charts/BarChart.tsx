@@ -10,7 +10,14 @@ export interface BarGroup {
 interface BarChartProps {
   groups: BarGroup[];
   height?: number;
+  /** Escape hatch for a genuinely custom formatter. Prefer `format` below —
+   *  a plain string literal is safe for a server component to pass across
+   *  the RSC boundary, whereas a function prop like this one is not (Next.js
+   *  rejects functions passed from a Server Component into a "use client"
+   *  component at runtime). */
   formatValue?: (v: number) => string;
+  /** Which built-in formatter to derive when `formatValue` isn't given. */
+  format?: "number" | "percent";
   /** Set when this chart is rendered alongside a ChartCard `tableView` twin —
    *  hides the bars from assistive tech so screen readers land on the
    *  accessible table instead of this redundant visual layer. Not wired up
@@ -18,8 +25,9 @@ interface BarChartProps {
   hasTableTwin?: boolean;
 }
 
-export function BarChart({ groups, height = 200, formatValue = String, hasTableTwin = false }: BarChartProps) {
+export function BarChart({ groups, height = 200, formatValue, format = "number", hasTableTwin = false }: BarChartProps) {
   const [hover, setHover] = useState<{ groupIndex: number; barIndex: number } | null>(null);
+  const resolvedFormatValue = formatValue ?? (format === "percent" ? (v: number) => `${v}%` : String);
   // never divide by zero when every value is 0; assumes non-negative values
   // (every metric on this page — counts, rates — has a natural zero floor)
   const maxValue = Math.max(1, ...groups.flatMap((g) => g.values.map((v) => v.value)));
@@ -40,7 +48,7 @@ export function BarChart({ groups, height = 200, formatValue = String, hasTableT
                   style={{ height: barHeight, backgroundColor: bar.color, opacity: isHovered ? 0.8 : 1 }}
                   tabIndex={0}
                   role="img"
-                  aria-label={`${bar.label}: ${formatValue(bar.value)}`}
+                  aria-label={`${bar.label}: ${resolvedFormatValue(bar.value)}`}
                   onPointerEnter={() => setHover({ groupIndex: gi, barIndex: bi })}
                   onPointerLeave={() => setHover(null)}
                   onFocus={() => setHover({ groupIndex: gi, barIndex: bi })}
@@ -48,7 +56,7 @@ export function BarChart({ groups, height = 200, formatValue = String, hasTableT
                 >
                   {isHovered && (
                     <div className="absolute -top-7 left-1/2 -translate-x-1/2 bg-surface border border-border-subtle rounded-lg shadow px-2 py-1 text-xs text-text whitespace-nowrap pointer-events-none">
-                      {bar.label}: {formatValue(bar.value)}
+                      {bar.label}: {resolvedFormatValue(bar.value)}
                     </div>
                   )}
                 </div>

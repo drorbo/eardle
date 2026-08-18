@@ -4,7 +4,6 @@ import type { Category } from "@/types/exercise";
 import { ChartCard } from "@/components/admin/charts/ChartCard";
 import { LineChart } from "@/components/admin/charts/LineChart";
 import { BarChart } from "@/components/admin/charts/BarChart";
-import { PercentBarChart } from "@/components/admin/charts/PercentBarChart";
 import { TableView } from "@/components/admin/charts/TableView";
 
 function StatCard({ label, value }: { label: string; value: string }) {
@@ -44,11 +43,12 @@ export async function DailyEardleTab() {
           />
         }
       >
-        <PercentBarChart
+        <BarChart
           groups={winStats.byCategory.map((c) => ({
             label: CATEGORY_META[c.category as Category]?.label ?? c.category,
             values: [{ key: c.category, label: "Win rate", color: "var(--chart-good)", value: c.winRate }],
           }))}
+          format="percent"
         />
       </ChartCard>
 
