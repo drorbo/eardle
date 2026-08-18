@@ -62,7 +62,7 @@ export async function LearningPlatformTab() {
           </thead>
           <tbody>
             {topicEngagement.map((t) => (
-              <tr key={t.topicTitle} className="border-t border-border-subtle/60">
+              <tr key={t.topicId} className="border-t border-border-subtle/60">
                 <td className="py-2 text-xs text-text-secondary">{t.topicTitle}</td>
                 <td className="py-2 text-right text-xs text-text-muted">{t.views.toLocaleString()}</td>
                 <td className="py-2 text-right text-xs text-text-muted">{t.completions.toLocaleString()}</td>

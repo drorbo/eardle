@@ -1,3 +1,4 @@
+import { cache } from "react";
 import { sql } from "drizzle-orm";
 import { db } from "@/lib/db";
 
@@ -32,8 +33,14 @@ export interface DailyPoint {
   value: number;
 }
 
+// Wrapped in cache() because both OverviewTab and GrowthTab independently
+// call this with the same args on every /admin/stats load (all 5 tabs render
+// as props into the client StatsTabs component up front, not lazily per
+// active tab), which would otherwise run this multi-table union query twice
+// per request (see the 2026-08-11 latency investigation, and lessons.ts for
+// the same pattern applied to lesson queries).
 /** Distinct blended actors active per day, last N days (zero-filled for empty days). */
-export async function getDailyActiveActors(days = 90): Promise<DailyPoint[]> {
+export const getDailyActiveActors = cache(async function getDailyActiveActors(days = 90): Promise<DailyPoint[]> {
   const since = daysAgo(days);
   const rows = await db.execute<{ day: string; value: number }>(sql`
     WITH ${ACTIVITY_CTE},
@@ -48,7 +55,7 @@ export async function getDailyActiveActors(days = 90): Promise<DailyPoint[]> {
     ORDER BY days.day
   `);
   return rows as unknown as DailyPoint[];
-}
+});
 
 /** Signups per day, last N days (zero-filled), from users.createdAt. */
 export async function getSignupsOverTime(days = 90): Promise<DailyPoint[]> {
@@ -73,8 +80,10 @@ export interface ActiveActorCounts {
   stickiness: number; // dau/mau, 0-100, rounded
 }
 
+// Wrapped in cache() for the same reason as getDailyActiveActors above:
+// OverviewTab and GrowthTab both call this independently on every page load.
 /** DAU (today) / WAU (last 7d) / MAU (last 30d) blended actor counts + stickiness ratio. */
-export async function getActiveActorCounts(): Promise<ActiveActorCounts> {
+export const getActiveActorCounts = cache(async function getActiveActorCounts(): Promise<ActiveActorCounts> {
   const [row] = await db.execute<{ dau: number; wau: number; mau: number }>(sql`
     WITH ${ACTIVITY_CTE}
     SELECT
@@ -86,7 +95,7 @@ export async function getActiveActorCounts(): Promise<ActiveActorCounts> {
   const dau = row?.dau ?? 0;
   const mau = row?.mau ?? 0;
   return { dau, wau: row?.wau ?? 0, mau, stickiness: mau > 0 ? Math.round((dau / mau) * 100) : 0 };
-}
+});
 
 export interface StreakBucket {
   bucket: "0" | "1-2" | "3-6" | "7-13" | "14-29" | "30+";
@@ -278,6 +287,7 @@ export async function getLessonEngagementFunnel(): Promise<LessonEngagementTotal
 }
 
 export interface TopicEngagement {
+  topicId: number;
   topicTitle: string;
   views: number;
   completions: number;
@@ -285,8 +295,9 @@ export interface TopicEngagement {
 
 /** Per-topic lesson views + completions (distinct actor-lesson pairs), all published topics. */
 export async function getTopicEngagement(): Promise<TopicEngagement[]> {
-  const rows = await db.execute<{ topic_title: string; views: number; completions: number }>(sql`
+  const rows = await db.execute<{ topic_id: number; topic_title: string; views: number; completions: number }>(sql`
     SELECT
+      topics.id AS topic_id,
       topics.title AS topic_title,
       count(lesson_progress.id) FILTER (WHERE lesson_progress.viewed_at IS NOT NULL)::int AS views,
       count(lesson_progress.id) FILTER (WHERE lesson_progress.viewed_at IS NOT NULL AND lesson_progress.practiced_at IS NOT NULL)::int AS completions
@@ -296,7 +307,8 @@ export async function getTopicEngagement(): Promise<TopicEngagement[]> {
     GROUP BY topics.id, topics.title
     ORDER BY topics.sort_order
   `);
-  return (rows as unknown as { topic_title: string; views: number; completions: number }[]).map((r) => ({
+  return (rows as unknown as { topic_id: number; topic_title: string; views: number; completions: number }[]).map((r) => ({
+    topicId: r.topic_id,
     topicTitle: r.topic_title,
     views: r.views,
     completions: r.completions,
