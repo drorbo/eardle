@@ -12,8 +12,16 @@ export interface LineSeries {
 interface LineChartProps {
   series: LineSeries[];
   height?: number;
-  /** Format an x value (unix seconds) for the axis/tooltip. */
+  /** Format an x value (unix seconds) for the axis/tooltip. Only safe to set
+   *  from a Client Component — a Server Component passing a closure here
+   *  crashes with "Functions cannot be passed directly to Client Components"
+   *  (see the Daily EarDle format-prop fix). Server-computed axis labels
+   *  (e.g. a categorical "step" index) should use `xLabelMap` instead, which
+   *  is plain serializable data. */
   formatX?: (x: number) => string;
+  /** Plain x → label lookup for non-date x-axes, safe to pass from a Server
+   *  Component since it's data, not a function. Ignored if `formatX` is set. */
+  xLabelMap?: Record<number, string>;
   /** Format a y value for the tooltip. */
   formatY?: (y: number) => string;
   /** Set when this chart is rendered alongside a ChartCard `tableView` twin —
@@ -29,7 +37,8 @@ function defaultFormatX(x: number) {
   return new Date(x * 1000).toLocaleDateString(undefined, { month: "short", day: "numeric" });
 }
 
-export function LineChart({ series, height = 200, formatX = defaultFormatX, formatY = String, hasTableTwin = false }: LineChartProps) {
+export function LineChart({ series, height = 200, formatX, xLabelMap, formatY = String, hasTableTwin = false }: LineChartProps) {
+  const resolvedFormatX = formatX ?? (xLabelMap ? (x: number) => xLabelMap[x] ?? defaultFormatX(x) : defaultFormatX);
   const [hoverIndex, setHoverIndex] = useState<number | null>(null);
   const width = 600; // viewBox units; the svg scales to its container via CSS width:100%
 
@@ -135,7 +144,7 @@ export function LineChart({ series, height = 200, formatX = defaultFormatX, form
           className="absolute top-1 pointer-events-none bg-surface border border-border-subtle rounded-lg shadow px-2.5 py-1.5 text-xs"
           style={{ left: `${(scaleX(hoverX) / width) * 100}%`, transform: "translateX(-50%)" }}
         >
-          <p className="text-text-subtle mb-1">{formatX(hoverX)}</p>
+          <p className="text-text-subtle mb-1">{resolvedFormatX(hoverX)}</p>
           {series.map((s) => {
             const point = s.points[hoverIndex!];
             return (

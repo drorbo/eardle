@@ -315,6 +315,143 @@ export async function getTopicEngagement(): Promise<TopicEngagement[]> {
   }));
 }
 
+export interface LearnAdoptionStats {
+  totalLearners: number; // distinct blended actors who ever touched Learn
+  adoptionRate: number; // 0-100: % of all-site actors who tried Learn at all
+  activatedLearners: number; // distinct actors who completed >=1 lesson
+  avgLessonsCompleted: number; // per activated learner, rounded to 1 decimal
+}
+
+/** Reach/adoption stats: how many of the site's actors have ever tried Learn, and how deep they go. */
+export async function getLearnAdoptionStats(): Promise<LearnAdoptionStats> {
+  const [row] = await db.execute<{
+    total_learners: number;
+    total_site_actors: number;
+    activated_learners: number;
+    completed_pairs: number;
+  }>(sql`
+    WITH learn_actors AS (
+      SELECT DISTINCT coalesce(user_id::text, session_token) AS actor
+      FROM lesson_progress
+    ),
+    site_actors AS (
+      SELECT coalesce(user_id::text, session_token) AS actor FROM sessions
+      UNION
+      SELECT coalesce(user_id::text, session_token) FROM daily_attempts
+      UNION
+      SELECT coalesce(user_id::text, session_token) FROM lesson_progress
+    ),
+    completed AS (
+      SELECT coalesce(user_id::text, session_token) AS actor, lesson_id
+      FROM lesson_progress
+      WHERE viewed_at IS NOT NULL AND practiced_at IS NOT NULL
+    )
+    SELECT
+      (SELECT count(*)::int FROM learn_actors) AS total_learners,
+      (SELECT count(DISTINCT actor)::int FROM site_actors) AS total_site_actors,
+      (SELECT count(DISTINCT actor)::int FROM completed) AS activated_learners,
+      (SELECT count(*)::int FROM completed) AS completed_pairs
+  `) as unknown as { total_learners: number; total_site_actors: number; activated_learners: number; completed_pairs: number }[];
+
+  const totalLearners = row?.total_learners ?? 0;
+  const totalSiteActors = row?.total_site_actors ?? 0;
+  const activatedLearners = row?.activated_learners ?? 0;
+  const completedPairs = row?.completed_pairs ?? 0;
+
+  return {
+    totalLearners,
+    adoptionRate: totalSiteActors > 0 ? Math.round((totalLearners / totalSiteActors) * 100) : 0,
+    activatedLearners,
+    avgLessonsCompleted: activatedLearners > 0 ? Math.round((completedPairs / activatedLearners) * 10) / 10 : 0,
+  };
+}
+
+/** New-to-Learn actors per day, last N days (zero-filled) — first ever viewed/practiced timestamp per actor. */
+export async function getNewLearnersOverTime(days = 90): Promise<DailyPoint[]> {
+  const since = daysAgo(days);
+  const rows = await db.execute<{ day: string; value: number }>(sql`
+    WITH first_touch AS (
+      SELECT coalesce(user_id::text, session_token) AS actor, min(coalesce(viewed_at, practiced_at)) AS first_at
+      FROM lesson_progress
+      WHERE coalesce(viewed_at, practiced_at) IS NOT NULL
+      GROUP BY actor
+    ),
+    days AS (
+      SELECT generate_series(to_timestamp(${since})::date, now()::date, '1 day')::date AS day
+    )
+    SELECT days.day::text AS day, count(first_touch.actor)::int AS value
+    FROM days
+    LEFT JOIN first_touch ON to_timestamp(first_touch.first_at)::date = days.day AND first_touch.first_at >= ${since}
+    GROUP BY days.day
+    ORDER BY days.day
+  `);
+  return rows as unknown as DailyPoint[];
+}
+
+export interface LessonProgressionStep {
+  position: number; // 0-based index in curriculum order (topic sortOrder, then lesson sortOrder)
+  lessonId: number;
+  title: string;
+  topicTitle: string;
+  viewed: number;
+  completed: number;
+}
+
+// Navigation between lessons is free ("browse anything, nothing locked" — see
+// lib/db/lessons.ts), so this is NOT a strict sequential-completion funnel;
+// it's per-lesson viewed/completed counts laid out in curriculum order, which
+// still answers "how far into the material are people actually getting" —
+// a real drop in either series at some position is a real signal, without
+// asserting every actor took the lessons before it in order.
+/** Viewed + completed counts per published lesson, ordered by the site's curriculum sequence. */
+export async function getLessonProgressionByStep(): Promise<LessonProgressionStep[]> {
+  const rows = await db.execute<{
+    position: number;
+    lesson_id: number;
+    title: string;
+    topic_title: string;
+    viewed: number;
+    completed: number;
+  }>(sql`
+    WITH ordered AS (
+      SELECT
+        lessons.id, lessons.title, topics.title AS topic_title,
+        (row_number() OVER (ORDER BY topics.sort_order, lessons.sort_order) - 1)::int AS position
+      FROM lessons
+      JOIN topics ON topics.id = lessons.topic_id
+      WHERE lessons.published
+    )
+    SELECT
+      ordered.position AS position,
+      ordered.id AS lesson_id,
+      ordered.title AS title,
+      ordered.topic_title AS topic_title,
+      count(lesson_progress.id) FILTER (WHERE lesson_progress.viewed_at IS NOT NULL)::int AS viewed,
+      count(lesson_progress.id) FILTER (WHERE lesson_progress.viewed_at IS NOT NULL AND lesson_progress.practiced_at IS NOT NULL)::int AS completed
+    FROM ordered
+    LEFT JOIN lesson_progress ON lesson_progress.lesson_id = ordered.id
+    GROUP BY ordered.position, ordered.id, ordered.title, ordered.topic_title
+    ORDER BY ordered.position
+  `);
+  return (
+    rows as unknown as {
+      position: number;
+      lesson_id: number;
+      title: string;
+      topic_title: string;
+      viewed: number;
+      completed: number;
+    }[]
+  ).map((r) => ({
+    position: r.position,
+    lessonId: r.lesson_id,
+    title: r.title,
+    topicTitle: r.topic_title,
+    viewed: r.viewed,
+    completed: r.completed,
+  }));
+}
+
 export interface LessonEngagementRow {
   lessonId: number;
   title: string;
