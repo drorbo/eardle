@@ -19,12 +19,16 @@ async function run() {
     ))
     .returning({ id: exercises.id });
 
+  // Older rows store the distractor as bare "Aeolian"; newer ones as
+  // "Aeolian (Minor)" — replace whichever is present.
   const choices = await db
     .update(exercises)
-    .set({ choices: sql`replace(${exercises.choices}, '"Aeolian (Minor)"', '"Minor Scale"')` })
+    .set({
+      choices: sql`replace(replace(${exercises.choices}, '"Aeolian (Minor)"', '"Minor Scale"'), '"Aeolian"', '"Minor Scale"')`,
+    })
     .where(and(
       eq(exercises.category, "scale"),
-      sql`${exercises.choices} LIKE '%Aeolian (Minor)%'`,
+      sql`${exercises.choices} LIKE '%Aeolian%'`,
     ))
     .returning({ id: exercises.id });
 
