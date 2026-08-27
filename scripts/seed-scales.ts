@@ -9,7 +9,7 @@ import { exercises } from "../lib/db/schema";
 import { and, eq, sql } from "drizzle-orm";
 
 const MAJOR_MODES_CHOICES = JSON.stringify([
-  "Major", "Dorian", "Phrygian", "Lydian", "Mixolydian", "Aeolian (Minor)", "Locrian",
+  "Major", "Dorian", "Phrygian", "Lydian", "Mixolydian", "Minor Scale", "Locrian",
 ]);
 
 const MEL_MINOR_CHOICES = JSON.stringify([
@@ -25,9 +25,9 @@ const SYMMETRIC_CHOICES = JSON.stringify([
 const PROMPT = "What scale type is this?";
 
 const majorModeNew = [
-  { title: "Aeolian Scale",  type: "aeolian",  difficulty: "easy",   answer: "Aeolian (Minor)" },
-  { title: "Aeolian Scale",  type: "aeolian",  difficulty: "medium", answer: "Aeolian (Minor)" },
-  { title: "Aeolian Scale",  type: "aeolian",  difficulty: "hard",   answer: "Aeolian (Minor)" },
+  { title: "Minor Scale",  type: "aeolian",  difficulty: "easy",   answer: "Minor Scale" },
+  { title: "Minor Scale",  type: "aeolian",  difficulty: "medium", answer: "Minor Scale" },
+  { title: "Minor Scale",  type: "aeolian",  difficulty: "hard",   answer: "Minor Scale" },
   { title: "Phrygian Scale", type: "phrygian", difficulty: "medium", answer: "Phrygian" },
   { title: "Phrygian Scale", type: "phrygian", difficulty: "hard",   answer: "Phrygian" },
   { title: "Locrian Scale",  type: "locrian",  difficulty: "hard",   answer: "Locrian" },
@@ -60,14 +60,15 @@ async function run() {
     .returning({ id: exercises.id });
   updated += r1.length;
 
-  // Step 1b: existing aeolian rows' `answer` predates the "(Minor)" suffix —
-  // Step 1 above only touches `choices`, so fix `answer` separately.
+  // Step 1b: existing aeolian rows' `title`/`answer` predate the "Minor Scale"
+  // rename (they used to read "Aeolian Scale" / "Aeolian (Minor)") —
+  // Step 1 above only touches `choices`, so fix `title`/`answer` separately.
   const r1b = await db.update(exercises)
-    .set({ answer: "Aeolian (Minor)" })
+    .set({ title: "Minor Scale", answer: "Minor Scale" })
     .where(and(
       eq(exercises.category, "scale"),
       sql`(${exercises.config}::jsonb)->>'type' = 'aeolian'`,
-      eq(exercises.answer, "Aeolian")
+      sql`${exercises.answer} != 'Minor Scale'`
     ))
     .returning({ id: exercises.id });
   updated += r1b.length;

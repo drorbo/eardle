@@ -7,7 +7,7 @@ const SCALE_OPTIONS = [
   { value: "phrygian",        label: "Phrygian" },
   { value: "lydian",          label: "Lydian" },
   { value: "mixolydian",      label: "Mixolydian" },
-  { value: "aeolian",         label: "Aeolian (Natural Minor)" },
+  { value: "aeolian",         label: "Minor Scale" },
   { value: "locrian",         label: "Locrian" },
   // Minor
   { value: "harmonic_minor",  label: "Harmonic Minor" },

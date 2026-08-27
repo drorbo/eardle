@@ -40,7 +40,7 @@ const DIFF_DESC: Record<Category, Partial<Record<string, string>>> = {
     jazz:   "Tritone subs, rhythm changes, jazz blues, minor ii-V",
   },
   scale: {
-    easy:   "Major, harmonic minor, and Aeolian",
+    easy:   "Major, harmonic minor, and minor scale",
     medium: "Blues, pentatonic major, and 3 church modes",
     hard:   "All 7 church modes plus the blues scale",
     jazz:   "Melodic minor modes, whole tone, and diminished scales",
@@ -73,7 +73,7 @@ const TOPIC_DESC: Record<Category, Record<string, string>> = {
   },
   scale: {
     major_modes:         "Ionian (major scale) through all 7 church modes",
-    minor:               "Natural minor (Aeolian) and harmonic minor",
+    minor:               "Minor scale and harmonic minor",
     pentatonic_blues:    "5-note pentatonic + 6-note blues scale",
     melodic_minor_modes: "Lydian dominant, altered scale, Dorian ♭2, and more",
     jazz_symmetric:      "Whole tone and half/whole diminished scales",
