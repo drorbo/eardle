@@ -4,6 +4,15 @@
 This version has breaking changes — APIs, conventions, and file structure may all differ from your training data. Read the relevant guide in `node_modules/next/dist/docs/` before writing any code. Heed deprecation notices.
 <!-- END:nextjs-agent-rules -->
 
+# Jam Gym is part of eardle
+
+`jam-gym.eardle.com` is a sibling app on this server (its repo: the neighbour folder `jam gym`, GitHub `drorbo/jam-gym`)
+and it uses **eardle accounts** through "Sign in with eardle". If you touch sign-in/sign-up, `lib/auth.ts`, the `users` table,
+`NEXTAUTH_SECRET`, cookies, or anything under `app/jam-gym/`, first read **`docs/jam-gym-integration.md`**: it lists every
+eardle file that exists for Jam Gym, the token format shared with the other repo, the env vars (`JAMGYM_SSO_SECRET`,
+`JAMGYM_URL`), the deploy order (eardle first) and the rules a change must respect. Server-level facts (nginx, TLS, Docker,
+volumes, commands that would hurt Jam Gym) are in `JAM-GYM-ON-THIS-SERVER.md`. Run `npm run test:sso` after touching any of it.
+
 # Development workflow
 
 Derived from a full git-history audit (2026-08-11) of how this project's features have actually been built — see the "Dev process audit" project memory for the full report.

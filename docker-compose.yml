@@ -31,6 +31,9 @@ services:
       GOOGLE_CLIENT_SECRET: ${GOOGLE_CLIENT_SECRET:-}
       ADMIN_EMAIL: ${ADMIN_EMAIL}
       ADMIN_PASSWORD: ${ADMIN_PASSWORD}
+      # "Sign in with eardle" for Jam Gym (jam-gym.eardle.com); see docs/jam-gym-integration.md. Off while the secret is empty.
+      JAMGYM_SSO_SECRET: ${JAMGYM_SSO_SECRET:-}
+      JAMGYM_URL: ${JAMGYM_URL:-https://jam-gym.eardle.com}
 
 volumes:
   postgres_data:

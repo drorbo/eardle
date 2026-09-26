@@ -13,6 +13,12 @@ Live at **[eardle.com](https://eardle.com)**
 - **Tailwind CSS v4**
 - **Docker + Caddy** — containerized deployment with automatic SSL
 
+## Jam Gym is part of eardle
+
+[Jam Gym](https://jam-gym.eardle.com) (a backing-band practice tool, its own repo `drorbo/jam-gym`) runs on the same server as a
+subdomain, and **eardle accounts are its accounts** ("Sign in with eardle"). Jam Gym keeps its own database; eardle only vouches
+for who someone is. Everything about it is in [docs/jam-gym-integration.md](docs/jam-gym-integration.md).
+
 ## Exercise categories
 
 | Category | Description |

@@ -4,6 +4,7 @@ import { useState, FormEvent, useEffect } from "react";
 import { signIn, useSession } from "next-auth/react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
+import { safeNext } from "@/lib/safeNext";
 
 async function migrateGuestProgress() {
   const token = localStorage.getItem("eardle_session");
@@ -15,6 +16,18 @@ async function migrateGuestProgress() {
   });
 }
 
+
+// Where to go after signing in: a same-site ?next= path (Jam Gym's "Sign in with eardle" uses this), else the dashboard.
+// Read from the address when needed rather than with useSearchParams, which would force a Suspense boundary.
+function nextPath(): string | null {
+  return safeNext(new URLSearchParams(window.location.search).get("next"));
+}
+function goAfterSignIn(router: ReturnType<typeof useRouter>) {
+  const next = nextPath();
+  if (next) window.location.assign(next); // a full page load: the target may send the browser on to another site
+  else router.push("/dashboard");
+}
+
 export default function SignUpPage() {
   const router = useRouter();
   const { status } = useSession();
@@ -23,9 +36,14 @@ export default function SignUpPage() {
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
+  const [next, setNext] = useState<string | null>(null);
 
   useEffect(() => {
-    if (status === "authenticated") router.push("/dashboard");
+    setNext(nextPath());
+  }, []);
+
+  useEffect(() => {
+    if (status === "authenticated") goAfterSignIn(router);
   }, [status, router]);
 
   async function handleSubmit(e: FormEvent) {
@@ -54,7 +72,7 @@ export default function SignUpPage() {
     }
 
     await migrateGuestProgress();
-    router.push("/dashboard");
+    goAfterSignIn(router);
   }
 
   return (
@@ -114,7 +132,7 @@ export default function SignUpPage() {
 
         <p className="text-center text-sm text-text-subtle mt-6">
           Already have an account?{" "}
-          <Link href="/signin" className="text-indigo-400 hover:text-indigo-300">
+          <Link href={next ? `/signin?next=${encodeURIComponent(next)}` : "/signin"} className="text-indigo-400 hover:text-indigo-300">
             Sign in
           </Link>
         </p>

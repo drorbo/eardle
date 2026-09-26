@@ -64,6 +64,12 @@ curl -s -o /dev/null -w '%{http_code}\n' https://eardle.com/
 Or just run `bash scripts/deploy-prod.sh`, which does all of the above plus a
 couple of route checks.
 
+## Jam Gym sign-in (shares this server)
+
+The `app` container also serves `/jam-gym/authorize`, used by Jam Gym's "Sign in with eardle". It needs `JAMGYM_SSO_SECRET` in the
+server's `.env` (the same value as Jam Gym's `EARDLE_SSO_SECRET`); it is switched off while that is empty. **Deploy order: eardle
+first (this file), then Jam Gym.** Setup script, security notes and rollback: `docs/jam-gym-integration.md`.
+
 ## Other operational notes
 
 - **Admin login**: seeded from the `ADMIN_EMAIL`/`ADMIN_PASSWORD` env vars on

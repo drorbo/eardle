@@ -4,6 +4,7 @@ import { useState, FormEvent, useEffect } from "react";
 import { signIn, useSession } from "next-auth/react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
+import { safeNext } from "@/lib/safeNext";
 
 async function migrateGuestProgress() {
   const token = localStorage.getItem("eardle_session");
@@ -15,6 +16,18 @@ async function migrateGuestProgress() {
   });
 }
 
+
+// Where to go after signing in: a same-site ?next= path (Jam Gym's "Sign in with eardle" uses this), else the dashboard.
+// Read from the address when needed rather than with useSearchParams, which would force a Suspense boundary.
+function nextPath(): string | null {
+  return safeNext(new URLSearchParams(window.location.search).get("next"));
+}
+function goAfterSignIn(router: ReturnType<typeof useRouter>) {
+  const next = nextPath();
+  if (next) window.location.assign(next); // a full page load: the target may send the browser on to another site
+  else router.push("/dashboard");
+}
+
 export default function SignInPage() {
   const router = useRouter();
   const { status } = useSession();
@@ -22,9 +35,14 @@ export default function SignInPage() {
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
+  const [next, setNext] = useState<string | null>(null);
 
   useEffect(() => {
-    if (status === "authenticated") router.push("/dashboard");
+    setNext(nextPath());
+  }, []);
+
+  useEffect(() => {
+    if (status === "authenticated") goAfterSignIn(router);
   }, [status, router]);
 
   async function handleCredentials(e: FormEvent) {
@@ -37,12 +55,13 @@ export default function SignInPage() {
       setLoading(false);
     } else {
       await migrateGuestProgress();
-      router.push("/dashboard");
+      goAfterSignIn(router);
     }
   }
 
   async function handleGoogle() {
-    await signIn("google", { callbackUrl: "/dashboard?migrate=1" });
+    // with a ?next= (coming from Jam Gym) the guest-progress migration on /dashboard is skipped for this Google sign-in
+    await signIn("google", { callbackUrl: nextPath() ?? "/dashboard?migrate=1" });
   }
 
   return (
@@ -107,7 +126,7 @@ export default function SignInPage() {
 
         <p className="text-center text-sm text-text-subtle mt-6">
           No account?{" "}
-          <Link href="/signup" className="text-indigo-400 hover:text-indigo-300">
+          <Link href={next ? `/signup?next=${encodeURIComponent(next)}` : "/signup"} className="text-indigo-400 hover:text-indigo-300">
             Create one
           </Link>
         </p>
