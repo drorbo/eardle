@@ -1,6 +1,8 @@
 # Heads-up for the eardle agent: Jam Gym also runs on the production server
 
-Written 2026-09-21, updated the same day when Jam Gym gained user-saved tracks (it now has a small database). **eardle's production server (`57.129.12.248`) now also hosts a second, unrelated site,
+Written 2026-09-21, updated the same day when Jam Gym gained user-saved tracks (it now has a small database), and again
+2026-09-30 for the 2026-09 security audit's server-level fixes (SSH, the shared Cloudflare-only nginx restriction).
+**eardle's production server (`57.129.12.248`) now also hosts a second, unrelated site,
 Jam Gym, at https://jam-gym.eardle.com.** It shares the host, the nginx process and the TLS certificate with eardle,
 so read this before touching any of those. Nothing in the eardle repo or in eardle's own containers was changed to
 make this work.
@@ -17,6 +19,8 @@ Jam Gym is a separate project (a music practice tool: a small Node app with its 
 | Shared thing | Where | What to be careful about |
 | --- | --- | --- |
 | **nginx** (one process for both sites) | `/etc/nginx/`. Jam Gym is its own file: `sites-available/jam-gym.eardle.com.conf`, symlinked from `sites-enabled/` | **Always run `sudo nginx -t` before `systemctl reload nginx`.** A syntax error in *either* site's file stops the reload and can take *both* sites down on a restart. Do not delete or edit Jam Gym's file or symlink when changing `eardle.com.conf`. |
+| **`/etc/nginx/cloudflare-ips.conf`** | Included from both sites' `:443` server blocks | Restricts direct HTTPS access to Cloudflare's published ranges (2026-09 audit, finding M-1): without it, anyone who knows the server's IP can bypass Cloudflare — and every rate limit and bot protection it does — by talking to nginx directly. Its one canonical, version-controlled copy is `deploy/host-nginx/cloudflare-ips.conf` in the jam-gym repo (this repo does not track its own nginx config in git); update there and copy over. Port 80 (redirect + ACME challenge) is deliberately not restricted by it. |
+| **SSH into the host** (`ubuntu@57.129.12.248`) | `/etc/ssh/sshd_config.d/` | Key-only (`PasswordAuthentication no`, set in `50-cloud-init.conf` — that file loads before `60-cloudimg-settings.conf` and wins, so fix it there, not the other one, if this is ever "yes" again) and `fail2ban` is installed and enabled on `sshd`. Both affect eardle too: this is the one login path onto the box either app's containers live on. |
 | **TLS certificate** | `/etc/nginx/ssl/eardle.com/fullchain.pem` and `privkey.pem` (Cloudflare Origin CA) | It is a **wildcard** (`*.eardle.com` + `eardle.com`), and Jam Gym uses the same files. If you ever renew, rotate or replace it, keep the `*.eardle.com` SAN and the same paths, or `jam-gym.eardle.com` breaks. |
 | **Default HTTPS/HTTP site** | `eardle.com.conf` is loaded first, so it is nginx's default server | Unchanged by this work. Requests for any hostname nginx doesn't recognise still fall through to eardle, as before. |
 | **Cloudflare zone** for `eardle.com` | Cloudflare dashboard | `jam-gym.eardle.com` is a subdomain in the same zone. Zone-wide settings (SSL/TLS mode must stay "Full" or "Full (strict)", never "Flexible"; any wildcard or redirect rules) affect both sites. |
