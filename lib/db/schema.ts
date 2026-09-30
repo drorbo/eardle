@@ -26,7 +26,14 @@ export const users = pgTable("users", {
   nickname: text("nickname"),
   avatarUrl: text("avatar_url"),
   createdAt: integer("created_at").notNull().$defaultFn(() => Math.floor(Date.now() / 1000)),
-});
+}, (table) => [
+  // A second backstop, independent of the application code always lowercasing `email` before it looks up or writes
+  // a row (lib/auth.ts, app/api/user/register): without this, "Foo@x.com" and "foo@x.com" could exist as two
+  // different accounts even though `users.email.unique()` above allows it (that constraint compares the raw bytes,
+  // so different casings of the same address are, to Postgres, different strings). Safe to add: every email in
+  // production is already lowercase (checked 2026-09-30, see the 2026-09 audit, finding L-7).
+  uniqueIndex("users_email_lower_unique").on(sql`lower(${table.email})`),
+]);
 
 export const sessions = pgTable("sessions", {
   id: serial("id").primaryKey(),

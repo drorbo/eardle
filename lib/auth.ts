@@ -5,8 +5,9 @@ import Google from "next-auth/providers/google";
 import { compareSync, hashSync } from "bcryptjs";
 import { db } from "./db";
 import { adminUsers, users } from "./db/schema";
-import { eq } from "drizzle-orm";
+import { eq, sql } from "drizzle-orm";
 import { checkRateLimit } from "./rateLimit";
+import { clientIp } from "./clientIp";
 
 // Compared against when no user/admin row matches the submitted email, so a
 // nonexistent-account attempt takes the same time as a wrong-password one —
@@ -46,15 +47,23 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
         email: { label: "Email", type: "email" },
         password: { label: "Password", type: "password" },
       },
-      async authorize(credentials) {
+      async authorize(credentials, request) {
         if (!credentials?.email || !credentials?.password) return null;
 
-        const email = (credentials.email as string).toLowerCase();
+        // "Foo@x.com" and "foo@x.com" are the same account (see the users_email_lower_unique index and
+        // app/api/user/register): compare lower-cased on both sides, not just for the rate-limit key as before.
+        const email = (credentials.email as string).trim().toLowerCase();
+
+        // Per email, as before (stops repeated guesses against one account) — and per IP, which that alone does not
+        // catch: a distributed guess of many different emails, each tried only once or twice, from the same source.
+        // clientIp() is null off Cloudflare (e.g. local dev), where this second check is simply skipped.
         if (!checkRateLimit(`login:${email}`, 5, 15 * 60 * 1000)) return null;
+        const ip = clientIp(request);
+        if (ip && !checkRateLimit(`login-ip:${ip}`, 30, 15 * 60 * 1000)) return null;
 
         // Check admin users first
         const admin = await db.query.adminUsers.findFirst({
-          where: eq(adminUsers.email, credentials.email as string),
+          where: sql`lower(${adminUsers.email}) = ${email}`,
         });
         if (admin && compareSync(credentials.password as string, admin.passwordHash)) {
           return { id: String(admin.id), email: admin.email, role: "admin" as const };
@@ -62,7 +71,7 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
 
         // Check public users
         const user = await db.query.users.findFirst({
-          where: eq(users.email, credentials.email as string),
+          where: sql`lower(${users.email}) = ${email}`,
         });
         const hashToCheck = user?.passwordHash ?? DUMMY_HASH;
         const passwordOk = compareSync(credentials.password as string, hashToCheck);
@@ -98,16 +107,19 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
       if (account?.provider === "google" && profile) {
         const p = profile as { sub?: string; email?: string; name?: string; picture?: string };
         const googleId = p.sub ?? "";
+        // Google's own email is already normalised, but compare (and store) it the same lower-cased way as every
+        // other email in this table regardless, so a row is never found or missed on casing alone.
+        const email = p.email ? p.email.trim().toLowerCase() : null;
 
         let dbUser = await db.query.users.findFirst({ where: eq(users.googleId, googleId) });
 
-        if (!dbUser && p.email) {
-          dbUser = await db.query.users.findFirst({ where: eq(users.email, p.email) });
+        if (!dbUser && email) {
+          dbUser = await db.query.users.findFirst({ where: sql`lower(${users.email}) = ${email}` });
         }
 
         if (!dbUser) {
           const [created] = await db.insert(users).values({
-            email: p.email ?? null,
+            email,
             googleId,
             name: p.name ?? null,
             avatarUrl: p.picture ?? null,
