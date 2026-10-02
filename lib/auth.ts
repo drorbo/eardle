@@ -8,6 +8,7 @@ import { adminUsers, users } from "./db/schema";
 import { eq, sql } from "drizzle-orm";
 import { checkRateLimit } from "./rateLimit";
 import { clientIp } from "./clientIp";
+import { resolveGoogleUser } from "./googleAccount";
 
 // Compared against when no user/admin row matches the submitted email, so a
 // nonexistent-account attempt takes the same time as a wrong-password one —
@@ -103,38 +104,15 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
         t.avatarUrl = user.avatarUrl ?? null;
       }
 
-      // Google OAuth: find or create user row
+      // Google OAuth: find or create user row (see lib/googleAccount.ts for why this only ever matches by Google id)
       if (account?.provider === "google" && profile) {
         const p = profile as { sub?: string; email?: string; name?: string; picture?: string };
-        const googleId = p.sub ?? "";
-        // Google's own email is already normalised, but compare (and store) it the same lower-cased way as every
-        // other email in this table regardless, so a row is never found or missed on casing alone.
-        const email = p.email ? p.email.trim().toLowerCase() : null;
+        const dbUser = await resolveGoogleUser(p);
 
-        let dbUser = await db.query.users.findFirst({ where: eq(users.googleId, googleId) });
-
-        if (!dbUser && email) {
-          dbUser = await db.query.users.findFirst({ where: sql`lower(${users.email}) = ${email}` });
-        }
-
-        if (!dbUser) {
-          const [created] = await db.insert(users).values({
-            email,
-            googleId,
-            name: p.name ?? null,
-            avatarUrl: p.picture ?? null,
-          }).returning();
-          dbUser = created;
-        } else if (!dbUser.googleId) {
-          await db.update(users).set({ googleId }).where(eq(users.id, dbUser.id));
-        }
-
-        if (dbUser) {
-          t.id = String(dbUser.id);
-          t.role = "user";
-          t.nickname = dbUser.nickname ?? null;
-          t.avatarUrl = dbUser.avatarUrl ?? (p.picture ?? null);
-        }
+        t.id = String(dbUser.id);
+        t.role = "user";
+        t.nickname = dbUser.nickname ?? null;
+        t.avatarUrl = dbUser.avatarUrl ?? (p.picture ?? null);
       }
 
       // Session update triggered from client after profile edit
