@@ -4,12 +4,14 @@ import { useEffect, useRef, useState } from "react";
 import { Exercise } from "@/types/exercise";
 import { ExercisePlayer } from "@/components/exercise/ExercisePlayer";
 import { audioEngine } from "@/lib/audio/engine";
+import type { ChoiceVariants } from "@/lib/exercises/choiceVariants";
 import { getOrCreateGuestToken as getOrCreateSessionToken } from "@/lib/guestSession";
 
 interface Props {
   exercise: Exercise;
   nextHref?: string;
   isPracticeMode?: boolean;
+  choiceVariants?: ChoiceVariants;
 }
 
 function shuffle<T>(arr: T[]): T[] {
@@ -28,7 +30,7 @@ function resolveChoices(exercise: Exercise): string[] {
   return shuffle(exercise.choices);
 }
 
-export function ExercisePlayerWrapper({ exercise, nextHref, isPracticeMode }: Props) {
+export function ExercisePlayerWrapper({ exercise, nextHref, isPracticeMode, choiceVariants }: Props) {
   const [sessionToken, setSessionToken] = useState("");
   const [resolvedExercise, setResolvedExercise] = useState<Exercise>(exercise);
   const [initialStreak, setInitialStreak] = useState(0);
@@ -80,6 +82,7 @@ export function ExercisePlayerWrapper({ exercise, nextHref, isPracticeMode }: Pr
       onAnswered={handleAnswered}
       initialStreak={initialStreak}
       isPracticeMode={isPracticeMode}
+      choiceVariants={choiceVariants}
     />
   );
 }

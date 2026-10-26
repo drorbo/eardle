@@ -24,10 +24,15 @@ interface ChoiceGridProps {
   triedWrong?: string[];
   disabled: boolean;
   onSelect: (choice: string) => void;
+  // Post-answer compare mode: when set, tapping a choice plays its sound instead of
+  // selecting it. Only labels in `previewable` get the ▶ and respond.
+  onPreview?: (choice: string) => void;
+  previewable?: string[];
+  previewing?: string | null;
   cols?: 2 | 3 | 4;
 }
 
-export function ChoiceGrid({ choices, selected, answer, triedWrong, disabled, onSelect, cols = 2 }: ChoiceGridProps) {
+export function ChoiceGrid({ choices, selected, answer, triedWrong, disabled, onSelect, onPreview, previewable, previewing, cols = 2 }: ChoiceGridProps) {
   function getStyle(choice: string) {
     // Correct answer always wins, even if it happens to also be in `triedWrong`
     // (can't actually happen, but keeps priority unambiguous).
@@ -59,25 +64,34 @@ export function ChoiceGrid({ choices, selected, answer, triedWrong, disabled, on
     <div className={clsx("grid gap-2 w-full max-w-lg", gridClass)}>
       {choices.map((choice, i) => {
         const isTriedWrong = !answer && !!triedWrong?.includes(choice);
+        const canPreview = !!onPreview && !!previewable?.includes(choice);
+        const previewMode = !!onPreview;
         return (
         <button
           key={choice}
-          onClick={() => !disabled && !isTriedWrong && onSelect(choice)}
-          disabled={disabled || isTriedWrong}
-          aria-label={`Choice ${i + 1}: ${displayLabel(choice)}`}
+          onClick={() => {
+            if (previewMode) { if (canPreview) onPreview(choice); return; }
+            if (!disabled && !isTriedWrong) onSelect(choice);
+          }}
+          disabled={previewMode ? !canPreview : disabled || isTriedWrong}
+          aria-label={canPreview ? `Play choice ${i + 1}: ${displayLabel(choice)}` : `Choice ${i + 1}: ${displayLabel(choice)}`}
           className={clsx(
             "relative px-3 py-3 sm:py-2 rounded-lg border text-sm font-medium",
             "transition-all duration-150 active:scale-[0.97]",
             "disabled:cursor-not-allowed focus:outline-none focus:ring-2 focus:ring-indigo-400",
             "min-h-[44px]",
             textAlign,
-            getStyle(choice)
+            getStyle(choice),
+            previewing === choice && "ring-2 ring-indigo-400"
           )}
         >
           {i < 9 && (
             <span className="hidden sm:inline text-xs font-bold opacity-40 mr-1">{i + 1}</span>
           )}
           {displayLabel(choice)}
+          {canPreview && (
+            <span aria-hidden="true" className="ml-1.5 text-xs opacity-60">{previewing === choice ? "♪" : "▶"}</span>
+          )}
         </button>
         );
       })}

@@ -12,6 +12,7 @@ import { FeedbackBanner } from "./FeedbackBanner";
 import { ChordStaff } from "./ChordStaff";
 import { IntervalStaff } from "./IntervalStaff";
 import { ScaleStaff } from "./ScaleStaff";
+import type { ChoiceVariants } from "@/lib/exercises/choiceVariants";
 import { ConfettiBurst } from "@/components/daily/ConfettiBurst";
 
 interface ExercisePlayerProps {
@@ -21,6 +22,7 @@ interface ExercisePlayerProps {
   onAnswered?: (correct: boolean) => void;
   initialStreak?: number;
   isPracticeMode?: boolean;
+  choiceVariants?: ChoiceVariants;
 }
 
 const PLAY_MODES: Array<{ id: UiPlayMode; label: string; icon: string }> = [
@@ -38,13 +40,14 @@ const SPEED_LEVELS: Array<{ level: number; label: string; icon: string }> = [
   { level: 5, label: "Very Fast", icon: "5" },
 ];
 
-export function ExercisePlayer({ exercise, nextHref, sessionToken, onAnswered, initialStreak = 0, isPracticeMode }: ExercisePlayerProps) {
-  const { play, stop, playChord, isPlaying, isLoadingSamples, playedNotes, playingChordIndex, lastPlayedMode, instrument, setInstrument } = useAudio();
+export function ExercisePlayer({ exercise, nextHref, sessionToken, onAnswered, initialStreak = 0, isPracticeMode, choiceVariants }: ExercisePlayerProps) {
+  const { play, playVariant, stop, playChord, isPlaying, isLoadingSamples, playedNotes, playingChordIndex, lastPlayedMode, instrument, setInstrument } = useAudio();
   const { state, onPlay, onAudioDone, onSelect, onReset } = useExercise(exercise);
   const prevIdRef = useRef(exercise.id);
   const router = useRouter();
   const [currentStreak, setCurrentStreak] = useState(initialStreak);
   const [isNewRecord, setIsNewRecord] = useState(false);
+  const [previewing, setPreviewing] = useState<string | null>(null);
 
   // ExercisePlayer's component instance persists across exercise navigation
   // (Wrapper re-fetches per exercise.id, doesn't remount this component), so
@@ -106,6 +109,16 @@ export function ExercisePlayer({ exercise, nextHref, sessionToken, onAnswered, i
     [exercise.answer, exercise.id, onSelect, onAnswered, sessionToken]
   );
 
+  const handlePreview = useCallback(
+    (choice: string) => {
+      const variant = choiceVariants?.[choice];
+      if (!variant) return;
+      setPreviewing(choice);
+      playVariant(exercise, variant, speedLevel);
+    },
+    [choiceVariants, playVariant, exercise, speedLevel]
+  );
+
   // Reset when exercise changes
   useEffect(() => {
     if (prevIdRef.current !== exercise.id) {
@@ -136,13 +149,14 @@ export function ExercisePlayer({ exercise, nextHref, sessionToken, onAnswered, i
         router.push(nextHref);
       }
       const num = parseInt(e.key);
-      if (num >= 1 && num <= exercise.choices.length && (state.phase === "ready" || state.phase === "playing")) {
-        handleSelect(exercise.choices[num - 1]);
+      if (num >= 1 && num <= exercise.choices.length) {
+        if (state.phase === "ready" || state.phase === "playing") handleSelect(exercise.choices[num - 1]);
+        else if (state.phase === "answered") handlePreview(exercise.choices[num - 1]);
       }
     }
     window.addEventListener("keydown", handleKey);
     return () => window.removeEventListener("keydown", handleKey);
-  }, [state.phase, handlePlay, handleSelect, exercise.choices, nextHref, router]);
+  }, [state.phase, handlePlay, handleSelect, handlePreview, exercise.choices, nextHref, router]);
 
   const isAnswered = state.phase === "answered";
   const choicesDisabled = state.phase === "idle";
@@ -337,8 +351,15 @@ export function ExercisePlayer({ exercise, nextHref, sessionToken, onAnswered, i
           </div>
         )}
 
+        {isAnswered && choiceVariants && (
+          <p className="text-xs text-text-subtle uppercase tracking-wide -mb-2 sm:-mb-4">Tap any option to hear it</p>
+        )}
+
         <ChoiceGrid
           choices={exercise.choices}
+          onPreview={isAnswered && choiceVariants ? handlePreview : undefined}
+          previewable={choiceVariants ? Object.keys(choiceVariants) : undefined}
+          previewing={isPlaying ? previewing : null}
           selected={isAnswered ? state.selected : undefined}
           answer={isAnswered ? exercise.answer : undefined}
           disabled={choicesDisabled}

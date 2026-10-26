@@ -5,6 +5,7 @@ import { ExerciseErrorBoundary } from "@/components/exercise/ErrorBoundary";
 import { SharePackageButton } from "@/components/exercise/SharePackageButton";
 import { PracticeCompletionTracker } from "@/components/lesson/PracticeCompletionTracker";
 import { LessonPracticeBanner } from "@/components/lesson/LessonPracticeBanner";
+import { getChoiceVariants } from "@/lib/exercises/choiceVariants";
 import { getLessonById } from "@/lib/db/lessons";
 import { db } from "@/lib/db";
 import { exercises as exercisesTable } from "@/lib/db/schema";
@@ -84,6 +85,9 @@ export default async function ExercisePage({ params, searchParams }: Props) {
     if (randomNext) nextHref = `/${category}/${randomNext.id}`;
   }
 
+  // Sounds for every choice, used by the post-answer "tap an option to hear it" compare feature.
+  const choiceVariants = await getChoiceVariants(exercise);
+
   return (
     <div className="min-h-screen bg-bg text-text">
       <div className="max-w-2xl mx-auto px-4 py-6 sm:py-16">
@@ -118,7 +122,7 @@ export default async function ExercisePage({ params, searchParams }: Props) {
         {lessonId && cycleJustCompleted && <PracticeCompletionTracker lessonId={Number(lessonId)} />}
 
         <ExerciseErrorBoundary>
-          <ExercisePlayerWrapper exercise={exercise} nextHref={nextHref} isPracticeMode={mode === "practice"} />
+          <ExercisePlayerWrapper exercise={exercise} nextHref={nextHref} isPracticeMode={mode === "practice"} choiceVariants={choiceVariants} />
         </ExerciseErrorBoundary>
       </div>
     </div>

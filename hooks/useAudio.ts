@@ -8,9 +8,9 @@ const SCALE_GAPS  = [0.55, 0.375, 0.25, 0.15, 0.08] as const; // seconds between
 const TEMPO_MULTS = [0.5,  0.7,   1.0,  1.4,  1.8 ] as const; // multiplier on stored BPM
 // Fallback: if sampler loading hangs, unfreeze the exercise after this many ms
 const SAFETY_MS = 30_000;
-import { randomRoot, randomOctaveNote, addSemitones, buildChord, buildScale, applyVoicing, applyInversion, VoicingId } from "@/lib/audio/theory";
+import { randomRoot, randomOctaveNote, addSemitones, buildChord, buildScale, applyVoicing, applyInversion, getVoicings, VoicingId } from "@/lib/audio/theory";
 import { generatePerformanceParams, PerformanceParams } from "@/lib/audio/randomize";
-import { Exercise, NoteConfig, IntervalConfig, ChordConfig, ProgressionConfig, ScaleConfig, UiPlayMode, ChordPlayMode } from "@/types/exercise";
+import { Exercise, ExerciseConfig, NoteConfig, IntervalConfig, ChordConfig, ProgressionConfig, ScaleConfig, UiPlayMode, ChordPlayMode } from "@/types/exercise";
 
 const INSTRUMENT_KEY = "eardle-instrument";
 
@@ -162,6 +162,81 @@ export function useAudio() {
     }
   }, []);
 
+  // Plays another choice's sound "as if it were the question" for the post-answer
+  // compare feature: reuses the question's cached root/voicing/delta/mode so only
+  // the answer differs. Never mutates randomizedRef or playedNotes — the staff
+  // notation keeps showing the real question.
+  const playVariant = useCallback(async (exercise: Exercise, variant: ExerciseConfig, speedLevel = 3, forcedParams?: PerformanceParams) => {
+    if (!audioEngine) return;
+    if (playingRef.current) {
+      audioEngine.stop();
+      if (timeoutRef.current) clearTimeout(timeoutRef.current);
+    }
+    playingRef.current = true;
+    const needsLoad = !audioEngine.isReady();
+    if (needsLoad) setIsLoadingSamples(true);
+    if (timeoutRef.current) clearTimeout(timeoutRef.current);
+    timeoutRef.current = setTimeout(() => { setIsPlaying(false); setIsLoadingSamples(false); playingRef.current = false; }, SAFETY_MS);
+    audioEngine.stop();
+    setIsPlaying(true);
+
+    const { category } = exercise;
+    // Normally already set (you must have played to answer); the Daily can load pre-finished.
+    const base = exerciseIdRef.current === exercise.id ? randomizedRef.current : null;
+    const done = (ms: number) => {
+      timeoutRef.current = setTimeout(() => { setIsPlaying(false); playingRef.current = false; }, ms);
+    };
+
+    try {
+      if (category === "note") {
+        const c = variant as NoteConfig;
+        const octave = base?.root?.match(/-?\d+$/)?.[0] ?? "4";
+        await audioEngine.playNote(`${c.note}${octave}`);
+        done(1800);
+      } else if (category === "interval") {
+        const c = variant as IntervalConfig;
+        const noteA = base?.noteA ?? randomRoot(3, 5);
+        const noteB = addSemitones(noteA, c.semitones);
+        const mode = base ? lastPlayedMode : (c.playMode === "melodic" ? "melodic-up" : c.playMode);
+        const [first, second] = mode === "melodic-down" ? [noteB, noteA] : [noteA, noteB];
+        await audioEngine.playInterval(first, second, mode === "harmonic" ? "harmonic" : "melodic");
+        done(mode === "harmonic" ? 1800 : 2200);
+      } else if (category === "chord") {
+        const c = variant as ChordConfig;
+        const params = base ?? forcedParams ?? generatePerformanceParams(category, exercise.config);
+        const baseNotes = buildChord(params.root!, c.type);
+        let notes: string[];
+        if (typeof c.inversion === "number") {
+          notes = applyInversion(baseNotes, c.inversion);
+        } else {
+          // The question's voicing may not exist for this chord's note count (e.g. "wide" on a triad)
+          const valid = getVoicings(c.type).some((v) => v.id === params.voicing);
+          notes = applyVoicing(baseNotes, valid ? params.voicing! : "close");
+        }
+        await audioEngine.playNotes(notes);
+        done(1800);
+      } else if (category === "scale") {
+        const c = variant as ScaleConfig;
+        const params = base ?? forcedParams ?? generatePerformanceParams(category, exercise.config);
+        const noteGap = SCALE_GAPS[Math.max(0, Math.min(4, speedLevel - 1))];
+        await audioEngine.playScale(params.root!, c.type, noteGap);
+        done(9 * noteGap * 1000 + 1500);
+      } else if (category === "progression") {
+        const c = variant as ProgressionConfig;
+        const params = base ?? forcedParams ?? generatePerformanceParams(category, exercise.config);
+        const transposed = c.chords.map(chord => chord.map(n => addSemitones(n, params.delta!)));
+        const tempoMult = TEMPO_MULTS[Math.max(0, Math.min(4, speedLevel - 1))];
+        await audioEngine.playProgression(transposed, c.tempo, tempoMult);
+        done((c.chords.length * 2 * 60) / (c.tempo * tempoMult) * 1000 + 1500);
+      }
+      if (needsLoad) setIsLoadingSamples(false);
+    } catch {
+      setIsPlaying(false);
+      setIsLoadingSamples(false);
+      playingRef.current = false;
+    }
+  }, [lastPlayedMode]);
+
   const stop = useCallback(() => {
     if (timeoutRef.current) clearTimeout(timeoutRef.current);
     audioEngine?.stop();
@@ -196,5 +271,5 @@ export function useAudio() {
     chordTimeoutRef.current = setTimeout(() => setPlayingChordIndex(null), 1800);
   }, []);
 
-  return { play, stop, playChord, isPlaying, isLoadingSamples, playedNotes, playingChordIndex, lastPlayedMode, instrument, setInstrument };
+  return { play, playVariant, stop, playChord, isPlaying, isLoadingSamples, playedNotes, playingChordIndex, lastPlayedMode, instrument, setInstrument };
 }

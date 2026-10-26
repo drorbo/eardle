@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useDailyPuzzle } from "@/hooks/useDailyPuzzle";
 import { useAudio } from "@/hooks/useAudio";
 import { PlayButton } from "@/components/exercise/PlayButton";
@@ -11,6 +11,8 @@ import { ProgressionStaff } from "@/components/exercise/ProgressionStaff";
 import { StatsModal } from "@/components/daily/StatsModal";
 import { InfoTooltip } from "@/components/ui/InfoTooltip";
 import { addSemitones } from "@/lib/audio/theory";
+import { getOrCreateGuestToken } from "@/lib/guestSession";
+import type { ChoiceVariants } from "@/lib/exercises/choiceVariants";
 import { audioEngine } from "@/lib/audio/engine";
 import { DAILY_INFO_TEXT, DAILY_WON_LINES, DAILY_LOST_LINES } from "@/lib/daily/config";
 import { buildDailyShareText } from "@/lib/daily/share";
@@ -19,9 +21,11 @@ import type { Exercise, ProgressionConfig } from "@/types/exercise";
 
 export function DailyPuzzlePlayer() {
   const { state, submitGuess, sessionToken } = useDailyPuzzle();
-  const { play, isPlaying, playedNotes } = useAudio();
+  const { play, playVariant, isPlaying, playedNotes } = useAudio();
   const [statsOpen, setStatsOpen] = useState(false);
   const prevStatusRef = useRef<string | null>(null);
+  const [variants, setVariants] = useState<ChoiceVariants | null>(null);
+  const [previewing, setPreviewing] = useState<string | null>(null);
 
   useEffect(() => {
     audioEngine?.warm();
@@ -47,6 +51,28 @@ export function DailyPuzzlePlayer() {
     }
     prevStatusRef.current = state.status;
   }, [state]);
+
+  // Post-finish "tap an option to hear it": the sounds for every choice are only fetched once the
+  // puzzle is over (the server refuses earlier), so they can't leak the answer mid-game.
+  const finishedNow = state.phase === "ready" && (state.status === "won" || state.status === "lost");
+  useEffect(() => {
+    if (!finishedNow || variants) return;
+    const token = getOrCreateGuestToken();
+    fetch(`/api/daily/variants?token=${encodeURIComponent(token)}`)
+      .then((r) => (r.ok ? r.json() : null))
+      .then((data) => data?.variants && setVariants(data.variants))
+      .catch(() => {});
+  }, [finishedNow, variants]);
+
+  const handlePreview = useCallback(
+    (choice: string) => {
+      const variant = variants?.[choice];
+      if (!variant || state.phase !== "ready") return;
+      setPreviewing(choice);
+      playVariant(state.exercise as unknown as Exercise, variant as never, 3, state.performanceParams);
+    },
+    [variants, state, playVariant]
+  );
 
   // Picked once per completed status (not on every render/guess) so it doesn't
   // shuffle underneath the user while they're looking at it.
@@ -130,12 +156,19 @@ export function DailyPuzzlePlayer() {
         </p>
       )}
 
+      {finished && variants && (
+        <p className="text-xs text-text-subtle uppercase tracking-wide -mb-3">Tap any option to hear it</p>
+      )}
+
       <ChoiceGrid
         choices={state.exercise.choices}
         answer={finished ? state.exercise.answer : undefined}
         triedWrong={state.guesses}
         disabled={finished || state.submitting}
         onSelect={submitGuess}
+        onPreview={finished && variants ? handlePreview : undefined}
+        previewable={variants ? Object.keys(variants) : undefined}
+        previewing={isPlaying ? previewing : null}
         cols={cols}
       />
 
