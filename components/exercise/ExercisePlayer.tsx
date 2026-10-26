@@ -8,6 +8,7 @@ import { useAudio } from "@/hooks/useAudio";
 import { useExercise } from "@/hooks/useExercise";
 import { PlayButton } from "./PlayButton";
 import { ChoiceGrid } from "./ChoiceGrid";
+import { TypedAnswer } from "./TypedAnswer";
 import { FeedbackBanner } from "./FeedbackBanner";
 import { ChordStaff } from "./ChordStaff";
 import { IntervalStaff } from "./IntervalStaff";
@@ -23,6 +24,8 @@ interface ExercisePlayerProps {
   initialStreak?: number;
   isPracticeMode?: boolean;
   choiceVariants?: ChoiceVariants;
+  // Every answer label in this category — the typed-answer matcher resolves against it.
+  answerVocabulary?: string[];
 }
 
 const PLAY_MODES: Array<{ id: UiPlayMode; label: string; icon: string }> = [
@@ -40,7 +43,7 @@ const SPEED_LEVELS: Array<{ level: number; label: string; icon: string }> = [
   { level: 5, label: "Very Fast", icon: "5" },
 ];
 
-export function ExercisePlayer({ exercise, nextHref, sessionToken, onAnswered, initialStreak = 0, isPracticeMode, choiceVariants }: ExercisePlayerProps) {
+export function ExercisePlayer({ exercise, nextHref, sessionToken, onAnswered, initialStreak = 0, isPracticeMode, choiceVariants, answerVocabulary }: ExercisePlayerProps) {
   const { play, playVariant, stop, playChord, isPlaying, isLoadingSamples, playedNotes, playingChordIndex, lastPlayedMode, instrument, setInstrument } = useAudio();
   const { state, onPlay, onAudioDone, onSelect, onReset } = useExercise(exercise);
   const prevIdRef = useRef(exercise.id);
@@ -79,6 +82,22 @@ export function ExercisePlayer({ exercise, nextHref, sessionToken, onAnswered, i
     } catch { /* SSR */ }
     return 3;
   });
+
+  // Free-text answering: practice mode only, any difficulty. Remembered per browser.
+  const typedEligible = !!isPracticeMode && !!answerVocabulary?.length;
+  const [answerMode, setAnswerMode] = useState<"buttons" | "type">(() => {
+    try {
+      return localStorage.getItem("eardle-answer-mode") === "type" ? "type" : "buttons";
+    } catch {
+      return "buttons";
+    }
+  });
+  const typedActive = typedEligible && answerMode === "type";
+
+  function chooseAnswerMode(mode: "buttons" | "type") {
+    setAnswerMode(mode);
+    try { localStorage.setItem("eardle-answer-mode", mode); } catch { /* ignore */ }
+  }
 
   const handlePlay = useCallback(async (chordMode: ChordPlayMode = "harmonic") => {
     // Deliberately allowed to fire again mid-playback — play() stops and
@@ -150,13 +169,13 @@ export function ExercisePlayer({ exercise, nextHref, sessionToken, onAnswered, i
       }
       const num = parseInt(e.key);
       if (num >= 1 && num <= exercise.choices.length) {
-        if (state.phase === "ready" || state.phase === "playing") handleSelect(exercise.choices[num - 1]);
+        if ((state.phase === "ready" || state.phase === "playing") && !typedActive) handleSelect(exercise.choices[num - 1]);
         else if (state.phase === "answered") handlePreview(exercise.choices[num - 1]);
       }
     }
     window.addEventListener("keydown", handleKey);
     return () => window.removeEventListener("keydown", handleKey);
-  }, [state.phase, handlePlay, handleSelect, handlePreview, exercise.choices, nextHref, router]);
+  }, [state.phase, typedActive, handlePlay, handleSelect, handlePreview, exercise.choices, nextHref, router]);
 
   const isAnswered = state.phase === "answered";
   const choicesDisabled = state.phase === "idle";
@@ -351,10 +370,40 @@ export function ExercisePlayer({ exercise, nextHref, sessionToken, onAnswered, i
           </div>
         )}
 
+        {typedEligible && !isAnswered && (
+          <div className="flex gap-1 bg-surface/80 border border-border-subtle rounded-xl p-1" role="group" aria-label="Answer style">
+            {(["buttons", "type"] as const).map((mode) => (
+              <button
+                key={mode}
+                type="button"
+                onClick={() => chooseAnswerMode(mode)}
+                aria-pressed={answerMode === mode}
+                className={`px-3 py-1.5 rounded-lg text-xs font-semibold transition ${
+                  answerMode === mode ? "bg-violet-600 text-white" : "text-text-muted hover:text-text hover:bg-surface-2"
+                }`}
+              >
+                {mode === "buttons" ? "🔘 Buttons" : "⌨️ Type"}
+              </button>
+            ))}
+          </div>
+        )}
+
+        {typedActive && !isAnswered && answerVocabulary && (
+          <TypedAnswer
+            key={exercise.id}
+            category={exercise.category}
+            vocabulary={answerVocabulary}
+            disabled={choicesDisabled}
+            focusWhenReady={state.phase === "ready" && window.matchMedia("(pointer: fine)").matches}
+            onSubmit={handleSelect}
+          />
+        )}
+
         {isAnswered && choiceVariants && (
           <p className="text-xs text-text-subtle uppercase tracking-wide -mb-2 sm:-mb-4">Tap any option to hear it</p>
         )}
 
+        {!(typedActive && !isAnswered) && (
         <ChoiceGrid
           choices={exercise.choices}
           onPreview={isAnswered && choiceVariants ? handlePreview : undefined}
@@ -372,6 +421,7 @@ export function ExercisePlayer({ exercise, nextHref, sessionToken, onAnswered, i
             2
           }
         />
+        )}
 
         {isAnswered && (
           <FeedbackBanner

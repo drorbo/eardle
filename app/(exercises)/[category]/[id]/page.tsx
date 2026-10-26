@@ -88,6 +88,13 @@ export default async function ExercisePage({ params, searchParams }: Props) {
   // Sounds for every choice, used by the post-answer "tap an option to hear it" compare feature.
   const choiceVariants = await getChoiceVariants(exercise);
 
+  // Free-text answering (practice mode, every difficulty): the matcher resolves against the whole category's
+  // answers — a bigger set than this exercise's choices, so it can't hint at the right one.
+  const answerVocabulary =
+    mode === "practice"
+      ? (await db.selectDistinct({ answer: exercisesTable.answer }).from(exercisesTable).where(eq(exercisesTable.category, exercise.category))).map((r) => r.answer)
+      : undefined;
+
   return (
     <div className="min-h-screen bg-bg text-text">
       <div className="max-w-2xl mx-auto px-4 py-6 sm:py-16">
@@ -122,7 +129,7 @@ export default async function ExercisePage({ params, searchParams }: Props) {
         {lessonId && cycleJustCompleted && <PracticeCompletionTracker lessonId={Number(lessonId)} />}
 
         <ExerciseErrorBoundary>
-          <ExercisePlayerWrapper exercise={exercise} nextHref={nextHref} isPracticeMode={mode === "practice"} choiceVariants={choiceVariants} />
+          <ExercisePlayerWrapper exercise={exercise} nextHref={nextHref} isPracticeMode={mode === "practice"} choiceVariants={choiceVariants} answerVocabulary={answerVocabulary} />
         </ExerciseErrorBoundary>
       </div>
     </div>

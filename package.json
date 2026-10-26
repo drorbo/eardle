@@ -8,6 +8,7 @@
     "start": "npx tsx scripts/migrate.ts && npx tsx scripts/init-db.ts && next start",
     "lint": "eslint",
     "test:variants": "tsx --test lib/exercises/choiceVariants.test.ts",
+    "test:answers": "tsx --test lib/answers/normalize.test.ts",
     "test:sso": "tsx --test lib/jamGymSso.test.ts",
     "test:google-account": "tsx --test lib/googleAccount.test.ts"
   },

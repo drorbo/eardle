@@ -12,6 +12,7 @@ interface Props {
   nextHref?: string;
   isPracticeMode?: boolean;
   choiceVariants?: ChoiceVariants;
+  answerVocabulary?: string[];
 }
 
 function shuffle<T>(arr: T[]): T[] {
@@ -30,7 +31,7 @@ function resolveChoices(exercise: Exercise): string[] {
   return shuffle(exercise.choices);
 }
 
-export function ExercisePlayerWrapper({ exercise, nextHref, isPracticeMode, choiceVariants }: Props) {
+export function ExercisePlayerWrapper({ exercise, nextHref, isPracticeMode, choiceVariants, answerVocabulary }: Props) {
   const [sessionToken, setSessionToken] = useState("");
   const [resolvedExercise, setResolvedExercise] = useState<Exercise>(exercise);
   const [initialStreak, setInitialStreak] = useState(0);
@@ -83,6 +84,7 @@ export function ExercisePlayerWrapper({ exercise, nextHref, isPracticeMode, choi
       initialStreak={initialStreak}
       isPracticeMode={isPracticeMode}
       choiceVariants={choiceVariants}
+      answerVocabulary={answerVocabulary}
     />
   );
 }
