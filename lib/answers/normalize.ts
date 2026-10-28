@@ -134,16 +134,71 @@ function suggest(index: Index, text: string): string | undefined {
 const POSITION_NAMES: Record<string, string> = { root: "Root Position", "1": "1st Inversion", "2": "2nd Inversion", "3": "3rd Inversion" };
 const ORDINAL_DIGIT: Record<string, string> = { "1st": "1", first: "1", "2nd": "2", second: "2", "3rd": "3", third: "3" };
 
-/** "<quality> - <position>" typed loosely: "dom7 1st inv", "maj7 root position", "major second inversion". */
-function resolveInversion(index: Index, text: string): string | undefined {
-  const m = text.trim().match(/^(.*?)[\s,\-/]*(?:(root)(?:\s*(?:position|pos))?|(1st|2nd|3rd|first|second|third|[0-3])\s*(?:inversion|inv|position|pos)\.?)$/i);
-  if (!m || !m[1].trim()) return undefined;
-  const position = m[2] ? "root" : (ORDINAL_DIGIT[m[3].toLowerCase()] ?? m[3]);
-  const quality = resolveByKey(index, m[1], false);
-  if (!quality || !POSITION_NAMES[position]) return undefined;
+const ORDINAL_POS = "1st|2nd|3rd|first|second|third|[0-3]";
+const NOTE_PC: Record<string, number> = { c: 0, d: 2, e: 4, f: 5, g: 7, a: 9, b: 11 };
+// Chord tones (semitones above the root) of the qualities that have inversion exercises
+const CHORD_TONES: Record<string, number[]> = {
+  Major: [0, 4, 7], Minor: [0, 3, 7], "Dominant 7th": [0, 4, 7, 10], "Major 7th": [0, 4, 7, 11], "Minor 7th": [0, 3, 7, 10],
+};
+// "7/3" = bass is the chord's 3rd = 1st inversion
+const BASS_DEGREE_POS: Record<string, string> = { "1": "root", "3": "1", b3: "1", "5": "2", "7": "3", b7: "3" };
+
+function pitchClass(note: string): number {
+  let v = NOTE_PC[note[0].toLowerCase()];
+  for (const ch of note.slice(1)) v += ch === "#" ? 1 : -1;
+  return (v + 12) % 12;
+}
+
+function positionLabel(index: Index, quality: string, position: string): string | undefined {
+  if (!POSITION_NAMES[position]) return undefined;
   const candidate = `${quality} - ${POSITION_NAMES[position]}`;
   // Triads have no "Root Position" exercise of their own, but it is still a real choice there
   return index.vocab.has(candidate) || (position === "root" && index.vocab.has(quality)) ? candidate : undefined;
+}
+
+/**
+ * "<quality> - <position>" typed loosely. Accepted position styles after the chord quality:
+ *  "dom7 1st inv", "maj7 root position", "7 inv2", "m7 3", "maj7 first", "7 r"   (position words / number)
+ *  "7/3", "m7/b3", "maj7/5", "7/7"                                               (slash + bass degree)
+ *  "C/E", "G7/B", "Dm7/F", "Cmaj7/B"                                              (slash chord: bass note)
+ */
+function resolveInversion(index: Index, text: string): string | undefined {
+  const t = prep(text).replace(/\s+/g, " ").trim();
+
+  const slash = t.match(/^(.*?)\s*\/\s*([A-Ga-g][#b]?|b?[1-7])$/);
+  if (slash && slash[1]) {
+    const [, left, bass] = slash;
+    if (/^[A-Ga-g][#b]?$/.test(bass)) {
+      const m = left.match(/^([A-Ga-g][#b]?)\s*(.*)$/);
+      if (!m) return undefined;
+      const quality = m[2] ? resolveByKey(index, m[2], false) : "Major";
+      const tones = quality && CHORD_TONES[quality];
+      if (!tones) return undefined;
+      const at = tones.indexOf((pitchClass(bass) - pitchClass(m[1]) + 12) % 12);
+      return at < 0 ? undefined : positionLabel(index, quality, at === 0 ? "root" : String(at));
+    }
+    const position = BASS_DEGREE_POS[bass];
+    const quality = position && resolveByKey(index, left, true);
+    return quality ? positionLabel(index, quality, position) : undefined;
+  }
+
+  const forms: Array<[RegExp, (m: RegExpMatchArray) => string]> = [
+    [/^(.*?)[\s,\-]*(?:inversion|inv|position|pos)\.?\s*(1st|2nd|3rd|first|second|third|[0-3])$/i, (m) => m[2]],
+    [new RegExp(String.raw`^(.*?)[\s,\-]*(${ORDINAL_POS})\s*(?:inversion|inv|position|pos)\.?$`, "i"), (m) => m[2]],
+    [/^(.*?)[\s,\-]*(root)(?:\s*(?:position|pos))?$/i, () => "root"],
+    [/^(.*?)[\s,]+r$/i, () => "root"],
+    [new RegExp(String.raw`^(.*?)[\s,]+(${ORDINAL_POS})$`, "i"), (m) => m[2]],
+  ];
+  for (const [re, pick] of forms) {
+    const m = t.match(re);
+    if (!m || !m[1].trim()) continue;
+    const raw = pick(m).toLowerCase();
+    const position = raw === "root" ? "root" : (ORDINAL_DIGIT[raw] ?? raw);
+    const quality = resolveByKey(index, m[1], true);
+    const hit = quality && positionLabel(index, quality, position === "0" ? "root" : position);
+    if (hit) return hit;
+  }
+  return undefined;
 }
 
 /** Exact key lookup, then (chords/scales) again with a leading root note such as "C", "Bb" or "F#" removed. */
@@ -204,6 +259,10 @@ function resolveProgression(vocabulary: string[], text: string): Resolution {
 export function resolveAnswer(category: Category, text: string, vocabulary: string[]): Resolution {
   if (!text.trim()) return { kind: "none" };
   if (category === "progression") return resolveProgression(vocabulary, text);
+
+  // A bare lowercase alteration ("b9", "#9b13", "b5") is shorthand for a dominant chord, not a root: "b9" means 7b9.
+  // Uppercase "B9" still reads as a B root.
+  if (category === "chord" && /^[b#♭♯](?:5|9|11|13)/.test(text.trim())) text = `7${text.trim()}`;
 
   const index = buildIndex(category, vocabulary);
   const allowRoot = category === "chord" || category === "scale";

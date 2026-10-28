@@ -13,6 +13,33 @@ const EXAMPLE: Record<Category, string> = {
   scale: "Dorian",
 };
 
+// Category-specific cheat sheet shown behind the "?" button: [what to type, what it means]
+const HELP: Record<Category, Array<[string, string]>> = {
+  note: [["c, C#, db, e flat, g sharp", "flats and sharps both work"]],
+  interval: [
+    ["m3, M3, P4, P5, P8", "m = minor, M = major, P = perfect"],
+    ["b3, b7, b9, #4, tt", "flat/sharp shorthand, tt = tritone"],
+    ["minor third, perfect fifth", "full names work too"],
+  ],
+  chord: [
+    ["maj7, M7, Δ7, m7, -7, 7, dim, ø, aug", "M = major, m = minor"],
+    ["Cmaj7, Bb7, Dm7", "a root note in front is ignored"],
+    ["b9, #9b13, 7b9, 9#11, sus4, 6/9", "a lone b or # in front means a 7 chord: b9 = 7♭9"],
+    ["dom7 1st inv, 7 inv2, maj7 root", "inversions: 1st / 2nd / 3rd, or 1 / 2 / 3"],
+    ["7/3, m7/b3, G7/B, C/E", "slash chords: the bass note picks the inversion"],
+  ],
+  progression: [
+    ["ii V I, ii-V-I, ii > V > I", "any separator works"],
+    ["I IV V, i iv v", "upper/lower case is forgiven when only one progression fits"],
+    ["bVI, ♭VII, Imaj7, IM7, iim7b5", "flats and chord extensions as shown on the buttons"],
+  ],
+  scale: [
+    ["dorian, D dorian, lydian b7", "a root note in front is ignored"],
+    ["ionian, aeolian, natural minor", "mode names and other common names"],
+    ["whole tone, half whole, super locrian", "spaces and dashes don't matter"],
+  ],
+};
+
 interface TypedAnswerProps {
   category: Category;
   vocabulary: string[];
@@ -25,6 +52,7 @@ interface TypedAnswerProps {
 
 export function TypedAnswer({ category, vocabulary, disabled, focusWhenReady, onSubmit }: TypedAnswerProps) {
   const [text, setText] = useState("");
+  const [helpOpen, setHelpOpen] = useState(false);
   const inputRef = useRef<HTMLInputElement>(null);
   const resolution = useMemo(() => resolveAnswer(category, text, vocabulary), [category, text, vocabulary]);
 
@@ -41,7 +69,12 @@ export function TypedAnswer({ category, vocabulary, disabled, focusWhenReady, on
   }
 
   return (
-    <form onSubmit={submit} className="w-full max-w-lg flex flex-col gap-2">
+    <form
+      onSubmit={submit}
+      onKeyDown={(e) => { if (e.key === "Escape" && helpOpen) setHelpOpen(false); }}
+      className="w-full max-w-lg flex flex-col gap-2"
+    >
+      <div className="flex items-start justify-between gap-2">
       {/* Above the input (not below) so the on-screen keyboard never hides it; height is reserved so nothing jumps. */}
       <div id="typed-answer-chip" aria-live="polite" className="min-h-[28px] text-sm">
         {text.trim() && resolution.kind === "match" && (
@@ -58,6 +91,38 @@ export function TypedAnswer({ category, vocabulary, disabled, focusWhenReady, on
           <span className="text-text-subtle">Not sure what that is — try e.g. “{EXAMPLE[category]}”</span>
         )}
       </div>
+        <button
+          type="button"
+          onClick={() => setHelpOpen((o) => !o)}
+          aria-expanded={helpOpen}
+          aria-controls="typed-answer-help"
+          aria-label="How typing answers works"
+          className={clsx(
+            "shrink-0 inline-flex items-center justify-center w-7 h-7 rounded-full border text-sm font-semibold transition",
+            "focus:outline-none focus-visible:ring-2 focus-visible:ring-indigo-400",
+            helpOpen ? "bg-indigo-600 border-indigo-600 text-white" : "border-border bg-surface-2 text-text-subtle hover:text-text"
+          )}
+        >
+          ?
+        </button>
+      </div>
+      {helpOpen && (
+        <div id="typed-answer-help" className="rounded-lg border border-border bg-surface-2 p-3 text-sm text-text flex flex-col gap-2">
+          <p className="font-semibold">Type it your way — it understands shorthand</p>
+          <ul className="flex flex-col gap-1.5">
+            {HELP[category].map(([typed, note]) => (
+              <li key={typed}>
+                <code className="rounded bg-surface px-1.5 py-0.5 text-[13px]">{typed}</code>
+                <span className="block text-text-subtle">{note}</span>
+              </li>
+            ))}
+          </ul>
+          <p className="text-text-subtle">
+            The green chip shows what it understood. A small typo gets “Did you mean…?” — press Enter to accept.
+            Anything it can’t read is never counted as a wrong answer.
+          </p>
+        </div>
+      )}
       <div className="flex gap-2">
         <input
           ref={inputRef}

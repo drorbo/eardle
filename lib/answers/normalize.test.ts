@@ -55,7 +55,9 @@ test("chord shorthand", () => {
     "7#9": "7♯9", "dom7#9": "7♯9", "7b9": "7♭9", "7b9b13": "7♭9♭13", "9": "Dominant 9th", "13": "Dominant 13th", "9#11": "Dominant 9th #11",
     m9: "Minor 9th", M9: "Major 9th", maj9: "Major 9th", "6": "Major 6th", m6: "Minor 6th", "6/9": "Major 6/9", mM7: "Minor-Major 7th",
     "m(maj7)": "Minor-Major 7th", "maj7#5": "Augmented Major 7th", sus: "Sus4", add2: "Major add2", "7b5": "Dominant 7th ♭5",
-    "7#5": "Augmented 7th", "major triad": "Major", m: "Minor", M: "Major", "dominant seventh": "Dominant 7th",
+    "7#5": "Augmented 7th", b9: "7♭9", "#9": "7♯9", b13: "7♭13", "b9b13": "7♭9♭13", "#9b13": "7♯9♭13", "b9#11": "7♭9♯11", "#9#11": "7♯9♯11",
+    "♭9": "7♭9", "#11": "Dominant 7th #11", b5: "Dominant 7th ♭5", "#5": "Augmented 7th", B9: "Dominant 9th", "Bb9": "Dominant 9th",
+    "major triad": "Major", m: "Minor", M: "Major", "dominant seventh": "Dominant 7th",
   };
   for (const [typed, want] of Object.entries(cases)) assert.equal(label("chord", typed), `match:${want}`, typed);
 });
@@ -75,8 +77,27 @@ test("chord inversions", () => {
     "min7 3rd inversion": "Minor 7th - 3rd Inversion",
     "major second inversion": "Major - 2nd Inversion",
     "m 1st inv": "Minor - 1st Inversion",
+    // number / word styles
+    "7 inv2": "Dominant 7th - 2nd Inversion", "dom7 inv 3": "Dominant 7th - 3rd Inversion", "m7 3": "Minor 7th - 3rd Inversion",
+    "maj7 first": "Major 7th - 1st Inversion", "maj7 1": "Major 7th - 1st Inversion", "7 r": "Dominant 7th - Root Position",
+    "maj7 root": "Major 7th - Root Position", "m 2": "Minor - 2nd Inversion", "major 1": "Major - 1st Inversion",
+    "Cmaj7 2nd inv": "Major 7th - 2nd Inversion", "m7 1st inversion": "Minor 7th - 1st Inversion",
+    // slash + bass degree
+    "7/3": "Dominant 7th - 1st Inversion", "m7/b3": "Minor 7th - 1st Inversion", "maj7/5": "Major 7th - 2nd Inversion",
+    "7/7": "Dominant 7th - 3rd Inversion", "m7/b7": "Minor 7th - 3rd Inversion", "maj7/7": "Major 7th - 3rd Inversion",
+    "m/5": "Minor - 2nd Inversion", "maj/3": "Major - 1st Inversion",
+    // slash chords with a bass note
+    "C/E": "Major - 1st Inversion", "C/G": "Major - 2nd Inversion", "Cm/Eb": "Minor - 1st Inversion", "Am/E": "Minor - 2nd Inversion",
+    "G7/B": "Dominant 7th - 1st Inversion", "G7/D": "Dominant 7th - 2nd Inversion", "G7/F": "Dominant 7th - 3rd Inversion",
+    "Dm7/F": "Minor 7th - 1st Inversion", "Cmaj7/B": "Major 7th - 3rd Inversion", "Cmaj7/C": "Major 7th - Root Position",
   };
   for (const [typed, want] of Object.entries(cases)) assert.equal(label("chord", typed), `match:${want}`, typed);
+});
+
+test("inversion shorthand that doesn't fit is not guessed", () => {
+  assert.equal(label("chord", "C/D"), null);
+  assert.equal(label("chord", "m 3"), null);
+  assert.equal(label("chord", "7/9"), null);
 });
 
 test("scales", () => {
