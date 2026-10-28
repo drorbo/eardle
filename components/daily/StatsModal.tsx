@@ -5,6 +5,7 @@ import Link from "next/link";
 import { Modal } from "@/components/ui/Modal";
 import { GuessDistributionChart } from "./GuessDistributionChart";
 import { ConfettiBurst } from "./ConfettiBurst";
+import { SurpriseBloom } from "./SurpriseBloom";
 
 interface PersonalStats {
   gamesPlayed: number;
@@ -34,6 +35,7 @@ interface Props {
   // Pre-built Wordle-style share text, only present once today's attempt is
   // finished (mirrors todaysResult's own gating).
   shareText?: string | null;
+  surprise?: boolean;
 }
 
 function StatTile({ label, value }: { label: string; value: number }) {
@@ -45,7 +47,7 @@ function StatTile({ label, value }: { label: string; value: number }) {
   );
 }
 
-export function StatsModal({ open, onClose, sessionToken, todaysResult, funnyLine, shareText }: Props) {
+export function StatsModal({ open, onClose, sessionToken, todaysResult, funnyLine, shareText, surprise }: Props) {
   const [tab, setTab] = useState<"personal" | "community">("personal");
   const [personal, setPersonal] = useState<PersonalStats | null>(null);
   const [community, setCommunity] = useState<CommunityStats | null>(null);
@@ -113,6 +115,11 @@ export function StatsModal({ open, onClose, sessionToken, todaysResult, funnyLin
       }
     >
       {todaysResult?.status === "won" && <ConfettiBurst />}
+      {surprise && (
+        <div className="flex justify-center mb-4">
+          <SurpriseBloom compact />
+        </div>
+      )}
       {funnyLine && (
         <p className="text-center text-text-muted text-sm italic mb-4">{funnyLine}</p>
       )}

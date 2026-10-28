@@ -28,6 +28,7 @@ interface TodayResponse {
   guesses: string[];
   performanceParams: PerformanceParams;
   exercise: DailyExercisePayload;
+  surprise?: boolean;
 }
 
 type DailyState =
@@ -43,6 +44,7 @@ type DailyState =
       guesses: string[];
       performanceParams: PerformanceParams;
       exercise: DailyExercisePayload;
+      surprise: boolean;
       submitting: boolean;
     };
 
@@ -50,7 +52,7 @@ type DailyAction =
   | { type: "LOADED"; payload: TodayResponse }
   | { type: "ERROR"; message: string }
   | { type: "SUBMITTING" }
-  | { type: "GUESS_RESULT"; payload: { status: DailyStatus; guesses: string[]; exercise?: DailyExercisePayload } }
+  | { type: "GUESS_RESULT"; payload: { status: DailyStatus; guesses: string[]; exercise?: DailyExercisePayload; surprise?: boolean } }
   | { type: "GUESS_FAILED" };
 
 function reducer(state: DailyState, action: DailyAction): DailyState {
@@ -66,6 +68,7 @@ function reducer(state: DailyState, action: DailyAction): DailyState {
         guesses: action.payload.guesses,
         performanceParams: action.payload.performanceParams,
         exercise: action.payload.exercise,
+        surprise: !!action.payload.surprise,
         submitting: false,
       };
     case "ERROR":
@@ -79,6 +82,7 @@ function reducer(state: DailyState, action: DailyAction): DailyState {
         status: action.payload.status,
         guesses: action.payload.guesses,
         exercise: action.payload.exercise ?? state.exercise,
+        surprise: state.surprise || !!action.payload.surprise,
         submitting: false,
       };
     case "GUESS_FAILED":

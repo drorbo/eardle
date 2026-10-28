@@ -5,6 +5,7 @@ import { dailyAttempts } from "@/lib/db/schema";
 import { and, eq, isNull } from "drizzle-orm";
 import { getOrCreateDailyPuzzle } from "@/lib/daily/generate";
 import { toDailyPayload, DailyExerciseSnapshot } from "@/lib/daily/sanitize";
+import { isSurpriseUser } from "@/lib/daily/surprise";
 import { MAX_GUESSES, todaysPuzzleDateStr } from "@/lib/daily/config";
 
 export async function GET(req: NextRequest) {
@@ -48,5 +49,6 @@ export async function GET(req: NextRequest) {
     guesses: attempt ? JSON.parse(attempt.guesses) : [],
     performanceParams,
     exercise: toDailyPayload(snapshot, revealed),
+    surprise: isSurpriseUser(userId),
   });
 }

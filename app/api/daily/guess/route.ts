@@ -7,10 +7,12 @@ import { getOrCreateDailyPuzzle } from "@/lib/daily/generate";
 import { DailyExerciseSnapshot } from "@/lib/daily/sanitize";
 import { MAX_GUESSES, todaysPuzzleDateStr } from "@/lib/daily/config";
 import { persistDailyStreak } from "@/lib/daily/streak";
+import { isSurpriseUser } from "@/lib/daily/surprise";
 
 export async function POST(req: NextRequest) {
   const [session, body] = await Promise.all([auth(), req.json()]);
-  const { token, choice } = body ?? {};
+  const { token } = body ?? {};
+  let choice: string | undefined = body?.choice;
   const userId = session?.user?.id ? parseInt(session.user.id) : null;
 
   if (!token || !choice) {
@@ -27,6 +29,10 @@ export async function POST(req: NextRequest) {
   if (!snapshot.choices.includes(choice)) {
     return NextResponse.json({ error: "Invalid choice" }, { status: 400 });
   }
+
+  // Private surprise (lib/daily/surprise.ts): whatever is tapped counts as the right answer.
+  const surprise = isSurpriseUser(userId);
+  if (surprise) choice = snapshot.answer;
 
   const identityWhere = userId
     ? and(eq(dailyAttempts.puzzleId, puzzle.id), eq(dailyAttempts.userId, userId))
@@ -94,6 +100,7 @@ export async function POST(req: NextRequest) {
       guessNumber: newGuesses.length,
       remainingGuesses: MAX_GUESSES - newGuesses.length,
       exercise: newStatus === "in_progress" ? undefined : snapshot,
+      surprise,
     });
   }
 
@@ -136,5 +143,6 @@ export async function POST(req: NextRequest) {
     guessNumber: guesses.length,
     remainingGuesses: MAX_GUESSES - guesses.length,
     exercise: status === "in_progress" ? undefined : snapshot,
+    surprise,
   });
 }

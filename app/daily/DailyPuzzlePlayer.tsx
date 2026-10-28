@@ -9,6 +9,7 @@ import { ChordStaff } from "@/components/exercise/ChordStaff";
 import { ScaleStaff } from "@/components/exercise/ScaleStaff";
 import { ProgressionStaff } from "@/components/exercise/ProgressionStaff";
 import { StatsModal } from "@/components/daily/StatsModal";
+import { SurpriseBloom } from "@/components/daily/SurpriseBloom";
 import { InfoTooltip } from "@/components/ui/InfoTooltip";
 import { addSemitones } from "@/lib/audio/theory";
 import { getOrCreateGuestToken } from "@/lib/guestSession";
@@ -181,6 +182,7 @@ export function DailyPuzzlePlayer() {
               Out of guesses — it was <span className="text-text">{state.exercise.answer}</span>
             </p>
           )}
+          {state.status === "won" && state.surprise && <SurpriseBloom />}
           {funnyLine && <p className="text-text-muted text-sm italic">{funnyLine}</p>}
           {state.exercise.title && <p className="text-text-subtle text-sm">{state.exercise.title}</p>}
           {state.exercise.explanation && (
@@ -228,6 +230,7 @@ export function DailyPuzzlePlayer() {
         sessionToken={sessionToken}
         todaysResult={finished ? { status: state.status as "won" | "lost", finalGuessCount: state.guesses.length } : undefined}
         funnyLine={funnyLine}
+        surprise={state.status === "won" && state.surprise}
         shareText={shareText}
       />
     </div>
